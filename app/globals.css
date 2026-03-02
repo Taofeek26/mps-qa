@@ -1,26 +1,208 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================
+   MPS ENTERPRISE DESIGN TOKENS (Default: Industrial)
+   @theme generates CSS custom properties that
+   .theme-warm can override via cascade.
+   ============================================ */
+
+@theme {
+  --color-gray-*: initial;
+
+  /* --- Fonts --- */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* --- Primary (Trust / Authority) --- */
+  --color-primary-700: #0F2A3D;
+  --color-primary-600: #163A52;
+  --color-primary-500: #1E4F73;
+  --color-primary-400: #2C6A96;
+  --color-primary-300: #4F89B8;
+  --color-primary-200: #7AADE0;
+  --color-primary-100: #D6E8F7;
+  --color-primary-50: #EDF4FB;
+
+  /* --- Secondary (ESG / Responsibility) --- */
+  --color-secondary-600: #1F3F36;
+  --color-secondary-500: #2E5E50;
+  --color-secondary-400: #4A7D6F;
+  --color-secondary-300: #6E9F90;
+
+  /* --- Neutral Scale (Industrial) --- */
+  --color-gray-950: #0E1114;
+  --color-gray-900: #1A1F24;
+  --color-gray-800: #2B3137;
+  --color-gray-700: #3E454C;
+  --color-gray-600: #55606A;
+  --color-gray-500: #6F7C87;
+  --color-gray-400: #95A2AD;
+  --color-gray-300: #C2CBD3;
+  --color-gray-200: #E3E8EC;
+  --color-gray-100: #F2F5F7;
+  --color-gray-50: #F8FAFB;
+
+  /* --- Semantic --- */
+  --color-success-600: #2F6E4F;
+  --color-success-500: #3F8B65;
+  --color-success-400: #58A97F;
+  --color-success-100: #E2F5EB;
+  --color-warning-600: #A1661A;
+  --color-warning-500: #C48124;
+  --color-warning-400: #E1A341;
+  --color-warning-100: #FDF3E0;
+  --color-error-600: #8B2F2F;
+  --color-error-500: #B04141;
+  --color-error-400: #D15B5B;
+  --color-error-100: #FDECEC;
+
+  /* --- Surfaces --- */
+  --color-bg-app: #F8FAFB;
+  --color-bg-card: #FFFFFF;
+  --color-bg-subtle: #F2F5F7;
+  --color-bg-hover: #E3E8EC;
+  --color-bg-elevated: #FFFFFF;
+
+  /* --- Navigation --- */
+  --color-nav-sidebar: #0F2A3D;
+  --color-nav-top: #163A52;
+
+  /* --- Borders --- */
+  --color-border-default: #E3E8EC;
+  --color-border-strong: #C2CBD3;
+  --color-border-focus: #4F89B8;
+
+  /* --- Text --- */
+  --color-text-primary: #1A1F24;
+  --color-text-secondary: #55606A;
+  --color-text-muted: #6F7C87;
+  --color-text-inverse: #FFFFFF;
+
+  /* --- Focus --- */
+  --color-focus-ring: #4F89B8;
+
+  /* --- Radius --- */
+  --radius-sm: 8px;
+  --radius-lg: 16px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ============================================
+   BASE STYLES
+   ============================================ */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-app);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   FOCUS RING UTILITY
+   ============================================ */
+
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-bg-card), 0 0 0 4px var(--color-focus-ring);
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* ============================================
+   THEME: WARM (Notion / Stripe inspired)
+   Activate by wrapping content in .theme-warm
+   ============================================ */
+
+.theme-warm {
+  /* --- Primary (Warm Indigo) --- */
+  --color-primary-700: #312E81;
+  --color-primary-600: #3730A3;
+  --color-primary-500: #4F46E5;
+  --color-primary-400: #6366F1;
+  --color-primary-300: #818CF8;
+  --color-primary-200: #C7D2FE;
+  --color-primary-100: #E0E7FF;
+  --color-primary-50: #EEF2FF;
+
+  /* --- Secondary (Warm Emerald) --- */
+  --color-secondary-600: #065F46;
+  --color-secondary-500: #059669;
+  --color-secondary-400: #34D399;
+  --color-secondary-300: #6EE7B7;
+
+  /* --- Neutral (Warm Stone) --- */
+  --color-gray-950: #0C0A09;
+  --color-gray-900: #1C1917;
+  --color-gray-800: #292524;
+  --color-gray-700: #44403C;
+  --color-gray-600: #57534E;
+  --color-gray-500: #78716C;
+  --color-gray-400: #A8A29E;
+  --color-gray-300: #D6D3D1;
+  --color-gray-200: #E7E5E4;
+  --color-gray-100: #F5F5F4;
+  --color-gray-50: #FAFAF9;
+
+  /* --- Semantic --- */
+  --color-success-600: #15803D;
+  --color-success-500: #16A34A;
+  --color-success-400: #4ADE80;
+  --color-success-100: #DCFCE7;
+  --color-warning-600: #CA8A04;
+  --color-warning-500: #EAB308;
+  --color-warning-400: #FACC15;
+  --color-warning-100: #FEF9C3;
+  --color-error-600: #DC2626;
+  --color-error-500: #EF4444;
+  --color-error-400: #F87171;
+  --color-error-100: #FEE2E2;
+
+  /* --- Surfaces (warm undertone) --- */
+  --color-bg-app: #FAFAF9;
+  --color-bg-card: #FFFFFF;
+  --color-bg-subtle: #F5F5F4;
+  --color-bg-hover: #F5F5F4;
+  --color-bg-elevated: #FFFFFF;
+
+  /* --- Navigation --- */
+  --color-nav-sidebar: #1C1917;
+  --color-nav-top: #292524;
+
+  /* --- Borders (softer) --- */
+  --color-border-default: #E7E5E4;
+  --color-border-strong: #D6D3D1;
+  --color-border-focus: #6366F1;
+
+  /* --- Text (warm) --- */
+  --color-text-primary: #1C1917;
+  --color-text-secondary: #57534E;
+  --color-text-muted: #78716C;
+  --color-text-inverse: #FFFFFF;
+
+  /* --- Focus --- */
+  --color-focus-ring: #6366F1;
+
+  /* --- Radius (slightly softer) --- */
+  --radius-sm: 8px;
+  --radius-lg: 14px;
 }
