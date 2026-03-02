@@ -31,7 +31,7 @@ const PopoverContent = React.forwardRef<
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.15 }}
           className={cn(
-            "z-50 w-72 rounded-[var(--radius-sm)] border border-border-default bg-bg-card p-4 shadow-lg outline-none",
+            "z-50 w-[calc(100vw-2rem)] sm:w-72 rounded-[var(--radius-sm)] border border-border-default bg-bg-card p-4 shadow-lg outline-none",
             className
           )}
         >

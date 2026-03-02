@@ -38,7 +38,7 @@ const DrawerContent = React.forwardRef<
         exit={{ x: side === "right" ? "100%" : "-100%" }}
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
         className={cn(
-          "fixed top-0 z-50 flex h-full w-full max-w-md flex-col bg-bg-card shadow-2xl focus:outline-none",
+          "fixed top-0 z-50 flex h-full w-full sm:max-w-md flex-col bg-bg-card shadow-2xl focus:outline-none",
           side === "right" ? "right-0" : "left-0",
           className
         )}

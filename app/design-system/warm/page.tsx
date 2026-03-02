@@ -90,6 +90,8 @@ import {
   Share2,
   Bell,
   ArrowLeft,
+  Menu,
+  X as XIcon,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -209,10 +211,47 @@ export default function WarmDesignSystemPage() {
   const [date, setDate] = React.useState<Date | undefined>();
   const [page, setPage] = React.useState(3);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   return (
     <div className="theme-warm">
       <div className="flex min-h-screen bg-bg-app">
+        {/* ── Mobile Header ── */}
+        <div className="fixed top-0 left-0 right-0 z-40 lg:hidden">
+          <div className="flex items-center justify-between border-b border-border-default bg-bg-card/95 backdrop-blur-sm px-4 py-3">
+            <Image src="/logo.png" alt="MPS" width={64} height={22} priority />
+            <button
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-text-muted hover:text-text-primary hover:bg-gray-100 transition-colors"
+              aria-label="Toggle navigation"
+            >
+              {mobileNavOpen ? <XIcon className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+          </div>
+          {mobileNavOpen && (
+            <nav className="border-b border-border-default bg-bg-card/95 backdrop-blur-sm px-4 pb-3 pt-1">
+              <div className="flex flex-wrap gap-1.5">
+                {NAV_ITEMS.map((item) => (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    onClick={() => setMobileNavOpen(false)}
+                    className="px-3 py-1.5 text-[13px] text-text-secondary rounded-full border border-border-default hover:bg-gray-100 hover:text-text-primary transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+              <Link
+                href="/design-system"
+                className="mt-2 flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
+              >
+                <ArrowLeft className="h-3 w-3" /> Industrial Theme
+              </Link>
+            </nav>
+          )}
+        </div>
+
         {/* ── Sidebar ── */}
         <aside className="hidden lg:flex flex-col w-52 shrink-0 border-r border-border-default bg-bg-card sticky top-0 h-screen">
           <div className="p-5 border-b border-border-default">
@@ -242,9 +281,9 @@ export default function WarmDesignSystemPage() {
         </aside>
 
         {/* ── Main ── */}
-        <main className="flex-1 max-w-4xl mx-auto px-6 sm:px-10">
+        <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-14 lg:pt-0">
           {/* Hero */}
-          <div className="pt-12 pb-8 border-b border-border-default">
+          <div className="pt-6 sm:pt-8 lg:pt-12 pb-6 sm:pb-8 border-b border-border-default">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -269,7 +308,7 @@ export default function WarmDesignSystemPage() {
           {/* ──────────── COLORS ──────────── */}
           <Section id="colors" title="Color Palette" description="Warm indigo primary, stone neutrals, vibrant semantics.">
             <Sub title="Primary (Warm Indigo)">
-              <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
                 <Swatch label="50" hex="#EEF2FF" className="bg-primary-50" />
                 <Swatch label="100" hex="#E0E7FF" className="bg-primary-100" />
                 <Swatch label="200" hex="#C7D2FE" className="bg-primary-200" />
@@ -282,7 +321,7 @@ export default function WarmDesignSystemPage() {
             </Sub>
 
             <Sub title="Secondary (Warm Emerald)">
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <Swatch label="300" hex="#6EE7B7" className="bg-secondary-300" />
                 <Swatch label="400" hex="#34D399" className="bg-secondary-400" />
                 <Swatch label="500" hex="#059669" className="bg-secondary-500" />
@@ -291,7 +330,7 @@ export default function WarmDesignSystemPage() {
             </Sub>
 
             <Sub title="Neutral (Warm Stone)">
-              <div className="grid grid-cols-6 sm:grid-cols-11 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-11 gap-2">
                 <Swatch label="50" hex="#FAFAF9" className="bg-gray-50" />
                 <Swatch label="100" hex="#F5F5F4" className="bg-gray-100" />
                 <Swatch label="200" hex="#E7E5E4" className="bg-gray-200" />
@@ -307,7 +346,7 @@ export default function WarmDesignSystemPage() {
             </Sub>
 
             <Sub title="Semantic">
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-success-600">Success</p>
                   <div className="grid grid-cols-2 gap-2">
@@ -351,7 +390,7 @@ export default function WarmDesignSystemPage() {
                   ["Small", "Helper text, captions, and labels", "text-xs text-text-muted", "12px / 400"],
                   ["Mono", "SHP-2024-001 | 1,250.00", "text-sm font-mono", "14px / mono"],
                 ].map(([label, example, cls, spec]) => (
-                  <div key={label} className="flex items-baseline justify-between gap-6 pb-4 border-b border-border-default last:border-0 last:pb-0">
+                  <div key={label} className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-6 pb-4 border-b border-border-default last:border-0 last:pb-0">
                     <div className="flex items-baseline gap-4 min-w-0">
                       <span className="text-[11px] font-semibold text-text-muted w-10 shrink-0">{label}</span>
                       <span className={cls}>{example}</span>
@@ -365,7 +404,7 @@ export default function WarmDesignSystemPage() {
 
           {/* ──────────── SPACING ──────────── */}
           <Section id="spacing" title="Spacing & Radius" description="8pt grid system with two radius tiers.">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <DemoBox>
                 <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4">Spacing Scale</h3>
                 <div className="flex items-end gap-3">
@@ -456,7 +495,7 @@ export default function WarmDesignSystemPage() {
 
           {/* ──────────── CARDS ──────────── */}
           <Section id="cards" title="Cards & Panels" description="Content containers with three visual tiers." alt>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card variant="default">
                 <CardHeader>
                   <CardTitle>Default</CardTitle>
@@ -513,7 +552,7 @@ export default function WarmDesignSystemPage() {
 
           {/* ──────────── FORMS ──────────── */}
           <Section id="forms" title="Form Inputs" description="All form controls with validation states." alt>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
               <DemoBox className="space-y-5">
                 <Sub title="Text Input">
                   <div className="space-y-3">
@@ -648,7 +687,7 @@ export default function WarmDesignSystemPage() {
                 </DemoBox>
               </Sub>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <DemoBox>
                   <Sub title="Progress Bar">
                     <div className="space-y-4">
@@ -707,7 +746,7 @@ export default function WarmDesignSystemPage() {
 
           {/* ──────────── OVERLAYS ──────────── */}
           <Section id="overlays" title="Overlays" description="Dialogs, drawers, tooltips, popovers, and menus." alt>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
               <DemoBox className="space-y-5">
                 <Sub title="Dialog">
                   <Dialog>

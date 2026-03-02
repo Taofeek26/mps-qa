@@ -62,7 +62,7 @@ function MpsToast({
   const Icon = v.icon;
 
   return (
-    <div className="relative flex w-[356px] overflow-hidden rounded-[var(--radius-sm)] border border-border-default bg-bg-card shadow-xl">
+    <div className="relative flex w-[calc(100vw-2rem)] sm:w-[356px] overflow-hidden rounded-[var(--radius-sm)] border border-border-default bg-bg-card shadow-xl">
       {/* Accent strip */}
       <div className={`w-1 shrink-0 ${v.accent}`} />
 
