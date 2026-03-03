@@ -241,12 +241,20 @@ export default function DesignSystemPage() {
                 </a>
               ))}
             </div>
-            <Link
-              href="/design-system/warm"
-              className="mt-2 flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
-            >
-              Warm Theme <ArrowRight className="h-3 w-3" />
-            </Link>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              <Link
+                href="/design-system/warm"
+                className="flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
+              >
+                Warm Theme <ArrowRight className="h-3 w-3" />
+              </Link>
+              <Link
+                href="/design-system/brand"
+                className="flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
+              >
+                Brand Theme <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
           </nav>
         )}
       </div>
@@ -273,6 +281,12 @@ export default function DesignSystemPage() {
             className="flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
           >
             Warm Theme <ArrowRight className="h-3 w-3" />
+          </Link>
+          <Link
+            href="/design-system/brand"
+            className="flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
+          >
+            Brand Theme <ArrowRight className="h-3 w-3" />
           </Link>
           <p className="text-[11px] text-text-muted">Design System v1.0</p>
         </div>

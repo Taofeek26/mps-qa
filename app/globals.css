@@ -84,6 +84,14 @@
   /* --- Radius --- */
   --radius-sm: 8px;
   --radius-lg: 16px;
+
+  /* --- Animations --- */
+  --animate-spin-once: spin-once 0.45s ease-in-out;
+}
+
+@keyframes spin-once {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
 }
 
 /* ============================================
@@ -205,4 +213,130 @@ body {
   /* --- Radius (slightly softer) --- */
   --radius-sm: 8px;
   --radius-lg: 14px;
+}
+
+/* ============================================
+   THEME: BRAND (MPS Website-Aligned)
+   Anchored to actual mpsgrp.com colors:
+   #1863DC (CTA blue), #2b7bb9 (link blue),
+   #00b38c (teal accent), #333/#757575 (text).
+   Activate by wrapping content in .theme-brand
+   ============================================ */
+
+.theme-brand {
+  /* --- Primary (Brand Blue — #1863DC at 400 for buttons) --- */
+  --color-primary-700: #0E3B84;
+  --color-primary-600: #134FB0;
+  --color-primary-500: #1550C0;
+  --color-primary-400: #1863DC;
+  --color-primary-300: #2B7BB9;
+  --color-primary-200: #91BDEB;
+  --color-primary-100: #C8DEF5;
+  --color-primary-50: #EBF2FC;
+
+  /* --- Secondary (Brand Teal — #00b38c anchor) --- */
+  --color-secondary-600: #008F70;
+  --color-secondary-500: #00B38C;
+  --color-secondary-400: #00C99D;
+  --color-secondary-300: #4DD4AF;
+
+  /* --- Neutral (Website Gray — #333 + #757575 anchors) --- */
+  --color-gray-950: #111111;
+  --color-gray-900: #1A1A1A;
+  --color-gray-800: #333333;
+  --color-gray-700: #4D4D4D;
+  --color-gray-600: #666666;
+  --color-gray-500: #757575;
+  --color-gray-400: #999999;
+  --color-gray-300: #BFBFBF;
+  --color-gray-200: #E0E0E0;
+  --color-gray-100: #F2F2F2;
+  --color-gray-50: #F8F8F8;
+
+  /* --- Semantic (same as Industrial — already restrained) --- */
+
+  /* --- Surfaces (website-aligned) --- */
+  --color-bg-app: #F2F2F2;
+  --color-bg-card: #FFFFFF;
+  --color-bg-subtle: #F5F5F5;
+  --color-bg-hover: #EBEBEB;
+  --color-bg-elevated: #FFFFFF;
+
+  /* --- Navigation (white — matches mpsgrp.com) --- */
+  --color-nav-sidebar: #FFFFFF;
+  --color-nav-top: #FFFFFF;
+
+  /* --- Borders (website divider) --- */
+  --color-border-default: #E0E0E0;
+  --color-border-strong: #BFBFBF;
+  --color-border-focus: #1863DC;
+
+  /* --- Text (website #333 + #757575 anchors) --- */
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-muted: #757575;
+  --color-text-inverse: #FFFFFF;
+
+  /* --- Focus --- */
+  --color-focus-ring: #1863DC;
+
+  /* --- Radius (sharp / enterprise) --- */
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+}
+
+/* ============================================
+   AG GRID BRAND THEME OVERRIDES
+   Applied via .ag-theme-mps wrapper class
+   ============================================ */
+
+.ag-theme-mps {
+  --ag-font-family: var(--font-sans);
+  --ag-font-size: 13px;
+  --ag-background-color: var(--color-bg-card);
+  --ag-foreground-color: var(--color-text-primary);
+  --ag-border-color: var(--color-border-default);
+  --ag-secondary-border-color: var(--color-border-default);
+  --ag-header-background-color: var(--color-bg-subtle);
+  --ag-header-foreground-color: var(--color-text-primary);
+  --ag-header-cell-hover-background-color: var(--color-bg-hover);
+  --ag-row-hover-color: var(--color-bg-hover);
+  --ag-selected-row-background-color: var(--color-primary-50);
+  --ag-range-selection-border-color: var(--color-border-focus);
+  --ag-range-selection-background-color: var(--color-primary-50);
+  --ag-input-focus-border-color: var(--color-border-focus);
+  --ag-checkbox-checked-color: var(--color-primary-400);
+  --ag-checkbox-unchecked-color: var(--color-border-strong);
+  --ag-cell-horizontal-padding: 12px;
+  --ag-row-height: 40px;
+  --ag-header-height: 40px;
+  --ag-border-radius: var(--radius-sm);
+  --ag-wrapper-border-radius: var(--radius-lg);
+  --ag-invalid-color: var(--color-error-500);
+  --ag-odd-row-background-color: transparent;
+}
+
+.ag-theme-mps .ag-header-cell-label {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.ag-theme-mps .ag-cell-focus {
+  border-color: var(--color-border-focus) !important;
+}
+
+.ag-theme-mps .ag-cell.cell-error {
+  border: 1.5px solid var(--color-error-500) !important;
+  background-color: var(--color-error-100);
+}
+
+/* Reset AG Grid popup editor chrome so custom editors control their own appearance */
+.ag-theme-mps .ag-popup-editor {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }

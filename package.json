@@ -9,17 +9,25 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@tanstack/react-table": "^8.21.3",
+    "ag-grid-community": "^35.1.0",
+    "ag-grid-react": "^35.1.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.576.0",
     "motion": "^12.34.4",
     "next": "16.1.6",
+    "nuqs": "^2.8.9",
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-day-picker": "^9.14.0",
     "react-dom": "19.2.3",
+    "react-hook-form": "^7.71.2",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

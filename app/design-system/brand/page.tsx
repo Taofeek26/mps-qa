@@ -90,7 +90,6 @@ import {
   Share2,
   Bell,
   ArrowLeft,
-  ArrowRight,
   Menu,
   X as XIcon,
 } from "lucide-react";
@@ -208,14 +207,14 @@ function Sub({
 }
 
 /* ─── PAGE ─── */
-export default function WarmDesignSystemPage() {
+export default function BrandDesignSystemPage() {
   const [date, setDate] = React.useState<Date | undefined>();
   const [page, setPage] = React.useState(3);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   return (
-    <div className="theme-warm">
+    <div className="theme-brand">
       <div className="flex min-h-screen bg-bg-app">
         {/* ── Mobile Header ── */}
         <div className="fixed top-0 left-0 right-0 z-40 lg:hidden">
@@ -246,15 +245,15 @@ export default function WarmDesignSystemPage() {
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                 <Link
                   href="/design-system"
-                  className="flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
+                  className="flex items-center gap-1.5 text-[12px] text-primary-300 hover:text-primary-200 transition-colors"
                 >
                   <ArrowLeft className="h-3 w-3" /> Industrial Theme
                 </Link>
                 <Link
-                  href="/design-system/brand"
-                  className="flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
+                  href="/design-system/warm"
+                  className="flex items-center gap-1.5 text-[12px] text-primary-300 hover:text-primary-200 transition-colors"
                 >
-                  Brand Theme <ArrowRight className="h-3 w-3" />
+                  <ArrowLeft className="h-3 w-3" /> Warm Theme
                 </Link>
               </div>
             </nav>
@@ -269,10 +268,17 @@ export default function WarmDesignSystemPage() {
           <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
             <Link
               href="/design-system"
-              className="flex items-center gap-1.5 px-3 py-1.5 mb-2 text-[13px] text-primary-400 rounded-[var(--radius-sm)] hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-primary-300 rounded-[var(--radius-sm)] hover:bg-gray-100 transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Industrial Theme
+            </Link>
+            <Link
+              href="/design-system/warm"
+              className="flex items-center gap-1.5 px-3 py-1.5 mb-2 text-[13px] text-primary-300 rounded-[var(--radius-sm)] hover:bg-gray-100 transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Warm Theme
             </Link>
             {NAV_ITEMS.map((item) => (
               <a
@@ -284,14 +290,8 @@ export default function WarmDesignSystemPage() {
               </a>
             ))}
           </nav>
-          <div className="p-4 border-t border-border-default space-y-2">
-            <Link
-              href="/design-system/brand"
-              className="flex items-center gap-1.5 text-[12px] text-primary-400 hover:text-primary-500 transition-colors"
-            >
-              Brand Theme <ArrowRight className="h-3 w-3" />
-            </Link>
-            <p className="text-[11px] text-text-muted">Warm Theme v1.0</p>
+          <div className="p-4 border-t border-border-default">
+            <p className="text-[11px] text-text-muted">Brand Theme v1.0</p>
           </div>
         </aside>
 
@@ -305,88 +305,133 @@ export default function WarmDesignSystemPage() {
               transition={{ duration: 0.4 }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <p className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+                <p className="text-xs font-semibold text-primary-300 uppercase tracking-wider">
                   Design System
                 </p>
-                <Badge variant="info">Warm</Badge>
+                <Badge variant="info">Brand</Badge>
               </div>
               <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-                MPS Component Library — Warm Theme
+                MPS Brand Theme — Website-Aligned Enterprise Palette
               </h1>
               <p className="mt-2 text-sm text-text-muted max-w-lg">
-                Notion / Stripe inspired variation with warm indigo accents,
-                stone neutrals, and softer edges.
+                Precision-aligned to mpsgrp.com brand colors. #1863DC blue CTAs,
+                #00B38C teal accents, #333/#757575 text, #F2F2F2 backgrounds.
               </p>
             </motion.div>
           </div>
 
+          {/* ──────────── USAGE NOTES ──────────── */}
+          <div className="py-8">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.15 }}
+            >
+              <Card variant="outlined">
+                <CardHeader>
+                  <CardTitle>Usage Notes &amp; Contrast Ratios</CardTitle>
+                  <CardDescription>
+                    WCAG 2.1 compliance summary for the brand palette on intended backgrounds.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    <div className="flex justify-between py-1.5 border-b border-border-default">
+                      <span className="text-text-muted">#333333 on #FFFFFF</span>
+                      <span className="font-mono font-medium text-success-600">12.6:1 AAA</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-border-default">
+                      <span className="text-text-muted">#666666 on #FFFFFF</span>
+                      <span className="font-mono font-medium text-success-600">5.7:1 AA</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-border-default">
+                      <span className="text-text-muted">#757575 on #FFFFFF</span>
+                      <span className="font-mono font-medium text-warning-600">4.6:1 AA*</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-border-default">
+                      <span className="text-text-muted">#FFFFFF on #0E3B84</span>
+                      <span className="font-mono font-medium text-success-600">9.7:1 AAA</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-border-default">
+                      <span className="text-text-muted">#FFFFFF on #1863DC</span>
+                      <span className="font-mono font-medium text-warning-600">4.6:1 AA*</span>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs text-text-muted">
+                    * #757575 for helper text only. #FFFFFF on #1863DC passes AA for large text (buttons). Teal (#00B38C) is accent only — never for primary actions.
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+
           {/* ──────────── COLORS ──────────── */}
-          <Section id="colors" title="Color Palette" description="Warm indigo primary, stone neutrals, vibrant semantics.">
-            <Sub title="Primary (Warm Indigo)">
+          <Section id="colors" title="Color Palette" description="Brand blue primary, teal secondary, website gray neutrals.">
+            <Sub title="Primary (Brand Blue — #1863DC)">
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
-                <Swatch label="50" hex="#EEF2FF" className="bg-primary-50" />
-                <Swatch label="100" hex="#E0E7FF" className="bg-primary-100" />
-                <Swatch label="200" hex="#C7D2FE" className="bg-primary-200" />
-                <Swatch label="300" hex="#818CF8" className="bg-primary-300" />
-                <Swatch label="400" hex="#6366F1" className="bg-primary-400" />
-                <Swatch label="500" hex="#4F46E5" className="bg-primary-500" />
-                <Swatch label="600" hex="#3730A3" className="bg-primary-600" />
-                <Swatch label="700" hex="#312E81" className="bg-primary-700" />
+                <Swatch label="50" hex="#EBF2FC" className="bg-primary-50" />
+                <Swatch label="100" hex="#C8DEF5" className="bg-primary-100" />
+                <Swatch label="200" hex="#91BDEB" className="bg-primary-200" />
+                <Swatch label="300" hex="#2B7BB9" className="bg-primary-300" />
+                <Swatch label="400" hex="#1863DC" className="bg-primary-400" />
+                <Swatch label="500" hex="#1550C0" className="bg-primary-500" />
+                <Swatch label="600" hex="#134FB0" className="bg-primary-600" />
+                <Swatch label="700" hex="#0E3B84" className="bg-primary-700" />
               </div>
             </Sub>
 
-            <Sub title="Secondary (Warm Emerald)">
+            <Sub title="Secondary (Brand Teal — #00B38C)">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Swatch label="300" hex="#6EE7B7" className="bg-secondary-300" />
-                <Swatch label="400" hex="#34D399" className="bg-secondary-400" />
-                <Swatch label="500" hex="#059669" className="bg-secondary-500" />
-                <Swatch label="600" hex="#065F46" className="bg-secondary-600" />
+                <Swatch label="300" hex="#4DD4AF" className="bg-secondary-300" />
+                <Swatch label="400" hex="#00C99D" className="bg-secondary-400" />
+                <Swatch label="500" hex="#00B38C" className="bg-secondary-500" />
+                <Swatch label="600" hex="#008F70" className="bg-secondary-600" />
               </div>
             </Sub>
 
-            <Sub title="Neutral (Warm Stone)">
+            <Sub title="Neutral (Website Gray — #333 + #757575)">
               <div className="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-11 gap-2">
-                <Swatch label="50" hex="#FAFAF9" className="bg-gray-50" />
-                <Swatch label="100" hex="#F5F5F4" className="bg-gray-100" />
-                <Swatch label="200" hex="#E7E5E4" className="bg-gray-200" />
-                <Swatch label="300" hex="#D6D3D1" className="bg-gray-300" />
-                <Swatch label="400" hex="#A8A29E" className="bg-gray-400" />
-                <Swatch label="500" hex="#78716C" className="bg-gray-500" />
-                <Swatch label="600" hex="#57534E" className="bg-gray-600" />
-                <Swatch label="700" hex="#44403C" className="bg-gray-700" />
-                <Swatch label="800" hex="#292524" className="bg-gray-800" />
-                <Swatch label="900" hex="#1C1917" className="bg-gray-900" />
-                <Swatch label="950" hex="#0C0A09" className="bg-gray-950" />
+                <Swatch label="50" hex="#F8F8F8" className="bg-gray-50" />
+                <Swatch label="100" hex="#F2F2F2" className="bg-gray-100" />
+                <Swatch label="200" hex="#E0E0E0" className="bg-gray-200" />
+                <Swatch label="300" hex="#BFBFBF" className="bg-gray-300" />
+                <Swatch label="400" hex="#999999" className="bg-gray-400" />
+                <Swatch label="500" hex="#757575" className="bg-gray-500" />
+                <Swatch label="600" hex="#666666" className="bg-gray-600" />
+                <Swatch label="700" hex="#4D4D4D" className="bg-gray-700" />
+                <Swatch label="800" hex="#333333" className="bg-gray-800" />
+                <Swatch label="900" hex="#1A1A1A" className="bg-gray-900" />
+                <Swatch label="950" hex="#111111" className="bg-gray-950" />
               </div>
             </Sub>
 
-            <Sub title="Semantic">
+            <Sub title="Semantic (Same as Industrial)">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-success-600">Success</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <Swatch label="100" hex="#DCFCE7" className="bg-success-100" />
-                    <Swatch label="400" hex="#4ADE80" className="bg-success-400" />
-                    <Swatch label="500" hex="#16A34A" className="bg-success-500" />
-                    <Swatch label="600" hex="#15803D" className="bg-success-600" />
+                    <Swatch label="100" hex="#E2F5EB" className="bg-success-100" />
+                    <Swatch label="400" hex="#58A97F" className="bg-success-400" />
+                    <Swatch label="500" hex="#3F8B65" className="bg-success-500" />
+                    <Swatch label="600" hex="#2F6E4F" className="bg-success-600" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-warning-600">Warning</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <Swatch label="100" hex="#FEF9C3" className="bg-warning-100" />
-                    <Swatch label="400" hex="#FACC15" className="bg-warning-400" />
-                    <Swatch label="500" hex="#EAB308" className="bg-warning-500" />
-                    <Swatch label="600" hex="#CA8A04" className="bg-warning-600" />
+                    <Swatch label="100" hex="#FDF3E0" className="bg-warning-100" />
+                    <Swatch label="400" hex="#E1A341" className="bg-warning-400" />
+                    <Swatch label="500" hex="#C48124" className="bg-warning-500" />
+                    <Swatch label="600" hex="#A1661A" className="bg-warning-600" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-error-600">Error</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <Swatch label="100" hex="#FEE2E2" className="bg-error-100" />
-                    <Swatch label="400" hex="#F87171" className="bg-error-400" />
-                    <Swatch label="500" hex="#EF4444" className="bg-error-500" />
-                    <Swatch label="600" hex="#DC2626" className="bg-error-600" />
+                    <Swatch label="100" hex="#FDECEC" className="bg-error-100" />
+                    <Swatch label="400" hex="#D15B5B" className="bg-error-400" />
+                    <Swatch label="500" hex="#B04141" className="bg-error-500" />
+                    <Swatch label="600" hex="#8B2F2F" className="bg-error-600" />
                   </div>
                 </div>
               </div>
@@ -440,7 +485,7 @@ export default function WarmDesignSystemPage() {
                   </div>
                   <div className="flex flex-col items-center gap-2">
                     <div className="h-14 w-20 bg-gray-100 border border-border-strong rounded-[var(--radius-lg)]" />
-                    <span className="text-[11px] text-text-muted">lg (14px)</span>
+                    <span className="text-[11px] text-text-muted">lg (16px)</span>
                   </div>
                 </div>
               </DemoBox>
@@ -949,7 +994,7 @@ export default function WarmDesignSystemPage() {
           {/* Footer */}
           <div className="py-10 text-center">
             <p className="text-xs text-text-muted">
-              MPS Design System v1.0 &middot; Warm Theme &middot; Radix UI + Tailwind v4 + Motion
+              MPS Design System v1.0 &middot; Brand Theme &middot; Radix UI + Tailwind v4 + Motion
             </p>
           </div>
         </main>

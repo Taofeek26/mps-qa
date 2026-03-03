@@ -62,16 +62,15 @@ const DrawerContent = React.forwardRef<
           <span className="sr-only">Close</span>
         </RadixDialog.Close>
 
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.25 }}
-          >
-            {children}
-          </motion.div>
-        </div>
+        {/* Content area — children handle their own scrolling via DrawerBody */}
+        <motion.div
+          className="flex flex-1 flex-col overflow-hidden"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.25 }}
+        >
+          {children}
+        </motion.div>
       </motion.div>
     </RadixDialog.Content>
   </RadixDialog.Portal>
@@ -120,7 +119,7 @@ const DrawerBody = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("px-6 py-5", className)} {...props} />
+  <div className={cn("flex-1 overflow-y-auto px-6 py-5", className)} {...props} />
 );
 DrawerBody.displayName = "DrawerBody";
 

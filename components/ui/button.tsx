@@ -57,7 +57,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         whileTap={{ scale: 0.97 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
         className={cn(
-          "inline-flex items-center justify-center font-semibold transition-all duration-150 cursor-pointer select-none",
+          "inline-flex items-center justify-center font-semibold transition-all duration-150 cursor-pointer select-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4",
           "focus-ring",
           "disabled:pointer-events-none disabled:opacity-40",
           variantStyles[variant],

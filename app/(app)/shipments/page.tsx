@@ -1,0 +1,231 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Download, Plus, Truck } from "lucide-react";
+import { type SortingState } from "@tanstack/react-table";
+import { PageHeader } from "@/components/ui/page-header";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "@/components/ui/toast";
+import { getShipments, deleteShipment } from "@/lib/mock-data";
+import { useAuth } from "@/lib/auth-context";
+import type { Shipment, ShipmentFilters } from "@/lib/types";
+import { getShipmentColumns } from "./_components/shipment-columns";
+import { ShipmentFiltersBar } from "./_components/shipment-filters";
+import { ExportDialog } from "./_components/export-dialog";
+import { ShipmentDetailsDrawer } from "./_components/shipment-details-drawer";
+
+const PAGE_SIZE = 10;
+
+export default function ShipmentsPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <ShipmentsContent />
+    </React.Suspense>
+  );
+}
+
+function ShipmentsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
+
+  const isSiteUser = user?.role === "site_user";
+  const allowedSiteIds = isSiteUser ? user?.assignedSiteIds : undefined;
+
+  /* ─── Derive state from URL ─── */
+  const page = Number(searchParams.get("page") ?? "1");
+  const urlFilters: ShipmentFilters = React.useMemo(
+    () => ({
+      dateFrom: searchParams.get("dateFrom") ?? undefined,
+      dateTo: searchParams.get("dateTo") ?? undefined,
+      siteIds: searchParams.get("siteIds")?.split(",").filter(Boolean) ?? undefined,
+      clientIds: searchParams.get("clientIds")?.split(",").filter(Boolean) ?? undefined,
+      vendorIds: searchParams.get("vendorIds")?.split(",").filter(Boolean) ?? undefined,
+      wasteTypeIds: searchParams.get("wasteTypeIds")?.split(",").filter(Boolean) ?? undefined,
+    }),
+    [searchParams]
+  );
+
+  /* Merge with site scoping for site_user */
+  const filters: ShipmentFilters = React.useMemo(() => {
+    if (!allowedSiteIds) return urlFilters;
+    /* If user selected specific sites, intersect with allowed; otherwise use all allowed */
+    const userSelectedSites = urlFilters.siteIds;
+    const scopedSites = userSelectedSites
+      ? userSelectedSites.filter((id) => allowedSiteIds.includes(id))
+      : allowedSiteIds;
+    return { ...urlFilters, siteIds: scopedSites };
+  }, [urlFilters, allowedSiteIds]);
+
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "shipmentDate", desc: true },
+  ]);
+  const [selectedShipment, setSelectedShipment] = React.useState<Shipment | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<Shipment | null>(null);
+  const [exportOpen, setExportOpen] = React.useState(false);
+  const [refreshKey, setRefreshKey] = React.useState(0);
+
+  /* ─── Fetch data ─── */
+  const sortParam = sorting[0]
+    ? { field: sorting[0].id as keyof Shipment, direction: (sorting[0].desc ? "desc" : "asc") as "asc" | "desc" }
+    : undefined;
+
+  const result = React.useMemo(
+    () => getShipments(filters, page, PAGE_SIZE, sortParam),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(filters), page, JSON.stringify(sortParam), refreshKey]
+  );
+
+  /* All data for export (no pagination) */
+  const allData = React.useMemo(
+    () => getShipments(filters, 1, 99999, sortParam),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(filters), JSON.stringify(sortParam), refreshKey]
+  );
+
+  /* ─── URL state helpers ─── */
+  function updateUrl(newFilters: ShipmentFilters, newPage = 1) {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set("page", String(newPage));
+    if (newFilters.dateFrom) params.set("dateFrom", newFilters.dateFrom);
+    if (newFilters.dateTo) params.set("dateTo", newFilters.dateTo);
+    if (newFilters.siteIds?.length) params.set("siteIds", newFilters.siteIds.join(","));
+    if (newFilters.clientIds?.length) params.set("clientIds", newFilters.clientIds.join(","));
+    if (newFilters.vendorIds?.length) params.set("vendorIds", newFilters.vendorIds.join(","));
+    if (newFilters.wasteTypeIds?.length) params.set("wasteTypeIds", newFilters.wasteTypeIds.join(","));
+    const qs = params.toString();
+    router.push(qs ? `/shipments?${qs}` : "/shipments");
+  }
+
+  function handleFiltersChange(newFilters: ShipmentFilters) {
+    updateUrl(newFilters, 1);
+  }
+
+  function handleResetFilters() {
+    router.push("/shipments");
+  }
+
+  function handlePageChange(newPage: number) {
+    updateUrl(filters, newPage);
+  }
+
+  function handleRefresh() {
+    setRefreshKey((k) => k + 1);
+  }
+
+  function handleDeleteConfirm() {
+    if (!deleteTarget) return;
+    deleteShipment(deleteTarget.id);
+    toast.success("Shipment deleted", {
+      description: `${deleteTarget.id} has been removed`,
+    });
+    setDeleteTarget(null);
+    handleRefresh();
+  }
+
+  /* ─── Columns ─── */
+  const columns = React.useMemo(
+    () =>
+      getShipmentColumns({
+        onView: (s) => setSelectedShipment(s),
+        onDelete: (s) => setDeleteTarget(s),
+      }),
+    []
+  );
+
+  return (
+    <>
+      <PageHeader
+        title="Shipments"
+        subtitle={`${result.total} total shipments`}
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setExportOpen(true)}
+            >
+              <Download className="h-4 w-4" /> Export
+            </Button>
+            <Link href="/shipments/new">
+              <Button size="sm">
+                <Plus className="h-4 w-4" /> New Shipment
+              </Button>
+            </Link>
+          </>
+        }
+      />
+
+      <div className="space-y-4">
+        <ShipmentFiltersBar
+          filters={urlFilters}
+          onChange={handleFiltersChange}
+          onReset={handleResetFilters}
+          allowedSiteIds={allowedSiteIds}
+        />
+
+        <DataTable
+          columns={columns}
+          data={result.data}
+          getRowId={(row) => row.id}
+          pagination={{
+            page: result.page,
+            pageSize: result.pageSize,
+            total: result.total,
+          }}
+          onPaginationChange={handlePageChange}
+          sorting={sorting}
+          onSortingChange={setSorting}
+          onRowClick={(row) => setSelectedShipment(row)}
+          loading={false}
+          emptyState={
+            <EmptyState
+              icon={<Truck className="h-10 w-10" />}
+              title="No shipments found"
+              description="Try adjusting your filters or create a new shipment."
+              action={
+                <Link href="/shipments/new">
+                  <Button size="sm">
+                    <Plus className="h-4 w-4" /> New Shipment
+                  </Button>
+                </Link>
+              }
+            />
+          }
+        />
+      </div>
+
+      <ShipmentDetailsDrawer
+        shipment={selectedShipment}
+        onClose={() => setSelectedShipment(null)}
+        onDeleted={handleRefresh}
+        onUpdated={handleRefresh}
+      />
+
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        data={allData.data}
+        filters={filters}
+        totalCount={allData.total}
+      />
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete shipment"
+        description={`Are you sure you want to delete ${deleteTarget?.id}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={handleDeleteConfirm}
+      />
+    </>
+  );
+}
