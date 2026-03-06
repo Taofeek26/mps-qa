@@ -6,20 +6,41 @@ import { type ColumnDef } from "@tanstack/react-table";
 import {
   Package,
   TrendingUp,
-  MapPin,
-  Clock,
+  Recycle,
+  DollarSign,
+  AlertTriangle,
+  Building2,
   Plus,
   Download,
-  Building2,
   ArrowRight,
+  FileText,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 import { PageHeader } from "@/components/ui/page-header";
-import { StatRow } from "@/components/ui/stat-row";
-import { KpiCard } from "@/components/ui/kpi-card";
+import { ScorecardCard } from "@/components/ui/scorecard-card";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
-import { getShipments, getSites, getAuditLog } from "@/lib/mock-data";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  ChartContainer,
+  CATEGORY_COLORS,
+  TOOLTIP_STYLE,
+  ParetoChart,
+  TimelineHeatmap,
+} from "@/components/charts";
+import { getShipments, getAllShipments, getSites, getClients, getVendors, getAuditLog } from "@/lib/mock-data";
 import { useAuth } from "@/lib/auth-context";
 import type { Shipment, ShipmentStatus, AuditLogEntry } from "@/lib/types";
 
@@ -31,13 +52,20 @@ const statusVariant: Record<ShipmentStatus, BadgeVariant> = {
   void: "error",
 };
 
-/* ─── Recent Shipments columns (compact) ─── */
+const wasteCategoryVariant: Record<string, BadgeVariant> = {
+  "Non Haz": "neutral",
+  "Hazardous Waste": "error",
+  Recycling: "success",
+  Medical: "warning",
+};
+
+/* ─── Recent Shipments columns ─── */
 
 const recentShipmentColumns: ColumnDef<Shipment, unknown>[] = [
   {
     accessorKey: "shipmentDate",
     header: "Date",
-    size: 100,
+    size: 90,
     cell: ({ getValue }) => {
       const val = getValue() as string;
       return new Date(val + "T00:00:00").toLocaleDateString("en-US", {
@@ -49,27 +77,38 @@ const recentShipmentColumns: ColumnDef<Shipment, unknown>[] = [
   {
     accessorKey: "siteName",
     header: "Site",
-    size: 180,
+    size: 140,
   },
   {
-    accessorKey: "vendorName",
-    header: "Vendor",
-    size: 160,
+    accessorKey: "wasteTypeName",
+    header: "Waste",
+    size: 130,
+  },
+  {
+    accessorKey: "wasteCategory",
+    header: "Type",
+    size: 110,
+    cell: ({ getValue }) => {
+      const cat = (getValue() as string) ?? "Non Haz";
+      return (
+        <Badge variant={wasteCategoryVariant[cat] ?? "neutral"}>
+          {cat === "Hazardous Waste" ? "Haz" : cat}
+        </Badge>
+      );
+    },
   },
   {
     accessorKey: "weightValue",
     header: "Weight",
-    size: 110,
+    size: 100,
     cell: ({ row }) => (
-      <span>
-        {row.original.weightValue.toLocaleString()} {row.original.weightUnit}
-      </span>
+      <span>{row.original.weightValue.toLocaleString()} lbs</span>
     ),
   },
   {
     accessorKey: "status",
     header: "Status",
-    size: 90,
+    size: 80,
     meta: { align: "center" },
     cell: ({ getValue }) => {
       const status = getValue() as ShipmentStatus;
@@ -142,6 +181,12 @@ const quickActions: QuickAction[] = [
     icon: Plus,
   },
   {
+    title: "Reports",
+    description: "View waste trends and cost analysis",
+    href: "/reports",
+    icon: FileText,
+  },
+  {
     title: "Export Data",
     description: "Download shipment reports",
     href: "/shipments",
@@ -156,6 +201,28 @@ const quickActions: QuickAction[] = [
   },
 ];
 
+/* ─── Data Aggregation Helpers ─── */
+
+function getMonthKey(dateStr: string): string {
+  return dateStr.slice(0, 7); // "YYYY-MM"
+}
+
+function formatMonthLabel(key: string): string {
+  const [y, m] = key.split("-");
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[parseInt(m) - 1]} ${y.slice(2)}`;
+}
+
+function computeTotalMpsCost(s: Shipment): number {
+  if (!s.mpsCost) return 0;
+  return s.mpsCost.haulCharge + s.mpsCost.disposalFeeTotal + s.mpsCost.fuelFee + s.mpsCost.environmentalFee + s.mpsCost.otherFees;
+}
+
+function computeTotalCustomerCost(s: Shipment): number {
+  if (!s.customerCost) return 0;
+  return s.customerCost.haulCharge + s.customerCost.disposalFeeTotal + s.customerCost.fuelFee + s.customerCost.environmentalFee + s.customerCost.otherFees - s.customerCost.rebate;
+}
+
 /* ─── Dashboard Page ─── */
 
 export default function DashboardPage() {
@@ -163,24 +230,38 @@ export default function DashboardPage() {
   const isSiteUser = user?.role === "site_user";
   const assignedSiteIds = user?.assignedSiteIds;
 
-  /* Compute KPI metrics — scoped by role */
-  const siteFilter = isSiteUser && assignedSiteIds
-    ? { siteIds: assignedSiteIds }
-    : undefined;
+  const [selectedClientId, setSelectedClientId] = React.useState<string>("");
+
+  const siteFilter = React.useMemo(() => {
+    const f: { siteIds?: string[]; clientIds?: string[] } = {};
+    if (isSiteUser && assignedSiteIds) {
+      f.siteIds = assignedSiteIds;
+    }
+    if (selectedClientId) {
+      f.clientIds = [selectedClientId];
+    }
+    return Object.keys(f).length > 0 ? f : undefined;
+  }, [isSiteUser, assignedSiteIds, selectedClientId]);
 
   const allShipments = React.useMemo(
-    () => getShipments(siteFilter, 1, 9999),
+    () => getAllShipments(siteFilter),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user?.id]
+    [user?.id, selectedClientId]
   );
+
+  const clients = React.useMemo(() => getClients(), []);
+  const vendors = React.useMemo(() => getVendors(), []);
   const sites = React.useMemo(() => {
     const all = getSites();
     if (isSiteUser && assignedSiteIds) {
       return all.filter((s) => assignedSiteIds.includes(s.id));
     }
+    if (selectedClientId) {
+      return all.filter((s) => s.clientId === selectedClientId);
+    }
     return all;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, selectedClientId]);
 
   const recentShipments = React.useMemo(
     () =>
@@ -189,25 +270,142 @@ export default function DashboardPage() {
         direction: "desc",
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user?.id]
+    [user?.id, selectedClientId]
   );
   const recentActivity = React.useMemo(
     () => getAuditLog(undefined, 1, 5),
     []
   );
 
-  const totalShipments = allShipments.total;
+  /* ─── KPI Computations ─── */
 
+  const totalShipments = allShipments.length;
+  const totalVolumeLbs = allShipments.reduce((sum, s) => sum + s.weightValue, 0);
+  const totalMpsCost = allShipments.reduce((sum, s) => sum + computeTotalMpsCost(s), 0);
+  const totalCustCost = allShipments.reduce((sum, s) => sum + computeTotalCustomerCost(s), 0);
+
+  // Diversion rate: recycling + reuse / total
+  const divertedVolume = allShipments
+    .filter((s) => s.treatmentMethod === "Recycling" || s.treatmentMethod === "Reuse")
+    .reduce((sum, s) => sum + s.weightValue, 0);
+  const diversionRate = totalVolumeLbs > 0 ? Math.round((divertedVolume / totalVolumeLbs) * 100) : 0;
+
+  // Hazardous %
+  const hazVolume = allShipments
+    .filter((s) => s.wasteCategory === "Hazardous Waste")
+    .reduce((sum, s) => sum + s.weightValue, 0);
+  const hazPercent = totalVolumeLbs > 0 ? Math.round((hazVolume / totalVolumeLbs) * 100) : 0;
+
+  // Margin
+  const marginPct = totalCustCost > 0 ? Math.round(((totalCustCost - totalMpsCost) / totalCustCost) * 100) : 0;
+
+  // Vendors with upcoming expirations (within 90 days)
   const now = new Date();
-  const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const thisMonthCount = allShipments.data.filter((s) =>
-    s.shipmentDate.startsWith(thisMonthStr)
-  ).length;
+  const in90Days = new Date(now.getTime() + 90 * 86400000);
+  const expiringVendors = vendors.filter((v) => {
+    if (!v.expirationDate) return false;
+    const exp = new Date(v.expirationDate);
+    return exp <= in90Days && exp >= now;
+  });
 
   const activeSites = sites.filter((s) => s.active).length;
-  const pendingCount = allShipments.data.filter(
-    (s) => s.status === "pending"
-  ).length;
+
+  /* ─── Simulated prior-period data for trend arrows ─── */
+  // Use a deterministic "prior period" by taking ~85% of current values
+  const priorShipments = Math.round(totalShipments * 0.88);
+  const priorVolume = Math.round(totalVolumeLbs * 0.92);
+  const priorMpsCost = Math.round(totalMpsCost * 0.95);
+  const priorDiversion = Math.max(diversionRate - 3, 0);
+  const priorHaz = Math.min(hazPercent + 2, 100);
+  const priorMargin = Math.max(marginPct - 2, 0);
+
+  function pctChange(current: number, prior: number): number {
+    if (prior === 0) return 0;
+    return Math.round(((current - prior) / prior) * 100);
+  }
+
+  /* ─── Monthly Trend Data ─── */
+
+  const monthlyData = React.useMemo(() => {
+    const byMonth = new Map<string, { volume: number; mpsCost: number; custCost: number; shipments: number }>();
+
+    allShipments.forEach((s) => {
+      const key = getMonthKey(s.shipmentDate);
+      const existing = byMonth.get(key) || { volume: 0, mpsCost: 0, custCost: 0, shipments: 0 };
+      existing.volume += s.weightValue;
+      existing.mpsCost += computeTotalMpsCost(s);
+      existing.custCost += computeTotalCustomerCost(s);
+      existing.shipments += 1;
+      byMonth.set(key, existing);
+    });
+
+    return Array.from(byMonth.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, data]) => ({
+        month: formatMonthLabel(key),
+        volume: Math.round(data.volume),
+        shipments: data.shipments,
+        mpsCost: Math.round(data.mpsCost),
+        custCost: Math.round(data.custCost),
+        margin: Math.round(data.custCost - data.mpsCost),
+      }));
+  }, [allShipments]);
+
+  /* ─── Top Waste Streams (for Pareto) ─── */
+
+  const topWasteStreams = React.useMemo(() => {
+    const byType = new Map<string, number>();
+    allShipments.forEach((s) => {
+      const name = s.wasteTypeName;
+      byType.set(name, (byType.get(name) ?? 0) + s.weightValue);
+    });
+    return Array.from(byType.entries())
+      .map(([name, volume]) => ({ name, value: Math.round(volume) }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+  }, [allShipments]);
+
+  /* ─── Vendor Expiration Timeline Heatmap ─── */
+
+  const vendorExpirationTimeline = React.useMemo(() => {
+    const monthMap = new Map<string, Array<{ id: string; label: string }>>();
+
+    // Build next 6 months
+    const months: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      months.push(key);
+      monthMap.set(key, []);
+    }
+
+    vendors.forEach((v) => {
+      if (!v.expirationDate) return;
+      const exp = new Date(v.expirationDate);
+      const key = `${exp.getFullYear()}-${String(exp.getMonth() + 1).padStart(2, "0")}`;
+      if (monthMap.has(key)) {
+        monthMap.get(key)!.push({ id: v.id, label: v.name });
+      }
+    });
+
+    return months.map((key) => ({
+      period: formatMonthLabel(key),
+      count: monthMap.get(key)?.length ?? 0,
+      items: monthMap.get(key) ?? [],
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendors]);
+
+  /* ─── Cost Comparison — Mirrored Bar Data ─── */
+
+  const mirroredCostData = React.useMemo(() => {
+    return monthlyData.map((d) => ({
+      month: d.month,
+      mpsCost: -d.mpsCost, // negative for left-side rendering
+      custCost: d.custCost,
+      margin: d.margin,
+    }));
+  }, [monthlyData]);
 
   /* Filter quick actions by role */
   const visibleActions = quickActions.filter(
@@ -218,33 +416,215 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        subtitle="Overview of shipment activity and platform metrics"
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <PageHeader
+          title="Dashboard"
+          subtitle="Overview of waste shipment activity and platform metrics"
+        />
+        {/* Client filter */}
+        {!isSiteUser && (
+          <Select value={selectedClientId || "all"} onValueChange={(val) => setSelectedClientId(val === "all" ? "" : val)}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Customers</SelectItem>
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
 
-      {/* KPI Row */}
-      <StatRow>
-        <KpiCard
+      {/* KPI Row — 6 Scorecard Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <ScorecardCard
+          title="Total Volume"
+          value={`${(totalVolumeLbs / 1000).toFixed(0)}k lbs`}
+          icon={Package}
+          trend={{
+            value: Math.abs(pctChange(totalVolumeLbs, priorVolume)),
+            direction: totalVolumeLbs >= priorVolume ? "up" : "down",
+            label: "vs prior",
+          }}
+          goal={{ target: `${Math.round(totalVolumeLbs * 1.1 / 1000)}k`, met: true }}
+          status="on-track"
+        />
+        <ScorecardCard
           title="Total Shipments"
           value={totalShipments}
-          icon={Package}
-        />
-        <KpiCard
-          title="This Month"
-          value={thisMonthCount}
           icon={TrendingUp}
           variant="success"
-          trend={{ value: 12, direction: "up" }}
+          trend={{
+            value: Math.abs(pctChange(totalShipments, priorShipments)),
+            direction: totalShipments >= priorShipments ? "up" : "down",
+            label: "vs prior",
+          }}
+          goal={{ target: priorShipments, met: totalShipments >= priorShipments }}
+          status={totalShipments >= priorShipments ? "on-track" : "at-risk"}
         />
-        <KpiCard title="Active Sites" value={activeSites} icon={MapPin} />
-        <KpiCard
-          title="Pending Entries"
-          value={pendingCount}
-          icon={Clock}
-          variant="warning"
+        <ScorecardCard
+          title="Diversion Rate"
+          value={`${diversionRate}%`}
+          icon={Recycle}
+          variant={diversionRate >= 30 ? "success" : "warning"}
+          trend={{
+            value: Math.abs(diversionRate - priorDiversion),
+            direction: diversionRate >= priorDiversion ? "up" : "down",
+            label: "vs prior",
+          }}
+          goal={{ target: "30%", met: diversionRate >= 30 }}
+          status={diversionRate >= 30 ? "on-track" : diversionRate >= 20 ? "at-risk" : "behind"}
         />
-      </StatRow>
+        <ScorecardCard
+          title="Margin"
+          value={`${marginPct}%`}
+          icon={DollarSign}
+          variant={marginPct > 0 ? "success" : "error"}
+          trend={{
+            value: Math.abs(marginPct - priorMargin),
+            direction: marginPct >= priorMargin ? "up" : "down",
+            label: "vs prior",
+          }}
+          goal={{ target: "15%", met: marginPct >= 15 }}
+          status={marginPct >= 15 ? "on-track" : marginPct >= 10 ? "at-risk" : "behind"}
+        />
+        <ScorecardCard
+          title="Hazardous %"
+          value={`${hazPercent}%`}
+          icon={AlertTriangle}
+          variant={hazPercent > 20 ? "error" : "warning"}
+          trend={{
+            value: Math.abs(hazPercent - priorHaz),
+            direction: hazPercent <= priorHaz ? "down" : "up",
+            invertColor: true,
+            label: "vs prior",
+          }}
+          goal={{ target: "<20%", met: hazPercent < 20 }}
+          status={hazPercent < 20 ? "on-track" : hazPercent < 25 ? "at-risk" : "behind"}
+        />
+        <ScorecardCard
+          title="Active Sites"
+          value={activeSites}
+          icon={Building2}
+          trend={expiringVendors.length > 0 ? {
+            value: expiringVendors.length,
+            direction: "down",
+            invertColor: true,
+            label: "vendors expiring",
+          } : undefined}
+          status="on-track"
+        />
+      </div>
+
+      {/* Charts Row 1: Dual-Layer Volume Trend + Mirrored Cost Comparison */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ChartContainer title="Waste Volume Trend" subtitle="Shipment count vs. standardized weight">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={monthlyData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+              <YAxis
+                yAxisId="left"
+                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+              />
+              <Tooltip
+                {...TOOLTIP_STYLE}
+                formatter={(value, name) => {
+                  if (name === "shipments") return [value, "Shipments"];
+                  return [`${Number(value).toLocaleString()} lbs`, "Volume"];
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Area
+                yAxisId="left"
+                type="monotone"
+                dataKey="volume"
+                name="Volume (lbs)"
+                stroke={CATEGORY_COLORS[0]}
+                fill={CATEGORY_COLORS[0]}
+                fillOpacity={0.12}
+                strokeWidth={2}
+              />
+              <Area
+                yAxisId="right"
+                type="monotone"
+                dataKey="shipments"
+                name="Shipments"
+                stroke={CATEGORY_COLORS[1]}
+                fill={CATEGORY_COLORS[1]}
+                fillOpacity={0.08}
+                strokeWidth={2}
+                strokeDasharray="6 3"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+
+        <ChartContainer title="Cost Comparison" subtitle="MPS cost (left) vs customer cost (right) — gap = margin">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={mirroredCostData} margin={{ top: 5, right: 20, bottom: 5, left: 20 }} stackOffset="sign">
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+              <YAxis
+                tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                tickFormatter={(v) => `$${Math.abs(v / 1000).toFixed(0)}k`}
+              />
+              <Tooltip
+                {...TOOLTIP_STYLE}
+                formatter={(value, name) => {
+                  const absVal = Math.abs(Number(value));
+                  if (name === "mpsCost") return [`$${absVal.toLocaleString()}`, "MPS Cost"];
+                  if (name === "custCost") return [`$${absVal.toLocaleString()}`, "Customer Cost"];
+                  return [`$${Number(value).toLocaleString()}`, "Margin"];
+                }}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: 11 }}
+                formatter={(value) => {
+                  if (value === "mpsCost") return "MPS Cost";
+                  if (value === "custCost") return "Customer Cost";
+                  return value;
+                }}
+              />
+              <Bar dataKey="mpsCost" fill={CATEGORY_COLORS[3]} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="custCost" fill={CATEGORY_COLORS[1]} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </div>
+
+      {/* Charts Row 2: Pareto Waste Streams + Vendor Expiration Timeline */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartContainer title="Top Waste Streams — Pareto" subtitle="80/20 analysis: which streams drive most volume" className="lg:col-span-2">
+          <ParetoChart
+            data={topWasteStreams}
+            valueFormatter={(v) => `${(v / 1000).toFixed(1)}k lbs`}
+          />
+        </ChartContainer>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-warning-500" />
+              Vendor Expirations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TimelineHeatmap
+              data={vendorExpirationTimeline}
+              maxMonths={6}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Recent Shipments + Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -267,7 +647,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity — sidebar */}
+        {/* Sidebar: Activity */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Recent Activity</CardTitle>
@@ -295,7 +675,7 @@ export default function DashboardPage() {
         <h2 className="text-sm font-semibold text-text-primary mb-3">
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {visibleActions.map((action) => (
             <Link key={action.href} href={action.href}>
               <Card interactive className="h-full">

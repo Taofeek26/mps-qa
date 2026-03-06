@@ -45,6 +45,22 @@ const columns: ColumnDef<Client, unknown>[] = [
     ),
   },
   {
+    accessorKey: "contactPerson",
+    header: "Contact",
+    size: 150,
+    cell: ({ getValue }) => (
+      <span className="text-text-secondary">{(getValue() as string) || "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "phone",
+    header: "Phone",
+    size: 130,
+    cell: ({ getValue }) => (
+      <span className="text-text-secondary">{(getValue() as string) || "—"}</span>
+    ),
+  },
+  {
     accessorKey: "active",
     header: "Status",
     size: 100,
@@ -72,6 +88,12 @@ function ClientForm({
 }) {
   const [name, setName] = React.useState(item?.name ?? "");
   const [industry, setIndustry] = React.useState(item?.industry ?? "");
+  const [contactPerson, setContactPerson] = React.useState(item?.contactPerson ?? "");
+  const [phone, setPhone] = React.useState(item?.phone ?? "");
+  const [address, setAddress] = React.useState(item?.address ?? "");
+  const [city, setCity] = React.useState(item?.city ?? "");
+  const [state, setState] = React.useState(item?.state ?? "");
+  const [zipCode, setZipCode] = React.useState(item?.zipCode ?? "");
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -86,6 +108,12 @@ function ClientForm({
     const data = {
       name: name.trim(),
       industry: industry || undefined,
+      contactPerson: contactPerson.trim() || undefined,
+      phone: phone.trim() || undefined,
+      address: address.trim() || undefined,
+      city: city.trim() || undefined,
+      state: state.trim() || undefined,
+      zipCode: zipCode.trim() || undefined,
       active,
     };
 
@@ -126,6 +154,63 @@ function ClientForm({
           </SelectContent>
         </Select>
       </FormField>
+
+      <FormField label="Contact Person">
+        <TextInput
+          value={contactPerson}
+          onChange={(e) => setContactPerson(e.target.value)}
+          placeholder="e.g. John Smith"
+        />
+      </FormField>
+
+      <FormField label="Phone">
+        <TextInput
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="e.g. (555) 123-4567"
+        />
+      </FormField>
+
+      {/* ─── Address Section ─── */}
+      <div className="pt-2">
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">
+          Address
+        </p>
+
+        <div className="space-y-4">
+          <FormField label="Address">
+            <TextInput
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Street address"
+            />
+          </FormField>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField label="City">
+              <TextInput
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City"
+              />
+            </FormField>
+            <FormField label="State">
+              <TextInput
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+                placeholder="State"
+              />
+            </FormField>
+            <FormField label="Zip Code">
+              <TextInput
+                value={zipCode}
+                onChange={(e) => setZipCode(e.target.value)}
+                placeholder="Zip code"
+              />
+            </FormField>
+          </div>
+        </div>
+      </div>
 
       <FormField label="Active">
         <div className="flex items-center gap-2 pt-1">

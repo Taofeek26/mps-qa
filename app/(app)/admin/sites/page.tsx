@@ -100,6 +100,24 @@ function SitesContent() {
         ),
       },
       {
+        accessorKey: "address",
+        header: "Address",
+        size: 180,
+        cell: ({ getValue }) => (
+          <span className="text-text-secondary truncate block max-w-[180px]">
+            {(getValue() as string) || "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "zipCode",
+        header: "Zip Code",
+        size: 90,
+        cell: ({ getValue }) => (
+          <span className="text-text-secondary">{(getValue() as string) || "—"}</span>
+        ),
+      },
+      {
         accessorKey: "active",
         header: "Status",
         size: 100,
@@ -275,6 +293,7 @@ function SiteForm({
   const [address, setAddress] = React.useState(item?.address ?? "");
   const [city, setCity] = React.useState(item?.city ?? "");
   const [state, setState] = React.useState(item?.state ?? "");
+  const [zipCode, setZipCode] = React.useState(item?.zipCode ?? "");
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -294,6 +313,7 @@ function SiteForm({
       address: address.trim() || undefined,
       city: city.trim() || undefined,
       state: state.trim() || undefined,
+      zipCode: zipCode.trim() || undefined,
       active,
     };
 
@@ -358,19 +378,27 @@ function SiteForm({
         />
       </FormField>
 
+      <FormField label="City">
+        <TextInput
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder="City"
+        />
+      </FormField>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="City">
-          <TextInput
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="City"
-          />
-        </FormField>
         <FormField label="State">
           <TextInput
             value={state}
             onChange={(e) => setState(e.target.value)}
             placeholder="State"
+          />
+        </FormField>
+        <FormField label="Zip Code">
+          <TextInput
+            value={zipCode}
+            onChange={(e) => setZipCode(e.target.value)}
+            placeholder="Zip code"
           />
         </FormField>
       </div>

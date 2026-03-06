@@ -9,6 +9,13 @@ import { TextInput } from "@/components/ui/text-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
 import {
@@ -17,7 +24,54 @@ import {
   updateWasteType,
   deleteWasteType,
 } from "@/lib/mock-data";
-import type { WasteType } from "@/lib/types";
+import {
+  SOURCE_CODES,
+  FORM_CODES,
+  TREATMENT_CODES,
+} from "@/lib/reference-data";
+import type { WasteType, WasteCategory, TreatmentMethod } from "@/lib/types";
+
+const WASTE_CATEGORIES: WasteCategory[] = [
+  "Non Haz",
+  "Hazardous Waste",
+  "Recycling",
+  "C&D",
+  "E-Waste",
+  "Universal Waste",
+  "Special Waste",
+  "Medical",
+  "Liquid",
+  "Fuel",
+  "Alternative Reuse",
+  "Gas",
+];
+
+const TREATMENT_METHODS: TreatmentMethod[] = [
+  "Landfill",
+  "Recycling",
+  "Incineration",
+  "Fuel Blending",
+  "Reuse",
+  "WWTP",
+  "MSW Landfill",
+  "HAZ Landfill",
+  "WTE",
+];
+
+function categoryVariant(
+  cat: WasteCategory
+): "error" | "success" | "warning" | "neutral" {
+  switch (cat) {
+    case "Hazardous Waste":
+      return "error";
+    case "Recycling":
+      return "success";
+    case "Medical":
+      return "warning";
+    default:
+      return "neutral";
+  }
+}
 
 /* ─── Columns ─── */
 
@@ -37,6 +91,29 @@ const columns: ColumnDef<WasteType, unknown>[] = [
         <Badge variant={hazardous ? "error" : "success"}>
           {hazardous ? "Hazardous" : "Safe"}
         </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "wasteCategory",
+    header: "Category",
+    size: 120,
+    cell: ({ getValue }) => {
+      const cat = getValue() as WasteCategory | undefined;
+      if (!cat) return <span className="text-text-muted">—</span>;
+      return <Badge variant={categoryVariant(cat)}>{cat}</Badge>;
+    },
+  },
+  {
+    accessorKey: "defaultTreatmentMethod",
+    header: "Treatment",
+    size: 130,
+    cell: ({ getValue }) => {
+      const method = getValue() as TreatmentMethod | undefined;
+      return (
+        <span className="text-text-secondary">
+          {method ?? "—"}
+        </span>
       );
     },
   },
@@ -79,6 +156,25 @@ function WasteTypeForm({
   const [name, setName] = React.useState(item?.name ?? "");
   const [hazardous, setHazardous] = React.useState(item?.hazardousFlag ?? false);
   const [description, setDescription] = React.useState(item?.description ?? "");
+  const [wasteCategory, setWasteCategory] = React.useState<WasteCategory | "">(
+    item?.wasteCategory ?? ""
+  );
+  const [defaultTreatmentMethod, setDefaultTreatmentMethod] = React.useState<
+    TreatmentMethod | ""
+  >(item?.defaultTreatmentMethod ?? "");
+  const [wasteCodes, setWasteCodes] = React.useState(
+    item?.defaultWasteCodes ?? ""
+  );
+  const [sourceCode, setSourceCode] = React.useState(
+    item?.defaultSourceCode ?? ""
+  );
+  const [formCode, setFormCode] = React.useState(item?.defaultFormCode ?? "");
+  const [treatmentCode, setTreatmentCode] = React.useState(
+    item?.defaultTreatmentCode ?? ""
+  );
+  const [ewcNumber, setEwcNumber] = React.useState(
+    item?.defaultEwcNumber ?? ""
+  );
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
@@ -94,6 +190,13 @@ function WasteTypeForm({
       name: name.trim(),
       hazardousFlag: hazardous,
       description: description.trim() || undefined,
+      wasteCategory: wasteCategory || undefined,
+      defaultTreatmentMethod: defaultTreatmentMethod || undefined,
+      defaultWasteCodes: wasteCodes.trim() || undefined,
+      defaultSourceCode: sourceCode || undefined,
+      defaultFormCode: formCode || undefined,
+      defaultTreatmentCode: treatmentCode || undefined,
+      defaultEwcNumber: ewcNumber.trim() || undefined,
       active,
     };
 
@@ -138,6 +241,121 @@ function WasteTypeForm({
         />
       </FormField>
 
+      {/* ── Classification ── */}
+      <div className="border-t border-border-default pt-4 mt-2">
+        <p className="text-sm font-medium text-text-primary mb-3">Classification</p>
+      </div>
+
+      <FormField label="Waste Category">
+        <Select
+          value={wasteCategory}
+          onValueChange={(v) => setWasteCategory(v as WasteCategory)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select category..." />
+          </SelectTrigger>
+          <SelectContent>
+            {WASTE_CATEGORIES.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormField>
+
+      <FormField label="Default Treatment Method">
+        <Select
+          value={defaultTreatmentMethod}
+          onValueChange={(v) => setDefaultTreatmentMethod(v as TreatmentMethod)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select treatment method..." />
+          </SelectTrigger>
+          <SelectContent>
+            {TREATMENT_METHODS.map((m) => (
+              <SelectItem key={m} value={m}>
+                {m}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormField>
+
+      <FormField label="Waste Codes">
+        <TextInput
+          value={wasteCodes}
+          onChange={(e) => setWasteCodes(e.target.value)}
+          placeholder="e.g. D001, D002"
+        />
+      </FormField>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField label="Source Code">
+          <Select
+            value={sourceCode}
+            onValueChange={setSourceCode}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select source code..." />
+            </SelectTrigger>
+            <SelectContent>
+              {SOURCE_CODES.map((sc) => (
+                <SelectItem key={sc.code} value={sc.code}>
+                  {sc.code} - {sc.description}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        <FormField label="Form Code">
+          <Select
+            value={formCode}
+            onValueChange={setFormCode}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select form code..." />
+            </SelectTrigger>
+            <SelectContent>
+              {FORM_CODES.map((fc) => (
+                <SelectItem key={fc.code} value={fc.code}>
+                  {fc.code} - {fc.description}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField label="Treatment Code">
+          <Select
+            value={treatmentCode}
+            onValueChange={setTreatmentCode}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select treatment code..." />
+            </SelectTrigger>
+            <SelectContent>
+              {TREATMENT_CODES.map((tc) => (
+                <SelectItem key={tc.code} value={tc.code}>
+                  {tc.code} - {tc.description}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        <FormField label="EWC Number">
+          <TextInput
+            value={ewcNumber}
+            onChange={(e) => setEwcNumber(e.target.value)}
+            placeholder="e.g. 01 01 01"
+          />
+        </FormField>
+      </div>
+
       <FormField label="Active">
         <div className="flex items-center gap-2 pt-1">
           <Switch checked={active} onCheckedChange={setActive} />
@@ -164,18 +382,28 @@ function WasteTypeForm({
 export default function WasteTypesPage() {
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
+  const [categoryFilter, setCategoryFilter] = React.useState<string>("");
 
   const allData = React.useMemo(() => getWasteTypes(), [refreshKey]);
 
   const filtered = React.useMemo(() => {
-    if (!search) return allData;
-    const q = search.toLowerCase();
-    return allData.filter(
-      (wt) =>
-        wt.name.toLowerCase().includes(q) ||
-        (wt.description?.toLowerCase().includes(q) ?? false)
-    );
-  }, [allData, search]);
+    let result = allData;
+
+    if (categoryFilter) {
+      result = result.filter((wt) => wt.wasteCategory === categoryFilter);
+    }
+
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (wt) =>
+          wt.name.toLowerCase().includes(q) ||
+          (wt.description?.toLowerCase().includes(q) ?? false)
+      );
+    }
+
+    return result;
+  }, [allData, search, categoryFilter]);
 
   function refresh() {
     setRefreshKey((k) => k + 1);
@@ -196,6 +424,30 @@ export default function WasteTypesPage() {
       searchValue={search}
       onSearchChange={setSearch}
       searchPlaceholder="Search waste types..."
+      filterSlots={
+        <div className="w-full sm:w-48">
+          <Select
+            value={categoryFilter}
+            onValueChange={(v) => setCategoryFilter(v === "__all__" ? "" : v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Categories</SelectItem>
+              {WASTE_CATEGORIES.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      }
+      onResetFilters={() => {
+        setSearch("");
+        setCategoryFilter("");
+      }}
       entityName="Waste Type"
       getItemLabel={(item) => item.name}
       onDelete={handleDelete}

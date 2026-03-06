@@ -4,9 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NAV_GROUPS, type NavItem } from "@/lib/navigation";
+import { NAV_GROUPS, type NavItem, type NavGroup } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
 import {
   Tooltip,
@@ -19,6 +19,25 @@ interface SidebarNavProps {
   onToggleCollapse: () => void;
 }
 
+/** Check if any item in a group (including subGroups) matches the pathname */
+function groupContainsActive(group: NavGroup, pathname: string): boolean {
+  const check = (href: string) =>
+    href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
+
+  if (group.items.some((item) => check(item.href))) return true;
+  if (group.subGroups) {
+    return group.subGroups.some((sg) => sg.items.some((item) => check(item.href)));
+  }
+  return false;
+}
+
+/** Filter items by user role */
+function filterItems(items: NavItem[], userRole?: string): NavItem[] {
+  return items.filter(
+    (item) => !item.roles || (userRole && item.roles.includes(userRole))
+  );
+}
+
 export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -28,13 +47,50 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
     return pathname.startsWith(href);
   }
 
-  /* Filter nav items by user role */
-  const filteredGroups = NAV_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter(
-      (item) => !item.roles || (user && item.roles.includes(user.role))
-    ),
-  })).filter((group) => group.items.length > 0);
+  /* Compute initial expanded state — auto-expand groups containing active route */
+  const [expanded, setExpanded] = React.useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    for (const group of NAV_GROUPS) {
+      if (group.collapsible) {
+        initial[group.label] =
+          group.defaultExpanded || groupContainsActive(group, pathname);
+      }
+    }
+    return initial;
+  });
+
+  /* Auto-expand when navigating into a collapsed group */
+  React.useEffect(() => {
+    setExpanded((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const group of NAV_GROUPS) {
+        if (group.collapsible && !prev[group.label] && groupContainsActive(group, pathname)) {
+          next[group.label] = true;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [pathname]);
+
+  function toggleGroup(label: string) {
+    setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
+  }
+
+  /* Filter groups by role */
+  const filteredGroups = NAV_GROUPS.map((group) => {
+    const filteredItems = filterItems(group.items, user?.role);
+    const filteredSubGroups = group.subGroups
+      ?.map((sg) => ({ ...sg, items: filterItems(sg.items, user?.role) }))
+      .filter((sg) => sg.items.length > 0);
+
+    const totalItems =
+      filteredItems.length +
+      (filteredSubGroups?.reduce((sum, sg) => sum + sg.items.length, 0) ?? 0);
+
+    return { ...group, items: filteredItems, subGroups: filteredSubGroups, _totalItems: totalItems };
+  }).filter((group) => group._totalItems > 0);
 
   return (
     <aside
@@ -58,24 +114,97 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-5">
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
         {filteredGroups.map((group) => (
           <div key={group.label}>
-            {!collapsed && (
+            {/* Group header */}
+            {!collapsed && group.collapsible ? (
+              <button
+                onClick={() => toggleGroup(group.label)}
+                className="flex items-center justify-between w-full px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+              >
+                <span>{group.label}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 transition-transform duration-200",
+                    expanded[group.label] ? "rotate-0" : "-rotate-90"
+                  )}
+                />
+              </button>
+            ) : !collapsed ? (
               <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
                 {group.label}
               </p>
+            ) : null}
+
+            {/* Collapsible content */}
+            {group.collapsible && !collapsed ? (
+              <div
+                className="grid transition-[grid-template-rows] duration-200"
+                style={{
+                  gridTemplateRows: expanded[group.label] ? "1fr" : "0fr",
+                }}
+              >
+                <div className="overflow-hidden">
+                  {/* Direct items (Reports group) */}
+                  {group.items.length > 0 && (
+                    <div className="space-y-0.5">
+                      {group.items.map((item) => (
+                        <NavLink
+                          key={item.href}
+                          item={item}
+                          active={isActive(item.href)}
+                          collapsed={false}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Sub-groups (Admin group) */}
+                  {group.subGroups?.map((sg) => (
+                    <div key={sg.label} className="mt-2 first:mt-0">
+                      <p className="px-3 mb-0.5 pt-1 text-[10px] font-medium uppercase tracking-wider text-text-muted/60">
+                        {sg.label}
+                      </p>
+                      <div className="space-y-0.5">
+                        {sg.items.map((item) => (
+                          <NavLink
+                            key={item.href}
+                            item={item}
+                            active={isActive(item.href)}
+                            collapsed={false}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* Non-collapsible or collapsed sidebar — flat items */
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    active={isActive(item.href)}
+                    collapsed={collapsed}
+                  />
+                ))}
+                {/* In collapsed mode, show subgroup items as flat icons */}
+                {collapsed &&
+                  group.subGroups?.flatMap((sg) =>
+                    sg.items.map((item) => (
+                      <NavLink
+                        key={item.href}
+                        item={item}
+                        active={isActive(item.href)}
+                        collapsed={true}
+                      />
+                    ))
+                  )}
+              </div>
             )}
-            <div className="space-y-0.5">
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.href}
-                  item={item}
-                  active={isActive(item.href)}
-                  collapsed={collapsed}
-                />
-              ))}
-            </div>
           </div>
         ))}
       </nav>

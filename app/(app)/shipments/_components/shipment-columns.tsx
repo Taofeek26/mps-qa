@@ -10,7 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import type { Shipment, ShipmentStatus } from "@/lib/types";
+import type { Shipment, ShipmentStatus, CostBreakdown } from "@/lib/types";
 
 const statusVariant: Record<ShipmentStatus, BadgeVariant> = {
   submitted: "success",
@@ -18,11 +18,32 @@ const statusVariant: Record<ShipmentStatus, BadgeVariant> = {
   void: "error",
 };
 
+const wasteCategoryVariant: Record<string, BadgeVariant> = {
+  "Non Haz": "neutral",
+  "Hazardous Waste": "error",
+  Recycling: "success",
+  Medical: "warning",
+  "E-Waste": "info",
+};
+
+function totalCost(cost?: CostBreakdown): number {
+  if (!cost) return 0;
+  return (
+    cost.haulCharge +
+    cost.disposalFeeTotal +
+    cost.fuelFee +
+    cost.environmentalFee +
+    cost.otherFees -
+    cost.rebate
+  );
+}
+
 interface ShipmentColumnActions {
   onView: (shipment: Shipment) => void;
   onDelete: (shipment: Shipment) => void;
 }
 
+/** All available columns — the page determines default visibility */
 export function getShipmentColumns(
   actions: ShipmentColumnActions
 ): ColumnDef<Shipment, unknown>[] {
@@ -61,6 +82,33 @@ export function getShipmentColumns(
       size: 140,
     },
     {
+      accessorKey: "wasteCategory",
+      header: "Category",
+      size: 130,
+      cell: ({ getValue }) => {
+        const cat = getValue() as string | undefined;
+        if (!cat) return <span className="text-text-muted">—</span>;
+        return (
+          <Badge variant={wasteCategoryVariant[cat] ?? "neutral"}>
+            {cat === "Hazardous Waste" ? "Haz" : cat}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "treatmentMethod",
+      header: "Treatment",
+      size: 130,
+      cell: ({ getValue }) => {
+        const val = getValue() as string | undefined;
+        return val ? (
+          <span className="text-text-secondary">{val}</span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
       accessorKey: "weightValue",
       header: "Weight",
       size: 120,
@@ -69,6 +117,92 @@ export function getShipmentColumns(
           {row.original.weightValue.toLocaleString()} {row.original.weightUnit}
         </span>
       ),
+    },
+    {
+      accessorKey: "manifestNumber",
+      header: "Manifest #",
+      size: 140,
+      cell: ({ getValue }) => {
+        const val = getValue() as string | undefined;
+        return val ? (
+          <span className="font-mono text-xs">{val}</span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
+      accessorKey: "receivingFacility",
+      header: "Facility",
+      size: 160,
+      cell: ({ getValue }) => {
+        const val = getValue() as string | undefined;
+        return val ? (
+          <span className="text-text-secondary">{val}</span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
+      accessorKey: "transporterName",
+      header: "Transporter",
+      size: 150,
+      cell: ({ getValue }) => {
+        const val = getValue() as string | undefined;
+        return val ? (
+          <span className="text-text-secondary">{val}</span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
+      id: "mpsCostTotal",
+      header: "MPS Cost",
+      size: 110,
+      accessorFn: (row) => totalCost(row.mpsCost),
+      cell: ({ getValue }) => {
+        const val = getValue() as number;
+        return val > 0 ? (
+          <span className="font-mono text-xs">
+            ${val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          </span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
+      id: "custCostTotal",
+      header: "Cust. Cost",
+      size: 110,
+      accessorFn: (row) => totalCost(row.customerCost),
+      cell: ({ getValue }) => {
+        const val = getValue() as number;
+        return val > 0 ? (
+          <span className="font-mono text-xs">
+            ${val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          </span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
+      id: "margin",
+      header: "Margin",
+      size: 100,
+      accessorFn: (row) => totalCost(row.customerCost) - totalCost(row.mpsCost),
+      cell: ({ getValue }) => {
+        const val = getValue() as number;
+        if (val === 0) return <span className="text-text-muted">—</span>;
+        return (
+          <Badge variant={val >= 0 ? "success" : "error"}>
+            ${Math.abs(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "notes",

@@ -6,7 +6,14 @@ import { FilterChips, type FilterChip } from "@/components/ui/filter-chips";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { MultiSelect, type MultiSelectOption } from "@/components/ui/multi-select";
 import type { DateRange } from "react-day-picker";
-import type { ShipmentFilters as Filters } from "@/lib/types";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import type { ShipmentFilters as Filters, ShipmentStatus, WasteCategory } from "@/lib/types";
 import { getSites, getClients, getVendors, getWasteTypes } from "@/lib/mock-data";
 
 interface ShipmentFiltersBarProps {
@@ -62,6 +69,12 @@ export function ShipmentFiltersBar({
       const wt = wasteTypes.find((w) => w.id === id);
       if (wt) result.push({ key: `wasteType-${id}`, label: "Waste Type", value: wt.name });
     });
+    if (filters.status) {
+      result.push({ key: "status", label: "Status", value: filters.status.charAt(0).toUpperCase() + filters.status.slice(1) });
+    }
+    if (filters.wasteCategory) {
+      result.push({ key: "category", label: "Category", value: filters.wasteCategory });
+    }
 
     return result;
   }, [filters, sites, clients, vendors, wasteTypes]);
@@ -87,6 +100,10 @@ export function ShipmentFiltersBar({
       updated.vendorIds = updated.vendorIds?.filter((id) => id !== key.replace("vendor-", ""));
     } else if (key.startsWith("wasteType-")) {
       updated.wasteTypeIds = updated.wasteTypeIds?.filter((id) => id !== key.replace("wasteType-", ""));
+    } else if (key === "status") {
+      updated.status = undefined;
+    } else if (key === "category") {
+      updated.wasteCategory = undefined;
     }
     onChange(updated);
   }
@@ -133,6 +150,37 @@ export function ShipmentFiltersBar({
             onChange={(v) => onChange({ ...filters, wasteTypeIds: v.length ? v : undefined })}
             placeholder="Waste Types"
           />
+        </div>
+        <div className="w-full sm:w-36">
+          <Select
+            value={filters.status ?? "all"}
+            onValueChange={(v) => onChange({ ...filters, status: v === "all" ? undefined : v as ShipmentStatus })}
+          >
+            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="submitted">Submitted</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="void">Void</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-full sm:w-44">
+          <Select
+            value={filters.wasteCategory ?? "all"}
+            onValueChange={(v) => onChange({ ...filters, wasteCategory: v === "all" ? undefined : v as WasteCategory })}
+          >
+            <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="Non Haz">Non Haz</SelectItem>
+              <SelectItem value="Hazardous Waste">Hazardous</SelectItem>
+              <SelectItem value="Recycling">Recycling</SelectItem>
+              <SelectItem value="Medical">Medical</SelectItem>
+              <SelectItem value="E-Waste">E-Waste</SelectItem>
+              <SelectItem value="Universal">Universal</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </FilterBar>
 
