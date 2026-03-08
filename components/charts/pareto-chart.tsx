@@ -71,7 +71,7 @@ export function ParetoChart({
     <ResponsiveContainer width="100%" height="100%">
       <ComposedChart
         data={paretoData}
-        margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+        margin={{ top: 8, right: 5, left: 0, bottom: 4 }}
       >
         <CartesianGrid
           strokeDasharray="3 3"

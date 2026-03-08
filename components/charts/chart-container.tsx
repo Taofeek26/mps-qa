@@ -7,7 +7,10 @@ interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  /** Fixed height in px — ignored when chartClassName is provided */
   height?: number;
+  /** Tailwind classes for chart wrapper (use for responsive heights, e.g. "h-[250px] lg:h-[300px]") */
+  chartClassName?: string;
 }
 
 export function ChartContainer({
@@ -15,6 +18,7 @@ export function ChartContainer({
   subtitle,
   action,
   height = 300,
+  chartClassName,
   children,
   className,
   ...props
@@ -22,21 +26,28 @@ export function ChartContainer({
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-lg)] border border-border-default bg-bg-card p-5",
+        "rounded-[var(--radius-lg)] border border-border-default bg-bg-card p-4 sm:p-5",
         className
       )}
+      role="figure"
+      aria-label={`Chart: ${title}`}
       {...props}
     >
       <div className="flex items-start justify-between gap-2 mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
+          <h3 className="text-[15px] font-bold text-text-primary">{title}</h3>
           {subtitle && (
-            <p className="text-xs text-text-muted mt-0.5">{subtitle}</p>
+            <p className="text-xs text-text-muted mt-0.5 leading-snug">{subtitle}</p>
           )}
         </div>
         {action}
       </div>
-      <div style={{ height }}>{children}</div>
+      <div
+        className={chartClassName}
+        style={chartClassName ? undefined : { height }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

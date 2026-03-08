@@ -764,6 +764,11 @@ function generateShipments(): Shipment[] {
       mpsCost,
       customerCost,
 
+      // Return manifest date — submitted shipments get a return 5-20 days later
+      returnManifestDate: statuses[i % statuses.length] === "submitted"
+        ? new Date(shipDate.getTime() + ((i % 16) + 5) * 86400000).toISOString().split("T")[0]
+        : undefined,
+
       // GM-specific
       plantId: tmpl.managementMethod ? "550781" : undefined,
       managementMethod: tmpl.managementMethod,

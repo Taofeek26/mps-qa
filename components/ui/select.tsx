@@ -18,7 +18,7 @@ const SelectTrigger = React.forwardRef<
   <RadixSelect.Trigger
     ref={ref}
     className={cn(
-      "group flex h-9 w-full items-center justify-between rounded-[var(--radius-sm)] border bg-bg-card px-3 text-sm text-text-primary transition-colors duration-150",
+      "group flex h-9 w-full items-center justify-between rounded-[var(--radius-sm)] border bg-bg-card px-3 text-sm text-text-primary transition-colors duration-150 cursor-pointer",
       "focus-ring",
       "disabled:cursor-not-allowed disabled:opacity-40 disabled:bg-gray-100",
       error

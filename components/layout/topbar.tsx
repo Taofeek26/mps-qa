@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Menu } from "lucide-react";
 import { IconButton } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -13,7 +13,9 @@ interface TopbarProps {
 
 export function Topbar({ onMobileMenuToggle }: TopbarProps) {
   const pathname = usePathname();
-  const crumbs = buildBreadcrumbs(pathname);
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
+  const crumbs = buildBreadcrumbs(pathname, tab);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border-default bg-bg-card/95 backdrop-blur-sm px-4 lg:px-6">

@@ -27,7 +27,7 @@ function Breadcrumbs({ items, className, ...props }: BreadcrumbsProps) {
                   className={cn(
                     "px-1",
                     isLast
-                      ? "font-medium text-text-primary"
+                      ? "font-medium text-primary-400"
                       : "text-text-muted"
                   )}
                   aria-current={isLast ? "page" : undefined}

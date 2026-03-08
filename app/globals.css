@@ -10,8 +10,8 @@
   --color-gray-*: initial;
 
   /* --- Fonts --- */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
 
   /* --- Primary (Trust / Authority) --- */
   --color-primary-700: #0F2A3D;
@@ -101,10 +101,27 @@
 body {
   background-color: var(--color-bg-app);
   color: var(--color-text-primary);
-  font-family: var(--font-sans);
+  font-family: inherit;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+code, pre, .font-mono {
+  font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+/* ============================================
+   SCROLLBAR HIDE UTILITY
+   ============================================ */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 
 /* ============================================
    FOCUS RING UTILITY
@@ -256,7 +273,7 @@ body {
   /* --- Semantic (same as Industrial — already restrained) --- */
 
   /* --- Surfaces (website-aligned) --- */
-  --color-bg-app: #F2F2F2;
+  --color-bg-app: #F4F5F7;
   --color-bg-card: #FFFFFF;
   --color-bg-subtle: #F5F5F5;
   --color-bg-hover: #EBEBEB;

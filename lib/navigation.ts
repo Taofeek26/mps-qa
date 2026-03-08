@@ -2,25 +2,12 @@ import {
   LayoutDashboard,
   Truck,
   Building2,
-  MapPin,
-  Trash2,
   Users,
   ScrollText,
   Briefcase,
   TrendingUp,
-  DollarSign,
-  Scale,
-  FileOutput,
-  Wrench,
-  Box,
   FileText,
   Factory,
-  Banknote,
-  Activity,
-  ShieldCheck,
-  ClipboardList,
-  Route,
-  Leaf,
   type LucideIcon,
 } from "lucide-react";
 
@@ -34,17 +21,9 @@ export interface NavItem {
   roles?: string[];
 }
 
-export interface NavSubGroup {
-  label: string;
-  items: NavItem[];
-}
-
 export interface NavGroup {
   label: string;
   items: NavItem[];
-  collapsible?: boolean;
-  defaultExpanded?: boolean;
-  subGroups?: NavSubGroup[];
 }
 
 export const NAV_GROUPS: NavGroup[] = [
@@ -53,73 +32,29 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "Shipments", href: "/shipments", icon: Truck },
-    ],
-  },
-  {
-    label: "Reports",
-    collapsible: true,
-    defaultExpanded: false,
-    items: [
-      { label: "Waste Trends", href: "/reports/waste-trends", icon: TrendingUp },
-      { label: "Cost Analysis", href: "/reports/cost-analysis", icon: DollarSign },
-      { label: "Light Load", href: "/reports/light-load", icon: Scale },
-      { label: "Regulatory", href: "/reports/regulatory", icon: FileOutput },
-      { label: "Financial", href: "/reports/financial", icon: Banknote },
-      { label: "Operations", href: "/reports/operations", icon: Activity },
-      { label: "Data Quality", href: "/reports/data-quality", icon: ShieldCheck },
-      { label: "Vendor Intel", href: "/reports/vendor-intelligence", icon: ClipboardList },
-      { label: "Logistics", href: "/reports/logistics", icon: Route },
-      { label: "Emissions", href: "/reports/emissions", icon: Leaf },
+      { label: "Reports", href: "/reports", icon: TrendingUp },
     ],
   },
   {
     label: "Admin",
-    collapsible: true,
-    defaultExpanded: false,
-    items: [],
-    subGroups: [
-      {
-        label: "Master Data",
-        items: [
-          { label: "Clients", href: "/admin/clients", icon: Briefcase, roles: ["system_admin"] },
-          { label: "Sites", href: "/admin/sites", icon: MapPin, roles: ["system_admin"] },
-          { label: "Vendors", href: "/admin/vendors", icon: Building2, roles: ["system_admin"] },
-          { label: "Waste Types", href: "/admin/waste-types", icon: Trash2, roles: ["system_admin"] },
-          { label: "Service Items", href: "/admin/service-items", icon: Wrench, roles: ["system_admin"] },
-          { label: "Containers", href: "/admin/containers", icon: Box, roles: ["system_admin"] },
-          { label: "Profiles", href: "/admin/profiles", icon: FileText, roles: ["system_admin"] },
-        ],
-      },
-      {
-        label: "Operations",
-        items: [
-          { label: "Receiving Facilities", href: "/admin/receiving-facilities", icon: Factory, roles: ["system_admin"] },
-          { label: "Transporters", href: "/admin/transporters", icon: Truck, roles: ["system_admin"] },
-          { label: "Users", href: "/admin/users", icon: Users, roles: ["system_admin"] },
-        ],
-      },
-      {
-        label: "System",
-        items: [
-          { label: "Audit Log", href: "/admin/audit-log", icon: ScrollText, roles: ["admin", "system_admin"] },
-        ],
-      },
+    items: [
+      { label: "Clients & Sites", href: "/admin/clients", icon: Briefcase, roles: ["system_admin"] },
+      { label: "Vendors", href: "/admin/vendors", icon: Building2, roles: ["system_admin"] },
+      { label: "Reference Data", href: "/admin/reference-data", icon: FileText, roles: ["system_admin"] },
+      { label: "Facilities & Transport", href: "/admin/facilities", icon: Factory, roles: ["system_admin"] },
+      { label: "Users", href: "/admin/users", icon: Users, roles: ["system_admin"] },
+      { label: "Audit Log", href: "/admin/audit-log", icon: ScrollText, roles: ["admin", "system_admin"] },
     ],
   },
 ];
 
 /* ─── Helpers ─── */
 
-/** Get all nav items (flat) across groups and subgroups */
+/** Get all nav items (flat) across groups */
 export function getAllNavItems(): NavItem[] {
   const items: NavItem[] = [];
   for (const group of NAV_GROUPS) {
     items.push(...group.items);
-    if (group.subGroups) {
-      for (const sub of group.subGroups) {
-        items.push(...sub.items);
-      }
-    }
   }
   return items;
 }
@@ -136,33 +71,59 @@ const ROUTE_LABELS: Record<string, string> = {
   shipments: "Shipments",
   new: "New Entry",
   admin: "Admin",
+  reports: "Reports",
+  clients: "Clients & Sites",
   vendors: "Vendors",
-  sites: "Sites",
-  "waste-types": "Waste Types",
-  clients: "Clients",
+  "reference-data": "Reference Data",
+  facilities: "Facilities & Transport",
   users: "Users",
   "audit-log": "Audit Log",
-  "service-items": "Service Items",
-  containers: "Containers",
-  profiles: "Profiles",
-  "receiving-facilities": "Receiving Facilities",
-  transporters: "Transporters",
-  reports: "Reports",
+};
+
+/** Maps tab query-param slugs to display labels for breadcrumbs */
+const TAB_LABELS: Record<string, string> = {
+  // Reports
   "waste-trends": "Waste Trends",
   "cost-analysis": "Cost Analysis",
   "light-load": "Light Load",
-  regulatory: "Regulatory Exports",
-  financial: "Financial Intelligence",
-  operations: "Operational Intelligence",
+  regulatory: "Regulatory",
+  financial: "Financial",
+  operations: "Operations",
   "data-quality": "Data Quality",
-  "vendor-intelligence": "Vendor Intelligence",
-  logistics: "Logistics & Facilities",
-  emissions: "GHG Emissions",
+  "vendor-intel": "Vendor Intel",
+  logistics: "Logistics",
+  emissions: "Emissions",
+  // Admin > Clients & Sites
+  clients: "Clients",
+  sites: "Sites",
+  // Admin > Reference Data
+  "waste-types": "Waste Types",
+  "source-codes": "Source Codes",
+  "form-codes": "Form Codes",
+  "treatment-codes": "Treatment Codes",
+  "ewc-codes": "EWC Codes",
+  "tri-codes": "TRI Codes",
+  // Admin > Facilities & Transport
+  "receiving-facilities": "Receiving Facilities",
+  transporters: "Transporters",
+  "service-items": "Service Items",
+  containers: "Containers",
+  profiles: "Profiles",
 };
 
-export function buildBreadcrumbs(pathname: string): BreadcrumbSegment[] {
+/** Default tab for routes that use tabbed navigation */
+const DEFAULT_TABS: Record<string, string> = {
+  "/reports": "waste-trends",
+  "/admin/clients": "clients",
+  "/admin/reference-data": "waste-types",
+  "/admin/facilities": "receiving-facilities",
+};
+
+export function buildBreadcrumbs(pathname: string, tab?: string | null): BreadcrumbSegment[] {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 0) return [];
+
+  const resolvedTab = tab || DEFAULT_TABS[pathname] || null;
 
   const crumbs: BreadcrumbSegment[] = [];
   let path = "";
@@ -171,9 +132,14 @@ export function buildBreadcrumbs(pathname: string): BreadcrumbSegment[] {
     const segment = segments[i];
     path += `/${segment}`;
     const label = ROUTE_LABELS[segment] ?? segment;
-    const isLast = i === segments.length - 1;
+    const isLast = i === segments.length - 1 && !resolvedTab;
 
     crumbs.push({ label, href: isLast ? undefined : path });
+  }
+
+  if (resolvedTab) {
+    const tabLabel = TAB_LABELS[resolvedTab] ?? resolvedTab.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    crumbs.push({ label: tabLabel });
   }
 
   return crumbs;

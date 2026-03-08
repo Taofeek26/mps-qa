@@ -5,14 +5,14 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
  * and the AG Grid date cell editor to ensure visual consistency.
  */
 export const calendarClassNames = {
-  months: "flex flex-col gap-4",
-  month_caption: "flex justify-center items-center h-7 relative px-9",
+  months: "relative flex flex-col gap-4",
+  month_caption: "flex justify-center items-center h-7 mb-2",
   caption_label: "text-sm font-medium text-text-primary",
-  nav: "flex items-center gap-1",
+  nav: "absolute top-0 left-0 right-0 flex items-center justify-between h-7 z-10",
   button_previous:
-    "absolute left-1 inline-flex items-center justify-center h-7 w-7 rounded-[var(--radius-sm)] text-text-muted hover:bg-gray-100 transition-colors",
+    "inline-flex items-center justify-center h-7 w-7 rounded-[var(--radius-sm)] text-text-muted hover:bg-gray-100 transition-colors cursor-pointer",
   button_next:
-    "absolute right-1 inline-flex items-center justify-center h-7 w-7 rounded-[var(--radius-sm)] text-text-muted hover:bg-gray-100 transition-colors",
+    "inline-flex items-center justify-center h-7 w-7 rounded-[var(--radius-sm)] text-text-muted hover:bg-gray-100 transition-colors cursor-pointer",
   month_grid: "w-full border-collapse",
   weekdays: "flex",
   weekday: "text-text-muted w-9 text-xs font-medium text-center",

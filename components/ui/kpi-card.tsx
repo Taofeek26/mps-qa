@@ -12,6 +12,7 @@ interface KpiCardTrend {
 interface KpiCardProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
   value: string | number;
+  subtitle?: string;
   icon?: React.ElementType;
   trend?: KpiCardTrend;
   variant?: KpiCardVariant;
@@ -25,7 +26,7 @@ const iconVariantStyles: Record<KpiCardVariant, string> = {
 };
 
 const KpiCard = React.forwardRef<HTMLDivElement, KpiCardProps>(
-  ({ className, title, value, icon: Icon, trend, variant = "default", ...props }, ref) => {
+  ({ className, title, value, subtitle, icon: Icon, trend, variant = "default", ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -37,8 +38,8 @@ const KpiCard = React.forwardRef<HTMLDivElement, KpiCardProps>(
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-text-muted truncate">{title}</p>
-            <p className="mt-1.5 text-2xl font-bold text-text-primary tracking-tight">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-text-muted truncate">{title}</p>
+            <p className="mt-1.5 text-[26px] font-extrabold text-text-primary leading-tight tracking-tight">
               {value}
             </p>
             {trend && (
@@ -55,6 +56,9 @@ const KpiCard = React.forwardRef<HTMLDivElement, KpiCardProps>(
                 )}
                 <span>{trend.value}%</span>
               </div>
+            )}
+            {subtitle && (
+              <p className="mt-1 text-xs text-text-muted">{subtitle}</p>
             )}
           </div>
           {Icon && (

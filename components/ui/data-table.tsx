@@ -154,7 +154,7 @@ function DataTable<TData>({
                       <th
                         key={header.id}
                         className={cn(
-                          "h-10 px-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider whitespace-nowrap",
+                          "h-10 px-4 text-left text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap",
                           canSort && "cursor-pointer select-none",
                           (header.column.columnDef.meta as Record<string, unknown>)?.align === "center" && "text-center"
                         )}
@@ -170,7 +170,7 @@ function DataTable<TData>({
                             : undefined
                         }
                       >
-                        <div className="flex items-center gap-1.5">
+                        <div className={cn("flex items-center gap-1.5", (header.column.columnDef.meta as Record<string, unknown>)?.align === "center" && "justify-center")}>
                           {header.isPlaceholder
                             ? null
                             : flexRender(

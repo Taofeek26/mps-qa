@@ -4,7 +4,9 @@ import * as React from "react";
 import { SidebarNav } from "./sidebar-nav";
 import { Topbar } from "./topbar";
 import { MobileSidebar } from "./mobile-sidebar";
+import { MobileTabBar } from "./mobile-tab-bar";
 import { RouteGuard } from "./route-guard";
+import { TabsPortalProvider } from "@/components/ui/tabs";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -13,6 +15,12 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const tabsPortalRef = React.useRef<HTMLDivElement>(null);
+  const [portalNode, setPortalNode] = React.useState<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    setPortalNode(tabsPortalRef.current);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-bg-app">
@@ -22,18 +30,26 @@ export function AppShell({ children }: AppShellProps) {
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
       />
 
-      {/* Mobile sidebar (drawer) */}
+      {/* Mobile sidebar (drawer) — kept for full nav tree access */}
       <MobileSidebar open={mobileOpen} onOpenChange={setMobileOpen} />
 
       {/* Main content area */}
       <div className="flex flex-1 flex-col min-w-0">
         <Topbar onMobileMenuToggle={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <div className="mx-auto max-w-[1440px]">
-            <RouteGuard>{children}</RouteGuard>
+        {/* Tab bar portal target — sits between topbar and main */}
+        <div ref={tabsPortalRef} className="sticky top-14 z-20" />
+        <main className="flex-1">
+          {/* pb-20 on mobile to clear the fixed bottom tab bar */}
+          <div className="mx-auto max-w-[1440px] p-4 pb-20 lg:p-6 lg:pb-6">
+            <TabsPortalProvider container={portalNode}>
+              <RouteGuard>{children}</RouteGuard>
+            </TabsPortalProvider>
           </div>
         </main>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <MobileTabBar />
     </div>
   );
 }

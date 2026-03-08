@@ -5,6 +5,8 @@ export { ParetoChart } from "./pareto-chart";
 export { TimelineHeatmap } from "./timeline-heatmap";
 export { WaterfallChart } from "./waterfall-chart";
 export { ScatterQuadrant } from "./scatter-quadrant";
+export { DonutChart } from "./donut-chart";
+export { ProgressList } from "./progress-list";
 
 /**
  * Design-token-aligned color palette for charts.
@@ -23,17 +25,17 @@ export const CHART_COLORS = {
 
 /**
  * Categorical palette for multi-series charts.
- * 8 visually distinct colors using design tokens.
+ * 8 visually distinct colors using design tokens (resolved via CSS custom properties).
  */
 export const CATEGORY_COLORS = [
-  "#1863DC", // primary blue
-  "#00B38C", // teal
-  "#F59E0B", // amber/warning
-  "#EF4444", // red/error
-  "#8B5CF6", // violet
-  "#EC4899", // pink
-  "#06B6D4", // cyan
-  "#84CC16", // lime
+  "var(--color-primary-400)",
+  "var(--color-teal-400)",
+  "var(--color-warning-500)",
+  "var(--color-error-500)",
+  "var(--color-primary-600)",
+  "var(--color-teal-600)",
+  "var(--color-warning-300)",
+  "var(--color-success-500)",
 ] as const;
 
 /**

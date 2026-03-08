@@ -25,7 +25,6 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
     return pathname.startsWith(href);
   }
 
-  /* Filter nav items by user role */
   const filteredGroups = NAV_GROUPS.map((group) => ({
     ...group,
     items: group.items.filter(

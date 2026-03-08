@@ -77,13 +77,13 @@ const ScorecardCard = React.forwardRef<HTMLDivElement, ScorecardCardProps>(
       <div
         ref={ref}
         className={cn(
-          "relative overflow-hidden rounded-[var(--radius-lg)] border border-border-default bg-bg-card",
+          "relative flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-border-default bg-bg-card",
           className
         )}
         {...props}
       >
         {/* Card content */}
-        <div className="p-4 sm:p-5">
+        <div className="flex-1 p-4 sm:p-5">
           {/* Header: icon + title */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">

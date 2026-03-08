@@ -1,0 +1,14 @@
+{
+  "name": "MPS Waste Shipment Platform",
+  "short_name": "MPS",
+  "description": "Centralized waste shipment tracking and reporting",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#F2F2F2",
+  "theme_color": "#1863DC",
+  "orientation": "any",
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

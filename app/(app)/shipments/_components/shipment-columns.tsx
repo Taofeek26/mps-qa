@@ -112,6 +112,7 @@ export function getShipmentColumns(
       accessorKey: "weightValue",
       header: "Weight",
       size: 120,
+      meta: { align: "center" },
       cell: ({ row }) => (
         <span>
           {row.original.weightValue.toLocaleString()} {row.original.weightUnit}
@@ -161,6 +162,7 @@ export function getShipmentColumns(
       id: "mpsCostTotal",
       header: "MPS Cost",
       size: 110,
+      meta: { align: "center" },
       accessorFn: (row) => totalCost(row.mpsCost),
       cell: ({ getValue }) => {
         const val = getValue() as number;
@@ -177,6 +179,7 @@ export function getShipmentColumns(
       id: "custCostTotal",
       header: "Cust. Cost",
       size: 110,
+      meta: { align: "center" },
       accessorFn: (row) => totalCost(row.customerCost),
       cell: ({ getValue }) => {
         const val = getValue() as number;
@@ -193,6 +196,7 @@ export function getShipmentColumns(
       id: "margin",
       header: "Margin",
       size: 100,
+      meta: { align: "center" },
       accessorFn: (row) => totalCost(row.customerCost) - totalCost(row.mpsCost),
       cell: ({ getValue }) => {
         const val = getValue() as number;
