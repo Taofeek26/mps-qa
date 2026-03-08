@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
+import { useTabPdfExport } from "./use-tab-pdf-export";
 
 /* ─── Helpers ─── */
 
@@ -95,6 +96,9 @@ export function RegulatoryContent() {
   const [pendingPage, setPendingPage] = React.useState(1);
   const [gemPage, setGemPage] = React.useState(1);
   const [gmr2Page, setGmr2Page] = React.useState(1);
+
+  const filterSummary = [clientId && "Customer filtered", dateRange?.from && "Date range applied"].filter(Boolean).join(" · ") || "All data";
+  const { isPdfExporting, handleExportPdf } = useTabPdfExport("regulatory", shipments, filterSummary);
 
   // Reset pagination when filters change
   React.useEffect(() => {
@@ -349,6 +353,8 @@ export function RegulatoryContent() {
           />
         </>
       }
+      onExportPdf={handleExportPdf}
+      isPdfExporting={isPdfExporting}
       filters={
         <>
           <DateRangePicker

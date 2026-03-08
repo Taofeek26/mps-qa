@@ -51,6 +51,7 @@ import type { Shipment } from "@/lib/types";
 
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
+import { useTabPdfExport } from "./use-tab-pdf-export";
 
 const PAGE_SIZE = 10;
 
@@ -219,6 +220,9 @@ export function OperationsContent() {
   const [transporterPage, setTransporterPage] = React.useState(1);
 
   const hasData = shipments.length > 0;
+
+  const filterSummary = [clientId && "Customer filtered", siteId && "Site filtered", dateRange?.from && "Date range applied"].filter(Boolean).join(" · ") || "All data";
+  const { isPdfExporting, handleExportPdf } = useTabPdfExport("operations", shipments, filterSummary);
 
   const monthKeys = React.useMemo(() => getMonthKeys(shipments), [shipments]);
 
@@ -706,6 +710,8 @@ export function OperationsContent() {
       }
       onExport={handleExport}
       exportDisabled={!hasData}
+      onExportPdf={handleExportPdf}
+      isPdfExporting={isPdfExporting}
     >
       {hasData ? (
         <PillTabs defaultValue="leaderboard">

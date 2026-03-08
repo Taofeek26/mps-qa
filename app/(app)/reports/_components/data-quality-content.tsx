@@ -47,6 +47,7 @@ import {
 import { downloadCsv } from "@/lib/report-utils";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
+import { useTabPdfExport } from "./use-tab-pdf-export";
 
 /* ─── Quality Gauge ─── */
 
@@ -144,6 +145,9 @@ export function DataQualityContent() {
 
   const [dupPage, setDupPage] = React.useState(1);
   const hasData = shipments.length > 0;
+
+  const filterSummary = [clientId && "Customer filtered", siteId && "Site filtered", dateRange?.from && "Date range applied"].filter(Boolean).join(" · ") || "All data";
+  const { isPdfExporting, handleExportPdf } = useTabPdfExport("data-quality", shipments, filterSummary);
   const total = shipments.length;
 
   /* ── Quality breakdown metrics ── */
@@ -498,6 +502,8 @@ export function DataQualityContent() {
       }
       onExport={handleExport}
       exportDisabled={!hasData}
+      onExportPdf={handleExportPdf}
+      isPdfExporting={isPdfExporting}
     >
       {hasData ? (
         <PillTabs defaultValue="breakdown">

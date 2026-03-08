@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import type { Vendor } from "@/lib/types";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
+import { useTabPdfExport } from "./use-tab-pdf-export";
 
 const PAGE_SIZE = 10;
 
@@ -75,6 +76,9 @@ export function VendorIntelContent() {
   }, [shipments]);
 
   const hasData = shipments.length > 0;
+
+  const filterSummary = [clientId && "Customer filtered", siteId && "Site filtered", dateRange?.from && "Date range applied"].filter(Boolean).join(" · ") || "All data";
+  const { isPdfExporting, handleExportPdf } = useTabPdfExport("vendor-intel", shipments, filterSummary);
 
   /* ── KPI computations ── */
   const now = Date.now();
@@ -351,6 +355,8 @@ export function VendorIntelContent() {
       }
       onExport={handleExport}
       exportDisabled={!hasData}
+      onExportPdf={handleExportPdf}
+      isPdfExporting={isPdfExporting}
     >
       {hasData ? (
         <PillTabs defaultValue="risk">

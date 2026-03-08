@@ -42,6 +42,7 @@ import {
 import { loadEfficiency, downloadCsv } from "@/lib/report-utils";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
+import { useTabPdfExport } from "./use-tab-pdf-export";
 import type { Shipment } from "@/lib/types";
 
 const THRESHOLD = 80; // % — shipments below this are "light loads"
@@ -66,6 +67,9 @@ export function LightLoadContent() {
 
   const [lightLoadPage, setLightLoadPage] = React.useState(1);
   const hasData = shipments.length > 0;
+
+  const filterSummary = [clientId && "Customer filtered", siteId && "Site filtered", dateRange?.from && "Date range applied"].filter(Boolean).join(" · ") || "All data";
+  const { isPdfExporting, handleExportPdf } = useTabPdfExport("light-load", shipments, filterSummary);
 
   /* ─── Compute efficiency for shipments that have target load data ─── */
 
@@ -345,6 +349,8 @@ export function LightLoadContent() {
       }
       onExport={handleExport}
       exportDisabled={!hasData}
+      onExportPdf={handleExportPdf}
+      isPdfExporting={isPdfExporting}
     >
       {hasData ? (
         <PillTabs defaultValue="analysis">

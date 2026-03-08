@@ -55,6 +55,7 @@ import {
 } from "@/lib/report-utils";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
+import { useTabPdfExport } from "./use-tab-pdf-export";
 
 const PAGE_SIZE = 10;
 
@@ -143,6 +144,9 @@ export function CostAnalysisContent() {
 
   const [txnPage, setTxnPage] = React.useState(1);
   const hasData = shipments.length > 0;
+
+  const filterSummary = [clientId && "Customer filtered", siteId && "Site filtered", dateRange?.from && "Date range applied"].filter(Boolean).join(" · ") || "All data";
+  const { isPdfExporting, handleExportPdf } = useTabPdfExport("cost-analysis", shipments, filterSummary);
 
   React.useEffect(() => {
     setTxnPage(1);
@@ -545,6 +549,8 @@ export function CostAnalysisContent() {
       }
       onExport={handleExport}
       exportDisabled={!hasData}
+      onExportPdf={handleExportPdf}
+      isPdfExporting={isPdfExporting}
     >
       {hasData ? (
         <PillTabs defaultValue="trends">

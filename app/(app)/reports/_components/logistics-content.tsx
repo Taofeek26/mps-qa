@@ -42,6 +42,7 @@ import { totalMpsCost, downloadCsv } from "@/lib/report-utils";
 import { cn } from "@/lib/utils";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
+import { useTabPdfExport } from "./use-tab-pdf-export";
 
 const PAGE_SIZE = 10;
 
@@ -109,6 +110,9 @@ export function LogisticsContent() {
 
   const [facilityPage, setFacilityPage] = React.useState(1);
   const hasData = shipments.length > 0;
+
+  const filterSummary = [clientId && "Customer filtered", siteId && "Site filtered", dateRange?.from && "Date range applied"].filter(Boolean).join(" · ") || "All data";
+  const { isPdfExporting, handleExportPdf } = useTabPdfExport("logistics", shipments, filterSummary);
 
   /* ─── KPIs ─── */
 
@@ -459,6 +463,8 @@ export function LogisticsContent() {
       }
       onExport={handleExport}
       exportDisabled={!hasData}
+      onExportPdf={handleExportPdf}
+      isPdfExporting={isPdfExporting}
     >
       {hasData ? (
         <PillTabs defaultValue="distribution">

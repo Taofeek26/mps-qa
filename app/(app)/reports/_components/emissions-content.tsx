@@ -38,6 +38,7 @@ import {
 import { getMonthKey, formatMonthLabel, downloadCsv } from "@/lib/report-utils";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
+import { useTabPdfExport } from "./use-tab-pdf-export";
 
 /* ─── GHG Factors (t CO₂e per ton) matching HTML reference ─── */
 
@@ -73,6 +74,9 @@ export function EmissionsContent() {
   } = useReportFilters();
 
   const hasData = shipments.length > 0;
+
+  const filterSummary = [clientId && "Customer filtered", siteId && "Site filtered", dateRange?.from && "Date range applied"].filter(Boolean).join(" · ") || "All data";
+  const { isPdfExporting, handleExportPdf } = useTabPdfExport("emissions", shipments, filterSummary);
 
   /* ─── GHG by Waste Category ─── */
 
@@ -228,6 +232,8 @@ export function EmissionsContent() {
       }
       onExport={handleExport}
       exportDisabled={!hasData}
+      onExportPdf={handleExportPdf}
+      isPdfExporting={isPdfExporting}
     >
       {hasData ? (
         <PillTabs defaultValue="overview">
