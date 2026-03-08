@@ -8,6 +8,7 @@ import {
   TrendingUp,
   FileText,
   Factory,
+  FileBarChart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "Shipments", href: "/shipments", icon: Truck },
       { label: "Reports", href: "/reports", icon: TrendingUp },
+      { label: "Report Builder", href: "/reports/builder", icon: FileBarChart },
     ],
   },
   {
@@ -72,6 +74,7 @@ const ROUTE_LABELS: Record<string, string> = {
   new: "New Entry",
   admin: "Admin",
   reports: "Reports",
+  builder: "Report Builder",
   clients: "Clients & Sites",
   vendors: "Vendors",
   "reference-data": "Reference Data",

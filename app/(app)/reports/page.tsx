@@ -3,7 +3,10 @@
 import { Suspense } from "react";
 import { useQueryState, parseAsString } from "nuqs";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import Link from "next/link";
+import { FileBarChart } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
 import { WasteTrendsContent } from "./_components/waste-trends-content";
 import { CostAnalysisContent } from "./_components/cost-analysis-content";
 import { LightLoadContent } from "./_components/light-load-content";
@@ -59,8 +62,18 @@ function ReportsContent() {
 
 export default function ReportsPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-20"><Spinner size="lg" /></div>}>
-      <ReportsContent />
-    </Suspense>
+    <div>
+      <div className="flex items-center justify-end mb-4">
+        <Link href="/reports/builder">
+          <Button>
+            <FileBarChart className="h-4 w-4" />
+            Build Custom Report
+          </Button>
+        </Link>
+      </div>
+      <Suspense fallback={<div className="flex items-center justify-center py-20"><Spinner size="lg" /></div>}>
+        <ReportsContent />
+      </Suspense>
+    </div>
   );
 }
