@@ -305,10 +305,10 @@ export function VendorIntelContent() {
     <ReportContentLayout
       kpiCards={
         <>
-          <KpiCard title="Total Vendors" value={totalVendors} icon={Users} />
-          <KpiCard title="High Risk" value={highRiskVendors} icon={ShieldAlert} variant="error" />
-          <KpiCard title="Expiring < 90d" value={expiringCount} icon={Clock} variant="warning" />
-          <KpiCard title="DBE Vendors" value={dbeCount} icon={Award} variant="success" />
+          <KpiCard title="Total Vendors" value={totalVendors} subtitle="All registered" icon={Users} />
+          <KpiCard title="High Risk" value={highRiskVendors} subtitle="Requires review" icon={ShieldAlert} variant="error" />
+          <KpiCard title="Expiring < 90d" value={expiringCount} subtitle="Action needed" icon={Clock} variant="warning" />
+          <KpiCard title="DBE Vendors" value={dbeCount} subtitle="Diversity certified" icon={Award} variant="success" />
         </>
       }
       filters={

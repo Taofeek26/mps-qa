@@ -189,10 +189,10 @@ export function WasteTrendsContent() {
     <ReportContentLayout
       kpiCards={
         <>
-          <KpiCard title="Total Tons" value={`${fmtTons(totalTons)} t`} icon={Package} />
-          <KpiCard title="Shipments" value={totalShipments.toLocaleString()} icon={Truck} variant="success" />
-          <KpiCard title="Container Util" value={`${containerUtilPct.toFixed(1)}%`} icon={Container} variant="warning" />
-          <KpiCard title="Avg Load" value={`${avgLoadLbs.toLocaleString()} lbs`} icon={Weight} />
+          <KpiCard title="Total Tons" value={`${fmtTons(totalTons)} t`} subtitle="Standardized weight" icon={Package} />
+          <KpiCard title="Shipments" value={totalShipments.toLocaleString()} subtitle="All manifests" icon={Truck} variant="success" />
+          <KpiCard title="Container Util" value={`${containerUtilPct.toFixed(1)}%`} subtitle="Avg fill rate" icon={Container} variant="warning" />
+          <KpiCard title="Avg Load" value={`${avgLoadLbs.toLocaleString()} lbs`} subtitle="Per shipment" icon={Weight} />
         </>
       }
       filters={

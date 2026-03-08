@@ -278,24 +278,28 @@ export function LightLoadContent() {
           <KpiCard
             title="Light Loads"
             value={lightLoadCount}
+            subtitle="Below threshold"
             icon={AlertTriangle}
             variant="warning"
           />
           <KpiCard
             title="Light Load %"
             value={`${lightLoadPct}%`}
+            subtitle="Of analyzed loads"
             icon={Scale}
             variant={lightLoadPct > 30 ? "error" : "warning"}
           />
           <KpiCard
             title="Avg Efficiency"
             value={`${avgEfficiency}%`}
+            subtitle="Across all loads"
             icon={TrendingDown}
             variant={avgEfficiency < 70 ? "error" : "success"}
           />
           <KpiCard
             title="Potential Savings"
             value={`$${potentialSavings.toLocaleString()}`}
+            subtitle="Via consolidation"
             icon={DollarSign}
             variant="success"
           />

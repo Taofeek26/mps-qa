@@ -431,24 +431,28 @@ export function DataQualityContent() {
           <KpiCard
             title="Overall Score"
             value={`${overallScore}%`}
+            subtitle="All checks"
             icon={ShieldCheck}
             variant={overallScore >= 90 ? "success" : overallScore >= 70 ? "warning" : "error"}
           />
           <KpiCard
             title="Fields Complete"
             value={fieldsComplete.toLocaleString()}
+            subtitle="Passed validation"
             icon={CheckCircle2}
             variant="success"
           />
           <KpiCard
             title="Fields Missing"
             value={fieldsMissing.toLocaleString()}
+            subtitle="Needs attention"
             icon={XCircle}
             variant="error"
           />
           <KpiCard
             title="Duplicate Manifests"
             value={duplicateManifests.length.toLocaleString()}
+            subtitle="Potential duplicates"
             icon={AlertTriangle}
             variant="warning"
           />

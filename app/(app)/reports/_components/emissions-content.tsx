@@ -7,14 +7,16 @@ import {
   Area,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   Cell,
 } from "recharts";
-import { type ColumnDef } from "@tanstack/react-table";
-import { Leaf, RotateCcw, TrendingDown, Factory, Recycle } from "lucide-react";
+import { Leaf, RotateCcw, Factory, Recycle, Truck } from "lucide-react";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +24,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { DataTable } from "@/components/ui/data-table";
 import {
   PillTabs,
   PillTabsList,
@@ -38,28 +39,23 @@ import { getMonthKey, formatMonthLabel, downloadCsv } from "@/lib/report-utils";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 
-/* ─── Emissions Factors (kg CO2 per ton of waste by treatment method) ─── */
+/* ─── GHG Factors (t CO₂e per ton) matching HTML reference ─── */
 
-const EMISSIONS_FACTORS: Record<string, number> = {
-  Incineration: 1200,
-  "Energy Recovery": 800,
-  Landfill: 500,
-  Recycling: 50,
-  Reuse: 20,
-  "Wastewater Treatment": 150,
-  "Fuel Blending": 600,
-  Composting: 30,
-  Unknown: 400,
+const GHG_FACTORS: Record<string, number> = {
+  "Hazardous Waste": 2.85,
+  "Non Haz": 0.52,
+  Recycling: -0.84,
+  Universal: 1.43,
+  Medical: 2.0,
 };
 
-function getEmissionsFactor(treatmentMethod: string | undefined): number {
-  if (!treatmentMethod) return EMISSIONS_FACTORS.Unknown;
-  return EMISSIONS_FACTORS[treatmentMethod] ?? EMISSIONS_FACTORS.Unknown;
+function getGhgFactor(category: string | undefined): number {
+  if (!category) return GHG_FACTORS["Non Haz"];
+  return GHG_FACTORS[category] ?? GHG_FACTORS["Non Haz"];
 }
 
-const PAGE_SIZE = 10;
-
-/* ─── Content ─── */
+/* EPA Class 8 truck factor: 161.8 g CO₂ per ton-mile */
+const SCOPE3_FACTOR_G = 161.8;
 
 export function EmissionsContent() {
   const {
@@ -76,208 +72,119 @@ export function EmissionsContent() {
     shipments,
   } = useReportFilters();
 
-  const [sitePage, setSitePage] = React.useState(1);
   const hasData = shipments.length > 0;
 
-  /* ─── KPI Computations ─── */
+  /* ─── GHG by Waste Category ─── */
 
-  const kpis = React.useMemo(() => {
-    let totalWeightTons = 0;
-    let totalCO2 = 0;
-    let diverted = 0;
-
+  const ghgByCategory = React.useMemo(() => {
+    const byCategory = new Map<string, { qty: number; co2: number }>();
     shipments.forEach((s) => {
+      const cat = s.wasteCategory ?? "Non Haz";
       const tons = s.weightValue / 2000;
-      totalWeightTons += tons;
-      totalCO2 += tons * getEmissionsFactor(s.treatmentMethod);
-      if (
-        s.treatmentMethod === "Recycling" ||
-        s.treatmentMethod === "Reuse"
-      ) {
-        diverted += tons;
-      }
+      const factor = getGhgFactor(cat);
+      const existing = byCategory.get(cat) ?? { qty: 0, co2: 0 };
+      existing.qty += tons;
+      existing.co2 += tons * factor;
+      byCategory.set(cat, existing);
     });
-
-    const intensity =
-      totalWeightTons > 0 ? Math.round(totalCO2 / totalWeightTons) : 0;
-    const avoidedCO2 = Math.round(
-      diverted * (EMISSIONS_FACTORS.Landfill - EMISSIONS_FACTORS.Recycling)
-    );
-
-    return {
-      totalCO2: Math.round(totalCO2),
-      intensity,
-      avoidedCO2,
-      totalWeightTons: Math.round(totalWeightTons),
-    };
+    return Array.from(byCategory.entries()).map(([name, d]) => ({
+      name,
+      qty: Math.round(d.qty * 10) / 10,
+      factor: getGhgFactor(name),
+      co2: Math.round(d.co2 * 10) / 10,
+    }));
   }, [shipments]);
 
-  /* ─── Monthly Emissions Trend ─── */
+  /* ─── KPIs ─── */
 
-  const monthlyEmissions = React.useMemo(() => {
-    const byMonth = new Map<string, { co2: number; tons: number }>();
+  const kpis = React.useMemo(() => {
+    const totalGHG = ghgByCategory.reduce((sum, d) => sum + d.co2, 0);
+    const recyclingOffset = Math.abs(
+      ghgByCategory.find((d) => d.name === "Recycling")?.co2 ?? 0
+    );
+    const totalTons = ghgByCategory.reduce((sum, d) => sum + d.qty, 0);
+
+    // Diversion: non-landfill tons / total tons
+    let landfillTons = 0;
+    shipments.forEach((s) => {
+      if (s.treatmentMethod === "Landfill") landfillTons += s.weightValue / 2000;
+    });
+    const diversionRate = totalTons > 0 ? ((totalTons - landfillTons) / totalTons) * 100 : 0;
+
+    // Scope 3: tons × miles × 161.8g / 1e6 → t CO₂
+    let scope3 = 0;
+    shipments.forEach((s) => {
+      const tons = s.weightValue / 2000;
+      const miles = s.milesFromFacility ?? 0;
+      scope3 += (tons * miles * SCOPE3_FACTOR_G) / 1e6;
+    });
+
+    return { totalGHG, recyclingOffset, diversionRate, scope3 };
+  }, [shipments, ghgByCategory]);
+
+  /* ─── Monthly data for Diversion Rate + Scope 3 ─── */
+
+  const monthlyData = React.useMemo(() => {
+    const byMonth = new Map<string, { tons: number; landfill: number; scope3: number }>();
     shipments.forEach((s) => {
       const key = getMonthKey(s.shipmentDate);
-      const existing = byMonth.get(key) ?? { co2: 0, tons: 0 };
+      const existing = byMonth.get(key) ?? { tons: 0, landfill: 0, scope3: 0 };
       const tons = s.weightValue / 2000;
-      existing.co2 += tons * getEmissionsFactor(s.treatmentMethod);
       existing.tons += tons;
+      if (s.treatmentMethod === "Landfill") existing.landfill += tons;
+      existing.scope3 += (tons * (s.milesFromFacility ?? 0) * SCOPE3_FACTOR_G) / 1e6;
       byMonth.set(key, existing);
     });
     return Array.from(byMonth.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, d]) => ({
         month: formatMonthLabel(key),
-        co2: Math.round(d.co2),
-        intensity: d.tons > 0 ? Math.round(d.co2 / d.tons) : 0,
+        diversion: d.tons > 0 ? Math.round(((d.tons - d.landfill) / d.tons) * 1000) / 10 : 0,
+        scope3: Math.round(d.scope3 * 10) / 10,
       }));
-  }, [shipments]);
-
-  /* ─── Emissions by Treatment Method ─── */
-
-  const byTreatment = React.useMemo(() => {
-    const byMethod = new Map<
-      string,
-      { co2: number; tons: number; shipments: number }
-    >();
-    shipments.forEach((s) => {
-      const method = s.treatmentMethod ?? "Unknown";
-      const existing = byMethod.get(method) ?? {
-        co2: 0,
-        tons: 0,
-        shipments: 0,
-      };
-      const tons = s.weightValue / 2000;
-      existing.co2 += tons * getEmissionsFactor(method);
-      existing.tons += tons;
-      existing.shipments++;
-      byMethod.set(method, existing);
-    });
-    return Array.from(byMethod.entries())
-      .map(([name, d]) => ({
-        name,
-        co2: Math.round(d.co2),
-        tons: Math.round(d.tons),
-        intensity: d.tons > 0 ? Math.round(d.co2 / d.tons) : 0,
-        shipments: d.shipments,
-      }))
-      .sort((a, b) => b.co2 - a.co2);
-  }, [shipments]);
-
-  /* ─── Emissions by Site ─── */
-
-  const bySite = React.useMemo(() => {
-    const siteMap = new Map<string, { co2: number; tons: number }>();
-    shipments.forEach((s) => {
-      const existing = siteMap.get(s.siteName) ?? { co2: 0, tons: 0 };
-      const tons = s.weightValue / 2000;
-      existing.co2 += tons * getEmissionsFactor(s.treatmentMethod);
-      existing.tons += tons;
-      siteMap.set(s.siteName, existing);
-    });
-    return Array.from(siteMap.entries())
-      .map(([name, d]) => ({
-        name,
-        co2: Math.round(d.co2),
-        intensity: d.tons > 0 ? Math.round(d.co2 / d.tons) : 0,
-      }))
-      .sort((a, b) => b.co2 - a.co2);
   }, [shipments]);
 
   /* ─── CSV export ─── */
 
   const handleExport = () => {
-    const headers = [
-      "Treatment Method",
-      "CO2 (kg)",
-      "Weight (tons)",
-      "Intensity (kg CO2/ton)",
-      "Shipments",
-    ];
-    const rows = byTreatment.map((d) => [
-      d.name,
-      String(d.co2),
-      String(d.tons),
-      String(d.intensity),
-      String(d.shipments),
+    const headers = ["Category", "Quantity (t)", "Factor", "CO₂e (t)", "Impact"];
+    const rows = ghgByCategory.map((d) => [
+      d.name, String(d.qty), String(d.factor), String(d.co2),
+      d.co2 < 0 ? "Carbon offset" : "Emission source",
     ]);
-    downloadCsv("GHG_Emissions_Report.csv", headers, rows);
+    downloadCsv("GHG_Sustainability_Report.csv", headers, rows);
   };
-
-  /* ─── Site Table Columns ─── */
-
-  type SiteRow = { name: string; co2: number; intensity: number };
-
-  const siteColumns: ColumnDef<SiteRow, unknown>[] = React.useMemo(
-    () => [
-      { accessorKey: "name", header: "Site" },
-      {
-        accessorKey: "co2",
-        header: "Total CO2 (kg)",
-        meta: { align: "center" },
-        cell: ({ getValue }) => (getValue() as number).toLocaleString(),
-      },
-      {
-        accessorKey: "intensity",
-        header: "Intensity (kg/ton)",
-        meta: { align: "center" },
-        cell: ({ getValue }) => (getValue() as number).toLocaleString(),
-      },
-      {
-        id: "rating",
-        header: "Rating",
-        meta: { align: "center" },
-        cell: ({ row }) => {
-          const intensity = row.original.intensity;
-          const variant =
-            intensity < 200
-              ? "success"
-              : intensity < 500
-                ? "warning"
-                : "error";
-          const label =
-            intensity < 200
-              ? "Low"
-              : intensity < 500
-                ? "Medium"
-                : "High";
-          return <Badge variant={variant}>{label}</Badge>;
-        },
-      },
-    ],
-    []
-  );
-
-  React.useEffect(() => {
-    setSitePage(1);
-  }, [shipments]);
 
   return (
     <ReportContentLayout
       kpiCards={
         <>
           <KpiCard
-            title="Total CO2"
-            value={`${(kpis.totalCO2 / 1000).toFixed(1)}t`}
+            title="Total GHG"
+            value={`${Math.round(kpis.totalGHG).toLocaleString()} t CO₂e`}
+            subtitle="Net emissions"
             icon={Factory}
-            variant="warning"
+            variant="error"
           />
           <KpiCard
-            title="Intensity"
-            value={`${kpis.intensity} kg/ton`}
-            icon={Leaf}
-            variant={kpis.intensity < 400 ? "success" : "warning"}
-          />
-          <KpiCard
-            title="CO2 Avoided"
-            value={`${(kpis.avoidedCO2 / 1000).toFixed(1)}t`}
+            title="Diversion Rate"
+            value={`${kpis.diversionRate.toFixed(1)}%`}
+            subtitle="Non-landfill"
             icon={Recycle}
             variant="success"
           />
           <KpiCard
-            title="Waste Processed"
-            value={`${kpis.totalWeightTons.toLocaleString()} tons`}
-            icon={TrendingDown}
+            title="Recycling Offset"
+            value={`${Math.round(kpis.recyclingOffset).toLocaleString()} t`}
+            subtitle="Carbon savings"
+            icon={Leaf}
+            variant="success"
+          />
+          <KpiCard
+            title="Scope 3 Proxy"
+            value={`${kpis.scope3.toFixed(1)} t CO₂`}
+            subtitle="Transport emissions"
+            icon={Truck}
           />
         </>
       }
@@ -323,92 +230,75 @@ export function EmissionsContent() {
       exportDisabled={!hasData}
     >
       {hasData ? (
-        <PillTabs defaultValue="trends">
+        <PillTabs defaultValue="overview">
           <PillTabsList>
-            <PillTabsTrigger value="trends">Emission Trends</PillTabsTrigger>
-            <PillTabsTrigger value="analysis">Analysis</PillTabsTrigger>
-            <PillTabsTrigger value="reference">Reference</PillTabsTrigger>
+            <PillTabsTrigger value="overview">Overview</PillTabsTrigger>
+            <PillTabsTrigger value="trends">Diversion & Scope 3</PillTabsTrigger>
+            <PillTabsTrigger value="breakdown">Breakdown Table</PillTabsTrigger>
           </PillTabsList>
 
-          {/* Emission Trends: Monthly CO2 + Intensity side by side */}
-          <PillTabsContent value="trends" className="space-y-4">
+          {/* Tab 1: GHG by Category bar + Emissions Intensity */}
+          <PillTabsContent value="overview" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <ChartContainer
-                title="Monthly CO2 Emissions"
-                subtitle="Estimated kg CO2 by month"
+                title="GHG Emissions by Waste Category"
+                subtitle="Emission factors: Haz=2.85, Non-Haz=0.52, Recycling=-0.84, Universal=1.43 t CO₂e/ton"
                 chartClassName="h-[220px] sm:h-[260px] lg:h-[300px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={monthlyEmissions}
-                    margin={{ top: 5, right: 40, bottom: 5, left: 0 }}
+                  <BarChart
+                    data={ghgByCategory}
+                    margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
                   >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="var(--color-border-default)"
-                    />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                     <YAxis
                       tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                      tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                      tickFormatter={(v) => `${v}t`}
                     />
                     <Tooltip
                       {...TOOLTIP_STYLE}
-                      formatter={(value) => [
-                        `${Number(value).toLocaleString()} kg CO2`,
-                        "Emissions",
-                      ]}
+                      formatter={(value) => [`${Number(value).toLocaleString()} t CO₂e`, ""]}
                     />
-                    <Area
-                      type="monotone"
-                      dataKey="co2"
-                      stroke={CATEGORY_COLORS[2]}
-                      fill={CATEGORY_COLORS[2]}
-                      fillOpacity={0.15}
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
+                    <Bar dataKey="co2" name="t CO₂e" radius={[4, 4, 0, 0]}>
+                      {ghgByCategory.map((entry, idx) => (
+                        <Cell
+                          key={idx}
+                          fill={entry.co2 < 0 ? "var(--color-teal-400)" : "var(--color-error-500)"}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
                 </ResponsiveContainer>
               </ChartContainer>
 
               <ChartContainer
-                title="Emissions Intensity Trend"
-                subtitle="kg CO2 per ton of waste processed"
+                title="Landfill Diversion Rate — Monthly"
+                subtitle="Non-landfill tons ÷ total tons × 100"
                 chartClassName="h-[220px] sm:h-[260px] lg:h-[300px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
-                    data={monthlyEmissions}
+                    data={monthlyData}
                     margin={{ top: 5, right: 40, bottom: 5, left: 0 }}
                   >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="var(--color-border-default)"
-                    />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                     <YAxis
                       tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                      tickFormatter={(v) => `${v}`}
+                      tickFormatter={(v) => `${v}%`}
+                      domain={[0, 100]}
                     />
                     <Tooltip
                       {...TOOLTIP_STYLE}
-                      formatter={(value) => [
-                        `${value} kg CO2/ton`,
-                        "Intensity",
-                      ]}
+                      formatter={(value) => [`${value}%`, "Diversion"]}
                     />
                     <Area
                       type="monotone"
-                      dataKey="intensity"
-                      stroke={CATEGORY_COLORS[1]}
-                      fill={CATEGORY_COLORS[1]}
-                      fillOpacity={0.12}
+                      dataKey="diversion"
+                      name="Diversion %"
+                      stroke="var(--color-teal-400)"
+                      fill="rgba(0,179,140,.08)"
                       strokeWidth={2}
                     />
                   </AreaChart>
@@ -417,106 +307,77 @@ export function EmissionsContent() {
             </div>
           </PillTabsContent>
 
-          {/* Analysis: Treatment Method bar chart + Site table */}
-          <PillTabsContent value="analysis" className="space-y-4">
+          {/* Tab 2: Scope 3 Logistics Proxy */}
+          <PillTabsContent value="trends" className="space-y-4">
             <ChartContainer
-              title="Emissions by Treatment Method"
-              subtitle="Total CO2 and intensity per method"
+              title="Scope 3 Logistics Proxy"
+              subtitle="Tons × Miles × 161.8 g CO₂/ton-mile (EPA Class 8 truck)"
               chartClassName="h-[220px] sm:h-[260px] lg:h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={byTreatment}
-                  layout="vertical"
-                  margin={{ top: 5, right: 40, bottom: 5, left: 120 }}
+                <AreaChart
+                  data={monthlyData}
+                  margin={{ top: 5, right: 40, bottom: 5, left: 0 }}
                 >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="var(--color-border-default)"
-                  />
-                  <XAxis
-                    type="number"
-                    tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                    tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                   <YAxis
-                    type="category"
-                    dataKey="name"
                     tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                    width={115}
+                    tickFormatter={(v) => `${v}t`}
                   />
                   <Tooltip
                     {...TOOLTIP_STYLE}
-                    formatter={(value) => [
-                      `${Number(value).toLocaleString()} kg CO2`,
-                      "",
-                    ]}
+                    formatter={(value) => [`${value} t CO₂`, "Scope 3"]}
                   />
-                  <Bar dataKey="co2" name="CO2 (kg)" radius={[0, 4, 4, 0]}>
-                    {byTreatment.map((entry, idx) => (
-                      <Cell
-                        key={idx}
-                        fill={
-                          entry.intensity > 800
-                            ? CATEGORY_COLORS[3]
-                            : entry.intensity > 300
-                              ? CATEGORY_COLORS[2]
-                              : CATEGORY_COLORS[1]
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
+                  <Area
+                    type="monotone"
+                    dataKey="scope3"
+                    name="Scope 3 (t CO₂)"
+                    stroke="#7c3aed"
+                    fill="rgba(124,58,237,.08)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </ChartContainer>
-
-            <DataTable
-              columns={siteColumns}
-              data={bySite.slice(
-                (sitePage - 1) * PAGE_SIZE,
-                sitePage * PAGE_SIZE
-              )}
-              pagination={{
-                page: sitePage,
-                pageSize: PAGE_SIZE,
-                total: bySite.length,
-              }}
-              onPaginationChange={setSitePage}
-              emptyState={
-                <div className="flex items-center justify-center h-full text-sm text-text-muted">
-                  No site emissions data found
-                </div>
-              }
-            />
           </PillTabsContent>
 
-          {/* Reference: Emissions Factor Reference */}
-          <PillTabsContent value="reference">
+          {/* Tab 3: GHG Breakdown Table */}
+          <PillTabsContent value="breakdown">
             <Card>
               <CardHeader>
-                <CardTitle>Emissions Factor Reference</CardTitle>
+                <CardTitle>GHG Breakdown by Waste Category</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-xs text-text-muted mb-3">
-                  Estimated kg CO2 per ton of waste by treatment method. These
-                  are approximations for directional ESG reporting.
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {Object.entries(EMISSIONS_FACTORS)
-                    .sort(([, a], [, b]) => b - a)
-                    .map(([method, factor]) => (
-                      <div
-                        key={method}
-                        className="flex items-center justify-between rounded-sm bg-bg-subtle px-3 py-2"
-                      >
-                        <span className="text-xs text-text-primary">
-                          {method}
-                        </span>
-                        <span className="text-xs font-semibold tabular-nums text-text-muted">
-                          {factor}
-                        </span>
-                      </div>
-                    ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border-default">
+                        <th className="pb-2 pr-3 text-left font-semibold text-text-muted text-xs uppercase tracking-wider">Category</th>
+                        <th className="pb-2 px-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">Quantity (t)</th>
+                        <th className="pb-2 px-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">Factor</th>
+                        <th className="pb-2 px-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">CO₂e (t)</th>
+                        <th className="pb-2 pl-3 text-left font-semibold text-text-muted text-xs uppercase tracking-wider">Impact</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ghgByCategory.map((row) => (
+                        <tr key={row.name} className="border-b border-border-default last:border-0">
+                          <td className="py-2.5 pr-3 font-semibold text-text-primary">{row.name}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">{row.qty.toLocaleString()}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">{row.factor}</td>
+                          <td className={`py-2.5 px-3 text-right tabular-nums font-mono font-semibold ${row.co2 < 0 ? "text-teal-400" : "text-error-500"}`}>
+                            {row.co2.toLocaleString()}
+                          </td>
+                          <td className="py-2.5 pl-3">
+                            <Badge variant={row.co2 < 0 ? "success" : "error"}>
+                              {row.co2 < 0 ? "Carbon offset" : "Emission source"}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>

@@ -642,22 +642,26 @@ export function OperationsContent() {
           <KpiCard
             title="Total Sites Active"
             value={kpis.activeSites}
+            subtitle="With shipments"
             icon={Building2}
           />
           <KpiCard
             title="Avg Volume per Site"
             value={`${(kpis.avgVolumePerSite / 1000).toFixed(1)}k lbs`}
+            subtitle="Across all sites"
             icon={Activity}
           />
           <KpiCard
             title="Top Site (by Margin)"
             value={kpis.topSite}
+            subtitle={`${kpis.topMargin}% margin`}
             icon={Trophy}
             variant="success"
           />
           <KpiCard
             title="Total Transporters Used"
             value={kpis.totalTransporters}
+            subtitle="Unique carriers"
             icon={TrendingUp}
           />
         </>

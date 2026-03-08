@@ -395,21 +395,25 @@ export function LogisticsContent() {
           <KpiCard
             title="Facilities Used"
             value={kpis.facilitiesUsed}
+            subtitle="Receiving locations"
             icon={Building2}
           />
           <KpiCard
             title="Transporters"
             value={kpis.transportersUsed}
+            subtitle="Unique carriers"
             icon={Truck}
           />
           <KpiCard
             title="Avg Distance"
             value={`${kpis.avgMiles} mi`}
+            subtitle="Per shipment"
             icon={MapPin}
           />
           <KpiCard
             title="Total Shipments"
             value={kpis.totalShipments}
+            subtitle="All routes"
             icon={Route}
             variant="success"
           />
