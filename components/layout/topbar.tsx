@@ -5,6 +5,8 @@ import { Menu } from "lucide-react";
 import { IconButton } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { buildBreadcrumbs } from "@/lib/navigation";
+import { CommandPalette } from "@/components/ui/command-palette";
+import { Notifications } from "./notifications";
 import { UserMenu } from "./user-menu";
 
 interface TopbarProps {
@@ -34,8 +36,11 @@ export function Topbar({ onMobileMenuToggle }: TopbarProps) {
         {crumbs.length > 0 && <Breadcrumbs items={crumbs} />}
       </div>
 
-      {/* Right: user menu */}
-      <div className="flex items-center gap-2">
+      {/* Right: search + notifications + user menu */}
+      <div className="flex items-center gap-1 sm:gap-2">
+        <CommandPalette />
+        <Notifications />
+        <div className="mx-1 h-5 w-px bg-border-default hidden sm:block" />
         <UserMenu />
       </div>
     </header>

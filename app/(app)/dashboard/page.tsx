@@ -9,11 +9,9 @@ import {
   Recycle,
   DollarSign,
   AlertTriangle,
-  Building2,
   ArrowRight,
   Truck,
   BarChart3,
-  Banknote,
   Receipt,
   Scale,
   ArrowLeftRight,
@@ -33,7 +31,7 @@ import {
 import { subDays, subMonths, startOfYear } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { PageHeader } from "@/components/ui/page-header";
-import { ScorecardCard } from "@/components/ui/scorecard-card";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
@@ -255,26 +253,6 @@ function filterByDateRange(shipments: Shipment[], from?: Date, to?: Date): Shipm
   });
 }
 
-/** Compute prior-period shipments for comparison (same-length window before current range) */
-function getPriorPeriodShipments(
-  allShipments: Shipment[],
-  from?: Date,
-  to?: Date
-): Shipment[] {
-  if (!from || !to) {
-    // No range selected — compare last 6 months vs prior 6 months
-    const now = new Date();
-    const sixMonthsAgo = subMonths(now, 6);
-    const twelveMonthsAgo = subMonths(now, 12);
-    return filterByDateRange(allShipments, twelveMonthsAgo, sixMonthsAgo);
-  }
-
-  const rangeMs = to.getTime() - from.getTime();
-  const priorTo = new Date(from.getTime() - 1); // day before current range starts
-  const priorFrom = new Date(priorTo.getTime() - rangeMs);
-  return filterByDateRange(allShipments, priorFrom, priorTo);
-}
-
 /* ─── Dashboard Page ─── */
 
 export default function DashboardPage() {
@@ -309,11 +287,6 @@ export default function DashboardPage() {
     [allShipmentsRaw, dateRange?.from, dateRange?.to]
   );
 
-  // Prior-period shipments (for trend comparison)
-  const priorShipments = React.useMemo(
-    () => getPriorPeriodShipments(allShipmentsRaw, dateRange?.from, dateRange?.to),
-    [allShipmentsRaw, dateRange?.from, dateRange?.to]
-  );
 
   const clients = React.useMemo(() => getClients(), []);
   const vendors = React.useMemo(() => getVendors(), []);
@@ -355,36 +328,8 @@ export default function DashboardPage() {
     .reduce((sum, s) => sum + s.weightValue, 0);
   const diversionRate = totalVolumeLbs > 0 ? Math.round((divertedVolume / totalVolumeLbs) * 100) : 0;
 
-  const hazVolume = allShipments
-    .filter((s) => s.wasteCategory === "Hazardous Waste")
-    .reduce((sum, s) => sum + s.weightValue, 0);
-  const hazPercent = totalVolumeLbs > 0 ? Math.round((hazVolume / totalVolumeLbs) * 100) : 0;
-
-  const marginPct = totalCustCost > 0 ? Math.round(((totalCustCost - totalMpsCost) / totalCustCost) * 100) : 0;
-
-  // New KPIs
   const costPerTon = totalVolumeLbs > 0 ? Math.round((totalMpsCost / (totalVolumeLbs / 2000)) * 100) / 100 : 0;
   const marginSpread = totalCustCost - totalMpsCost;
-
-  /* ─── Prior-Period KPIs (real comparison) ─── */
-
-  const priorTotalShipments = priorShipments.length;
-  const priorVolumeLbs = priorShipments.reduce((sum, s) => sum + s.weightValue, 0);
-  const priorMpsCost = priorShipments.reduce((sum, s) => sum + computeTotalMpsCost(s), 0);
-  const priorCustCost = priorShipments.reduce((sum, s) => sum + computeTotalCustomerCost(s), 0);
-  const priorDiverted = priorShipments
-    .filter((s) => s.treatmentMethod === "Recycling" || s.treatmentMethod === "Reuse")
-    .reduce((sum, s) => sum + s.weightValue, 0);
-  const priorDiversionRate = priorVolumeLbs > 0 ? Math.round((priorDiverted / priorVolumeLbs) * 100) : 0;
-  const priorHazVol = priorShipments
-    .filter((s) => s.wasteCategory === "Hazardous Waste")
-    .reduce((sum, s) => sum + s.weightValue, 0);
-  const priorHazPercent = priorVolumeLbs > 0 ? Math.round((priorHazVol / priorVolumeLbs) * 100) : 0;
-  const priorMarginPct = priorCustCost > 0 ? Math.round(((priorCustCost - priorMpsCost) / priorCustCost) * 100) : 0;
-
-  // Prior-period new KPIs
-  const priorCostPerTon = priorVolumeLbs > 0 ? Math.round((priorMpsCost / (priorVolumeLbs / 2000)) * 100) / 100 : 0;
-  const priorMarginSpread = priorCustCost - priorMpsCost;
 
   // Vendors with upcoming expirations (within 90 days)
   const now = new Date();
@@ -395,16 +340,9 @@ export default function DashboardPage() {
     return exp <= in90Days && exp >= now;
   });
 
-  const activeSites = sites.filter((s) => s.active).length;
-
   // Pending shipments for contextual alerts
   const pendingShipments = allShipments.filter((s) => s.status === "pending");
   const voidedShipments = allShipments.filter((s) => s.status === "void");
-
-  function pctChange(current: number, prior: number): number {
-    if (prior === 0) return current > 0 ? 100 : 0;
-    return Math.round(((current - prior) / prior) * 100);
-  }
 
   /* ─── Monthly Trend Data ─── */
 
@@ -550,7 +488,6 @@ export default function DashboardPage() {
       {/* ─── Header with filters ─── */}
       <PageHeader
         title="Dashboard"
-        subtitle="Overview of waste shipment activity and platform metrics"
         actions={
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <DateRangePicker
@@ -598,228 +535,81 @@ export default function DashboardPage() {
         {/* ════════════════════════════════════════════════════════════ */}
         <TabsContent value="overview">
           <div className="space-y-8">
-            {/* ─── KPI Scorecards — 10 cards, 5 per row at desktop ─── */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-              <Link href="/shipments" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Total Volume"
-                  value={totalVolumeLbs > 0 ? `${(totalVolumeLbs / 1000).toFixed(0)}k lbs` : "0 lbs"}
-                  icon={Package}
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={priorVolumeLbs > 0 ? {
-                    value: Math.abs(pctChange(totalVolumeLbs, priorVolumeLbs)),
-                    direction: totalVolumeLbs >= priorVolumeLbs ? "up" : "down",
-                    label: "vs prior period",
-                  } : undefined}
-                  status="on-track"
-                />
-              </Link>
-              <Link href="/shipments" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Total Shipments"
-                  value={totalShipments}
-                  icon={TrendingUp}
-                  variant="success"
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={priorTotalShipments > 0 ? {
-                    value: Math.abs(pctChange(totalShipments, priorTotalShipments)),
-                    direction: totalShipments >= priorTotalShipments ? "up" : "down",
-                    label: "vs prior period",
-                  } : undefined}
-                  status={totalShipments >= priorTotalShipments ? "on-track" : "at-risk"}
-                />
-              </Link>
-              <Link href="/reports/waste-trends" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Diversion Rate"
-                  value={`${diversionRate}%`}
-                  icon={Recycle}
-                  variant={diversionRate >= 30 ? "success" : "warning"}
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={{
-                    value: Math.abs(diversionRate - priorDiversionRate),
-                    direction: diversionRate >= priorDiversionRate ? "up" : "down",
-                    label: "vs prior period",
-                  }}
-                  goal={{ target: "30%", met: diversionRate >= 30 }}
-                  status={diversionRate >= 30 ? "on-track" : diversionRate >= 20 ? "at-risk" : "behind"}
-                />
-              </Link>
-              <Link href="/reports/cost-analysis" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Margin"
-                  value={`${marginPct}%`}
-                  icon={DollarSign}
-                  variant={marginPct > 0 ? "success" : "error"}
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={{
-                    value: Math.abs(marginPct - priorMarginPct),
-                    direction: marginPct >= priorMarginPct ? "up" : "down",
-                    label: "vs prior period",
-                  }}
-                  goal={{ target: "15%", met: marginPct >= 15 }}
-                  status={marginPct >= 15 ? "on-track" : marginPct >= 10 ? "at-risk" : "behind"}
-                />
-              </Link>
-              <Link href="/reports/regulatory" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Hazardous %"
-                  value={`${hazPercent}%`}
-                  icon={AlertTriangle}
-                  variant={hazPercent > 20 ? "error" : "warning"}
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={{
-                    value: Math.abs(hazPercent - priorHazPercent),
-                    direction: hazPercent <= priorHazPercent ? "down" : "up",
-                    invertColor: true,
-                    label: "vs prior period",
-                  }}
-                  goal={{ target: "<20%", met: hazPercent < 20 }}
-                  status={hazPercent < 20 ? "on-track" : hazPercent < 25 ? "at-risk" : "behind"}
-                />
-              </Link>
-              <Link href="/reports/cost-analysis" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Total Revenue"
-                  value={fmtDollar(totalCustCost)}
-                  icon={Banknote}
-                  variant="success"
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={priorCustCost > 0 ? {
-                    value: Math.abs(pctChange(totalCustCost, priorCustCost)),
-                    direction: totalCustCost >= priorCustCost ? "up" : "down",
-                    label: "vs prior period",
-                  } : undefined}
-                  status={totalCustCost >= priorCustCost ? "on-track" : "at-risk"}
-                />
-              </Link>
-              <Link href="/reports/cost-analysis" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Total MPS Cost"
-                  value={fmtDollar(totalMpsCost)}
-                  icon={Receipt}
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={priorMpsCost > 0 ? {
-                    value: Math.abs(pctChange(totalMpsCost, priorMpsCost)),
-                    direction: totalMpsCost >= priorMpsCost ? "up" : "down",
-                    invertColor: true,
-                    label: "vs prior period",
-                  } : undefined}
-                  status={totalMpsCost <= priorMpsCost ? "on-track" : "at-risk"}
-                />
-              </Link>
-              <Link href="/reports/cost-analysis" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Cost Per Ton"
-                  value={`$${costPerTon.toLocaleString()}`}
-                  icon={Scale}
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={priorCostPerTon > 0 ? {
-                    value: Math.abs(pctChange(costPerTon, priorCostPerTon)),
-                    direction: costPerTon >= priorCostPerTon ? "up" : "down",
-                    invertColor: true,
-                    label: "vs prior period",
-                  } : undefined}
-                  status={costPerTon <= priorCostPerTon ? "on-track" : "at-risk"}
-                />
-              </Link>
-              <Link href="/reports/cost-analysis" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Margin Spread"
-                  value={fmtDollar(marginSpread)}
-                  icon={ArrowLeftRight}
-                  variant={marginSpread >= 0 ? "success" : "error"}
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={priorMarginSpread !== 0 ? {
-                    value: Math.abs(pctChange(marginSpread, priorMarginSpread)),
-                    direction: marginSpread >= priorMarginSpread ? "up" : "down",
-                    label: "vs prior period",
-                  } : undefined}
-                  status={marginSpread >= 0 ? "on-track" : "behind"}
-                />
-              </Link>
-              <Link href="/admin/sites" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-[var(--radius-lg)]">
-                <ScorecardCard
-                  title="Active Sites"
-                  value={activeSites}
-                  icon={Building2}
-                  className="h-full cursor-pointer transition-shadow hover:shadow-md"
-                  trend={
-                    expiringVendors.length > 0
-                      ? {
-                          value: expiringVendors.length,
-                          direction: "down",
-                          invertColor: true,
-                          label: "vendors expiring",
-                        }
-                      : undefined
-                  }
-                  status="on-track"
-                />
-              </Link>
+            {/* ─── KPI Cards — 6 cards matching HTML Executive Summary ─── */}
+            <div className="grid grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3 sm:gap-4">
+              <KpiCard
+                title="Total Shipments"
+                value={totalShipments.toLocaleString()}
+                subtitle="Active manifests"
+                icon={Package}
+              />
+              <KpiCard
+                title="Total Revenue"
+                value={fmtDollar(totalCustCost)}
+                subtitle="Customer billed"
+                icon={DollarSign}
+                variant="success"
+              />
+              <KpiCard
+                title="Total MPS Cost"
+                value={fmtDollar(totalMpsCost)}
+                subtitle="Platform payable"
+                icon={Receipt}
+                variant="error"
+              />
+              <KpiCard
+                title="Cost Per Ton"
+                value={`$${costPerTon.toLocaleString()}`}
+                subtitle="Blended average"
+                icon={Scale}
+              />
+              <KpiCard
+                title="Margin Spread"
+                value={fmtDollar(marginSpread)}
+                subtitle={marginSpread < 0 ? "Negative" : "Positive"}
+                icon={ArrowLeftRight}
+                variant={marginSpread >= 0 ? "success" : "error"}
+              />
+              <KpiCard
+                title="Diversion Rate"
+                value={`${diversionRate}%`}
+                subtitle="Non-landfill"
+                icon={Recycle}
+                variant="success"
+              />
             </div>
 
-            {/* ─── Contextual Alerts ─── */}
+            {/* ─── Contextual Alerts (compact inline banners) ─── */}
             {(expiringVendors.length > 0 || pendingShipments.length > 0 || voidedShipments.length > 0) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 {expiringVendors.length > 0 && (
-                  <Link href="/admin/vendors">
-                    <Card interactive className="h-full border-warning-300 bg-warning-50">
-                      <CardContent className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-warning-100 text-warning-600">
-                          <AlertTriangle className="h-4.5 w-4.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-text-primary">
-                            {expiringVendors.length} vendor{expiringVendors.length > 1 ? "s" : ""} expiring
-                          </p>
-                          <p className="text-xs text-text-muted truncate">
-                            Within 90 days — review now
-                          </p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 shrink-0 text-text-muted ml-auto" />
-                      </CardContent>
-                    </Card>
+                  <Link
+                    href="/admin/vendors"
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-warning-300 bg-warning-50 px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-warning-100"
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5 text-warning-600" />
+                    {expiringVendors.length} vendor{expiringVendors.length > 1 ? "s" : ""} expiring within 90 days
+                    <ArrowRight className="h-3 w-3 text-text-muted" />
                   </Link>
                 )}
                 {pendingShipments.length > 0 && (
-                  <Link href="/shipments">
-                    <Card interactive className="h-full border-primary-200 bg-primary-50">
-                      <CardContent className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-primary-100 text-primary-500">
-                          <Truck className="h-4.5 w-4.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-text-primary">
-                            {pendingShipments.length} pending shipment{pendingShipments.length > 1 ? "s" : ""}
-                          </p>
-                          <p className="text-xs text-text-muted truncate">
-                            Awaiting review
-                          </p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 shrink-0 text-text-muted ml-auto" />
-                      </CardContent>
-                    </Card>
+                  <Link
+                    href="/shipments"
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-primary-200 bg-primary-50 px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-primary-100"
+                  >
+                    <Truck className="h-3.5 w-3.5 text-primary-500" />
+                    {pendingShipments.length} pending shipment{pendingShipments.length > 1 ? "s" : ""} awaiting review
+                    <ArrowRight className="h-3 w-3 text-text-muted" />
                   </Link>
                 )}
                 {voidedShipments.length > 0 && (
-                  <Link href="/shipments">
-                    <Card interactive className="h-full border-error-200 bg-error-50">
-                      <CardContent className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-error-100 text-error-600">
-                          <BarChart3 className="h-4.5 w-4.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-text-primary">
-                            {voidedShipments.length} voided shipment{voidedShipments.length > 1 ? "s" : ""}
-                          </p>
-                          <p className="text-xs text-text-muted truncate">
-                            Review for corrections
-                          </p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 shrink-0 text-text-muted ml-auto" />
-                      </CardContent>
-                    </Card>
+                  <Link
+                    href="/shipments"
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-error-200 bg-error-50 px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-error-100"
+                  >
+                    <BarChart3 className="h-3.5 w-3.5 text-error-600" />
+                    {voidedShipments.length} voided shipment{voidedShipments.length > 1 ? "s" : ""} — review for corrections
+                    <ArrowRight className="h-3 w-3 text-text-muted" />
                   </Link>
                 )}
               </div>

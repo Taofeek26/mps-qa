@@ -40,10 +40,15 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-400 text-text-inverse text-xs font-bold cursor-pointer hover:bg-primary-500 transition-colors focus-ring"
+          className="flex items-center gap-2.5 rounded-[var(--radius-sm)] px-1.5 py-1 cursor-pointer hover:bg-bg-surface transition-colors focus-ring"
           aria-label="User menu"
         >
-          {initials}
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-400 text-text-inverse text-[11px] font-bold">
+            {initials}
+          </div>
+          <span className="hidden sm:block text-sm font-medium text-text-primary max-w-[120px] truncate">
+            {user.displayName}
+          </span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
