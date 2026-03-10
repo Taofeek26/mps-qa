@@ -114,8 +114,7 @@ export function MobileTabBar() {
   return (
     <>
       <nav
-        className="fixed bottom-0 inset-x-0 z-40 lg:hidden border-t border-border-default bg-bg-card/95 backdrop-blur-md"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed bottom-0 inset-x-0 z-40 lg:hidden border-t border-border-default bg-bg-card/95 backdrop-blur-md pb-safe"
       >
         <div className="flex items-stretch">
           {TABS.map((tab) => {

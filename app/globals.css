@@ -150,6 +150,20 @@ code, pre, .font-mono {
   display: none;
 }
 
+/* Safe area padding for iOS notch / home indicator */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent iOS input zoom — apply 16px on focus for inputs below 16px */
+@supports (-webkit-touch-callout: none) {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    font-size: max(16px, 1em);
+  }
+}
+
 
 /* ============================================
    FOCUS RING UTILITY
