@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import { type ColumnDef } from "@tanstack/react-table";
 import { MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,6 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 const REGIONS = ["Northwest", "West", "Mountain", "Midwest", "Southwest", "Southeast", "Northeast"];
 
-const PAGE_SIZE = 10;
 
 /* ─── Page ─── */
 
@@ -46,6 +46,9 @@ function SitesContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? "1");
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
@@ -156,10 +159,10 @@ function SitesContent() {
   }, [allData, search, clientFilter, regionFilter]);
 
   /* ─── Pagination ─── */
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paginatedData = React.useMemo(
-    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
     [filtered, safePage]
   );
 
@@ -209,6 +212,7 @@ function SitesContent() {
   }
 
   return (
+    <div ref={tableRef}>
     <CrudTable<Site>
       title="Sites"
       subtitle={`${filtered.length} sites`}
@@ -216,7 +220,7 @@ function SitesContent() {
       data={paginatedData}
       pagination={{
         page: safePage,
-        pageSize: PAGE_SIZE,
+        pageSize: pageSize,
         total: filtered.length,
       }}
       onPaginationChange={pushPage}
@@ -271,6 +275,7 @@ function SitesContent() {
         />
       )}
     />
+    </div>
   );
 }
 

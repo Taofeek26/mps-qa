@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { saveNewReport } from "@/lib/saved-reports";
 import { toast } from "@/components/ui/toast";
 import { ReportBuilder } from "../_components/report-builder";
+import type { ReportSection } from "@/lib/report-builder-types";
 
 export default function NewReportPage() {
   const router = useRouter();
@@ -26,8 +27,9 @@ export default function NewReportPage() {
     dateRange: { from: string; to: string } | null;
     clientId: string;
     siteId: string;
-    sections: { id: string; type: string; config: Record<string, unknown> }[];
+    sections: ReportSection[];
   }) {
+    if (!user) return;
     setIsSaving(true);
     try {
       const report = saveNewReport(user.id, {

@@ -1,7 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { FilterChips, type FilterChip } from "@/components/ui/filter-chips";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { MultiSelect, type MultiSelectOption } from "@/components/ui/multi-select";
@@ -14,6 +17,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { TextInput } from "@/components/ui/text-input";
+import { cn } from "@/lib/utils";
 import type { ShipmentFilters as Filters, ShipmentStatus, WasteCategory } from "@/lib/types";
 import { getSites, getClients, getVendors, getWasteTypes } from "@/lib/mock-data";
 
@@ -23,6 +27,8 @@ interface ShipmentFiltersBarProps {
   onReset: () => void;
   /** If set, only these sites are shown in the Sites filter (for site_user role) */
   allowedSiteIds?: string[];
+  /** Optional trailing content rendered in the compact bar (e.g. Columns picker) */
+  trailing?: React.ReactNode;
 }
 
 export function ShipmentFiltersBar({
@@ -30,7 +36,10 @@ export function ShipmentFiltersBar({
   onChange,
   onReset,
   allowedSiteIds,
+  trailing,
 }: ShipmentFiltersBarProps) {
+  const [panelOpen, setPanelOpen] = React.useState(false);
+
   const sites = React.useMemo(() => {
     const all = getSites();
     if (allowedSiteIds) return all.filter((s) => allowedSiteIds.includes(s.id));
@@ -45,7 +54,7 @@ export function ShipmentFiltersBar({
   const vendorOptions: MultiSelectOption[] = vendors.map((v) => ({ value: v.id, label: v.name }));
   const wasteTypeOptions: MultiSelectOption[] = wasteTypes.map((w) => ({ value: w.id, label: w.name }));
 
-  /* Build active filter chips — one chip per value (all data visible); layout kept in contained box below */
+  /* Build active filter chips */
   const chips: FilterChip[] = React.useMemo(() => {
     const result: FilterChip[] = [];
 
@@ -83,6 +92,9 @@ export function ShipmentFiltersBar({
     return result;
   }, [filters, sites, clients, vendors, wasteTypes]);
 
+  /** Count of advanced filters (everything except search) */
+  const advancedCount = chips.filter((c) => c.key !== "search").length;
+
   function handleDateChange(range: DateRange | undefined) {
     onChange({
       ...filters,
@@ -115,148 +127,180 @@ export function ShipmentFiltersBar({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Filter card — modern contained block */}
-      <div className="rounded-lg border border-border-default bg-bg-card p-5 shadow-sm">
-        {/* Search — full width, prominent */}
-        <div className="mb-5">
-          <label className="mb-1.5 block text-xs font-medium text-text-muted">
-            Search
-          </label>
-          <TextInput
-            variant="search"
-            placeholder="Manifest #, site, client, vendor..."
-            value={filters.search ?? ""}
-            onChange={(e) => onChange({ ...filters, search: e.target.value || undefined })}
-            className="max-w-md"
-          />
-        </div>
+    <div className="space-y-3">
+      {/* ─── Compact toolbar row ─── */}
+      <div className="flex flex-wrap items-center gap-3">
+        <TextInput
+          variant="search"
+          placeholder="Search manifest, site, client, vendor..."
+          value={filters.search ?? ""}
+          onChange={(e) => onChange({ ...filters, search: e.target.value || undefined })}
+          className="w-full sm:w-72"
+        />
 
-        {/* Filters grid — labels above controls, consistent spacing */}
-        <div className="grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-          <div className="min-w-0">
-            <label className="mb-1.5 block text-xs font-medium text-text-muted">
-              Date range
-            </label>
-            <DateRangePicker
-              from={filters.dateFrom ? new Date(filters.dateFrom + "T00:00:00") : undefined}
-              to={filters.dateTo ? new Date(filters.dateTo + "T00:00:00") : undefined}
-              onChange={handleDateChange}
-              placeholder="Select dates"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="mb-1.5 block text-xs font-medium text-text-muted">
-              Sites
-            </label>
-            <MultiSelect
-              options={siteOptions}
-              value={filters.siteIds ?? []}
-              onChange={(v) => onChange({ ...filters, siteIds: v.length ? v : undefined })}
-              placeholder="All sites"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="mb-1.5 block text-xs font-medium text-text-muted">
-              Clients
-            </label>
-            <MultiSelect
-              options={clientOptions}
-              value={filters.clientIds ?? []}
-              onChange={(v) => onChange({ ...filters, clientIds: v.length ? v : undefined })}
-              placeholder="All clients"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="mb-1.5 block text-xs font-medium text-text-muted">
-              Vendors
-            </label>
-            <MultiSelect
-              options={vendorOptions}
-              value={filters.vendorIds ?? []}
-              onChange={(v) => onChange({ ...filters, vendorIds: v.length ? v : undefined })}
-              placeholder="All vendors"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="mb-1.5 block text-xs font-medium text-text-muted">
-              Waste types
-            </label>
-            <MultiSelect
-              options={wasteTypeOptions}
-              value={filters.wasteTypeIds ?? []}
-              onChange={(v) => onChange({ ...filters, wasteTypeIds: v.length ? v : undefined })}
-              placeholder="All types"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="mb-1.5 block text-xs font-medium text-text-muted">
-              Status
-            </label>
-            <Select
-              value={filters.status ?? "all"}
-              onValueChange={(v) => onChange({ ...filters, status: v === "all" ? undefined : v as ShipmentStatus })}
-            >
-              <SelectTrigger className="w-full"><SelectValue placeholder="All statuses" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="submitted">Submitted</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="void">Void</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="min-w-0">
-            <label className="mb-1.5 block text-xs font-medium text-text-muted">
-              Category
-            </label>
-            <Select
-              value={filters.wasteCategory ?? "all"}
-              onValueChange={(v) => onChange({ ...filters, wasteCategory: v === "all" ? undefined : v as WasteCategory })}
-            >
-              <SelectTrigger className="w-full"><SelectValue placeholder="All categories" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                <SelectItem value="Non Haz">Non Haz</SelectItem>
-                <SelectItem value="Hazardous Waste">Hazardous</SelectItem>
-                <SelectItem value="Recycling">Recycling</SelectItem>
-                <SelectItem value="Medical">Medical</SelectItem>
-                <SelectItem value="E-Waste">E-Waste</SelectItem>
-                <SelectItem value="Universal">Universal</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {onReset && (
-            <div className="flex items-end sm:col-span-2 lg:col-span-1 lg:col-start-auto">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onReset}
-                className="text-text-muted hover:text-text-primary -ml-1"
-              >
-                Clear filters
-              </Button>
-            </div>
+        <Button
+          variant={panelOpen ? "primary" : "secondary"}
+          size="sm"
+          onClick={() => setPanelOpen((v) => !v)}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Filters
+          {advancedCount > 0 && !panelOpen && (
+            <Badge variant="info" className="ml-1 rounded-full px-1.5 py-0 text-[10px] leading-4">
+              {advancedCount}
+            </Badge>
           )}
-        </div>
+          <ChevronDown
+            className={cn(
+              "h-3.5 w-3.5 transition-transform duration-200",
+              panelOpen && "rotate-180"
+            )}
+          />
+        </Button>
+
+        {advancedCount > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReset}
+            className="text-text-muted hover:text-text-primary"
+          >
+            Clear all
+          </Button>
+        )}
+
+        {/* Trailing slot — Columns picker, etc. */}
+        {trailing && <div className="ml-auto flex items-center gap-3">{trailing}</div>}
       </div>
 
-      {/* Applied filters — only when there are active filters */}
-      {chips.length > 0 && (
-        <div className="rounded-lg border border-border-default bg-[#F9FAFB] px-4 py-3">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="text-xs font-medium text-text-muted shrink-0">
-              Active filters ({chips.length})
-            </span>
+      {/* ─── Collapsible advanced filters panel ─── */}
+      <AnimatePresence initial={false}>
+        {panelOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="rounded-lg border border-border-default bg-bg-card p-5 shadow-sm">
+              <div className="grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Date range
+                  </label>
+                  <DateRangePicker
+                    from={filters.dateFrom ? new Date(filters.dateFrom + "T00:00:00") : undefined}
+                    to={filters.dateTo ? new Date(filters.dateTo + "T00:00:00") : undefined}
+                    onChange={handleDateChange}
+                    placeholder="Select dates"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Sites
+                  </label>
+                  <MultiSelect
+                    options={siteOptions}
+                    value={filters.siteIds ?? []}
+                    onChange={(v) => onChange({ ...filters, siteIds: v.length ? v : undefined })}
+                    placeholder="All sites"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Clients
+                  </label>
+                  <MultiSelect
+                    options={clientOptions}
+                    value={filters.clientIds ?? []}
+                    onChange={(v) => onChange({ ...filters, clientIds: v.length ? v : undefined })}
+                    placeholder="All clients"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Vendors
+                  </label>
+                  <MultiSelect
+                    options={vendorOptions}
+                    value={filters.vendorIds ?? []}
+                    onChange={(v) => onChange({ ...filters, vendorIds: v.length ? v : undefined })}
+                    placeholder="All vendors"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Waste types
+                  </label>
+                  <MultiSelect
+                    options={wasteTypeOptions}
+                    value={filters.wasteTypeIds ?? []}
+                    onChange={(v) => onChange({ ...filters, wasteTypeIds: v.length ? v : undefined })}
+                    placeholder="All types"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Status
+                  </label>
+                  <Select
+                    value={filters.status ?? "all"}
+                    onValueChange={(v) => onChange({ ...filters, status: v === "all" ? undefined : v as ShipmentStatus })}
+                  >
+                    <SelectTrigger className="w-full"><SelectValue placeholder="All statuses" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All statuses</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="void">Void</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Category
+                  </label>
+                  <Select
+                    value={filters.wasteCategory ?? "all"}
+                    onValueChange={(v) => onChange({ ...filters, wasteCategory: v === "all" ? undefined : v as WasteCategory })}
+                  >
+                    <SelectTrigger className="w-full"><SelectValue placeholder="All categories" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All categories</SelectItem>
+                      <SelectItem value="Non Haz">Non Haz</SelectItem>
+                      <SelectItem value="Hazardous Waste">Hazardous</SelectItem>
+                      <SelectItem value="Recycling">Recycling</SelectItem>
+                      <SelectItem value="Medical">Medical</SelectItem>
+                      <SelectItem value="E-Waste">E-Waste</SelectItem>
+                      <SelectItem value="Universal">Universal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Filter chips — only when panel is collapsed and filters are active ─── */}
+      <AnimatePresence initial={false}>
+        {!panelOpen && chips.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
             <FilterChips
               filters={chips}
               onRemove={handleRemoveChip}
               onClearAll={onReset}
-              className="flex-1 min-w-0"
             />
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

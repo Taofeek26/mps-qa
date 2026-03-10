@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import {
   ResponsiveContainer,
   BarChart,
@@ -44,7 +45,6 @@ import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
 
-const PAGE_SIZE = 10;
 
 /* ─── Sparkline ─── */
 
@@ -107,6 +107,9 @@ export function LogisticsContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [facilityPage, setFacilityPage] = React.useState(1);
   const hasData = shipments.length > 0;
@@ -604,15 +607,16 @@ export function LogisticsContent() {
 
           {/* Facilities Data Table */}
           <PillTabsContent value="facilities">
+            <div ref={tableRef}>
             <DataTable
               columns={facilityColumns}
               data={facilitySummary.slice(
-                (facilityPage - 1) * PAGE_SIZE,
-                facilityPage * PAGE_SIZE
+                (facilityPage - 1) * pageSize,
+                facilityPage * pageSize
               )}
               pagination={{
                 page: facilityPage,
-                pageSize: PAGE_SIZE,
+                pageSize: pageSize,
                 total: facilitySummary.length,
               }}
               onPaginationChange={setFacilityPage}
@@ -622,6 +626,7 @@ export function LogisticsContent() {
                 </div>
               }
             />
+            </div>
           </PillTabsContent>
         </PillTabs>
       ) : (

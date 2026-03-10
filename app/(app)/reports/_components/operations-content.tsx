@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import {
   ResponsiveContainer,
   BarChart,
@@ -53,7 +54,6 @@ import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
 
-const PAGE_SIZE = 10;
 
 
 /* ─── Sparkline (inline SVG mini chart) ─── */
@@ -215,6 +215,9 @@ export function OperationsContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [leaderboardPage, setLeaderboardPage] = React.useState(1);
   const [transporterPage, setTransporterPage] = React.useState(1);
@@ -513,7 +516,7 @@ export function OperationsContent() {
         id: "rank",
         header: "Rank",
         cell: ({ row }) => {
-          const rank = row.index + (leaderboardPage - 1) * PAGE_SIZE + 1;
+          const rank = row.index + (leaderboardPage - 1) * pageSize + 1;
           return (
             <Badge
               variant={rankBadgeVariant(rank)}
@@ -724,15 +727,16 @@ export function OperationsContent() {
 
           {/* Site Leaderboard */}
           <PillTabsContent value="leaderboard">
+            <div ref={tableRef}>
             <DataTable
               columns={leaderboardColumns}
               data={siteLeaderboard.slice(
-                (leaderboardPage - 1) * PAGE_SIZE,
-                leaderboardPage * PAGE_SIZE
+                (leaderboardPage - 1) * pageSize,
+                leaderboardPage * pageSize
               )}
               pagination={{
                 page: leaderboardPage,
-                pageSize: PAGE_SIZE,
+                pageSize: pageSize,
                 total: siteLeaderboard.length,
               }}
               onPaginationChange={setLeaderboardPage}
@@ -742,6 +746,7 @@ export function OperationsContent() {
                 </div>
               }
             />
+            </div>
           </PillTabsContent>
 
           {/* Waste Composition: Treemap + Haz Diverging Bar */}
@@ -823,12 +828,12 @@ export function OperationsContent() {
             <DataTable
               columns={transporterColumns}
               data={transporterData.slice(
-                (transporterPage - 1) * PAGE_SIZE,
-                transporterPage * PAGE_SIZE
+                (transporterPage - 1) * pageSize,
+                transporterPage * pageSize
               )}
               pagination={{
                 page: transporterPage,
-                pageSize: PAGE_SIZE,
+                pageSize: pageSize,
                 total: transporterData.length,
               }}
               onPaginationChange={setTransporterPage}

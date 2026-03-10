@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import { type SortingState } from "@tanstack/react-table";
 import { AuditLogTable } from "@/components/patterns/audit-log-table";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -19,7 +20,6 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 const ACTION_TYPES = ["create", "update", "delete", "login", "export"];
 const ENTITY_TYPES = ["shipment", "vendor", "site", "waste_type", "client", "user", "session"];
 
-const PAGE_SIZE = 50;
 
 export default function AuditLogPage() {
   return (
@@ -34,6 +34,9 @@ function AuditLogContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? "1");
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef, 50);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -61,8 +64,8 @@ function AuditLogContent() {
   }, [dateFrom, dateTo, actorId, actionType, entityType]);
 
   const result = React.useMemo(
-    () => getAuditLog(filters, page, PAGE_SIZE),
-    [filters, page]
+    () => getAuditLog(filters, page, pageSize),
+    [filters, page, pageSize]
   );
 
   /* ─── URL page helpers ─── */
@@ -114,6 +117,7 @@ function AuditLogContent() {
   }
 
   return (
+    <div ref={tableRef}>
     <AuditLogTable
       data={result.data}
       pagination={{
@@ -192,5 +196,6 @@ function AuditLogContent() {
         </>
       }
     />
+    </div>
   );
 }

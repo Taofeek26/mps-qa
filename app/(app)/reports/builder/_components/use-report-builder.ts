@@ -137,7 +137,7 @@ export function useReportBuilder(initialState?: ReportBuilderInitialState | null
   const snapshot = React.useMemo(
     () => ({
       title,
-      dateRange: dateRange
+      dateRange: dateRange?.from
         ? {
             from: dateRange.from.toISOString().slice(0, 10),
             to: dateRange.to ? dateRange.to.toISOString().slice(0, 10) : dateRange.from.toISOString().slice(0, 10),

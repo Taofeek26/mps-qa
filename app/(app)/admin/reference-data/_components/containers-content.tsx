@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Box } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -203,13 +204,15 @@ function ContainerForm({
 
 /* ─── Content ─── */
 
-const PAGE_SIZE = 10;
 
 export function ContainersContent() {
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [page, setPage] = React.useState(1);
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const allData = React.useMemo(() => getContainerEntities(), [refreshKey]);
 
@@ -228,10 +231,10 @@ export function ContainersContent() {
   }, [allData, search, statusFilter]);
 
   /* ─── Pagination ─── */
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paginatedData = React.useMemo(
-    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
     [filtered, safePage]
   );
 
@@ -262,6 +265,7 @@ export function ContainersContent() {
   }
 
   return (
+    <div ref={tableRef}>
     <CrudTable<ContainerEntity>
       title="Containers"
       subtitle={`${filtered.length} containers`}
@@ -269,7 +273,7 @@ export function ContainersContent() {
       data={paginatedData}
       pagination={{
         page: safePage,
-        pageSize: PAGE_SIZE,
+        pageSize: pageSize,
         total: filtered.length,
       }}
       onPaginationChange={setPage}
@@ -300,5 +304,6 @@ export function ContainersContent() {
         <ContainerForm item={item} onClose={onClose} onSaved={refresh} />
       )}
     />
+    </div>
   );
 }

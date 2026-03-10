@@ -4,17 +4,18 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { getSavedReport, updateSavedReport } from "@/lib/saved-reports";
+import { getSavedReport, updateSavedReport, type SavedReport } from "@/lib/saved-reports";
 import { toast } from "@/components/ui/toast";
 import { Spinner } from "@/components/ui/spinner";
 import { ReportBuilder } from "../_components/report-builder";
+import type { ReportSection } from "@/lib/report-builder-types";
 
 export default function EditReportPage() {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuth();
   const reportId = typeof params.id === "string" ? params.id : null;
-  const [savedReport, setSavedReport] = React.useState<ReturnType<typeof getSavedReport>>(undefined);
+  const [savedReport, setSavedReport] = React.useState<SavedReport | null | undefined>(undefined);
   const [isSaving, setIsSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -64,9 +65,9 @@ export default function EditReportPage() {
     dateRange: { from: string; to: string } | null;
     clientId: string;
     siteId: string;
-    sections: { id: string; type: string; config: Record<string, unknown> }[];
+    sections: ReportSection[];
   }) {
-    if (!reportId) return;
+    if (!reportId || !user) return;
     setIsSaving(true);
     try {
       updateSavedReport(user.id, reportId, {

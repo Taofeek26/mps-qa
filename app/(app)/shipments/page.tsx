@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Download, Plus, Truck, Columns3 } from "lucide-react";
@@ -26,7 +27,6 @@ import { ShipmentFiltersBar } from "./_components/shipment-filters";
 import { ExportDialog } from "./_components/export-dialog";
 import { ShipmentDetailsDrawer } from "./_components/shipment-details-drawer";
 
-const PAGE_SIZE = 10;
 
 export default function ShipmentsPage() {
   return (
@@ -46,6 +46,9 @@ function ShipmentsContent() {
 
   /* ─── Derive state from URL ─── */
   const page = Number(searchParams.get("page") ?? "1");
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
   const urlFilters: ShipmentFilters = React.useMemo(
     () => ({
       search: searchParams.get("search") ?? undefined,
@@ -85,9 +88,9 @@ function ShipmentsContent() {
     : undefined;
 
   const result = React.useMemo(
-    () => getShipments(filters, page, PAGE_SIZE, sortParam),
+    () => getShipments(filters, page, pageSize, sortParam),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(filters), page, JSON.stringify(sortParam), refreshKey]
+    [JSON.stringify(filters), page, pageSize, JSON.stringify(sortParam), refreshKey]
   );
 
   /* All data for export (no pagination) */
@@ -177,41 +180,41 @@ function ShipmentsContent() {
           onChange={handleFiltersChange}
           onReset={handleResetFilters}
           allowedSiteIds={allowedSiteIds}
+          trailing={
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="sm">
+                  <Columns3 className="h-4 w-4" />
+                  Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="max-h-[min(70vh,400px)] overflow-y-auto w-56">
+                {SHIPMENT_COLUMN_OPTIONS.map(({ id, label }) => (
+                  <DropdownMenuItem
+                    key={id}
+                    onSelect={(e) => e.preventDefault()}
+                    className="gap-2"
+                  >
+                    <Checkbox
+                      checked={columnVisibility[id] !== false}
+                      onCheckedChange={(checked) => {
+                        setColumnVisibility((prev) => ({
+                          ...prev,
+                          [id]: checked !== false,
+                        }));
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`Toggle ${label}`}
+                    />
+                    <span>{label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          }
         />
 
-        <div className="flex flex-wrap items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="sm">
-                <Columns3 className="h-4 w-4" />
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="max-h-[min(70vh,400px)] overflow-y-auto w-56">
-              {SHIPMENT_COLUMN_OPTIONS.map(({ id, label }) => (
-                <DropdownMenuItem
-                  key={id}
-                  onSelect={(e) => e.preventDefault()}
-                  className="gap-2"
-                >
-                  <Checkbox
-                    checked={columnVisibility[id] !== false}
-                    onCheckedChange={(checked) => {
-                      setColumnVisibility((prev) => ({
-                        ...prev,
-                        [id]: checked !== false,
-                      }));
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`Toggle ${label}`}
-                  />
-                  <span>{label}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
+        <div ref={tableRef}>
         <DataTable
           columns={columns}
           data={result.data}
@@ -228,7 +231,6 @@ function ShipmentsContent() {
           onColumnVisibilityChange={setColumnVisibility}
           onRowClick={(row) => setSelectedShipment(row)}
           loading={false}
-          maxHeight="65vh"
           emptyState={
             <EmptyState
               icon={<Truck className="h-10 w-10" />}
@@ -244,6 +246,7 @@ function ShipmentsContent() {
             />
           }
         />
+        </div>
       </div>
 
       <ShipmentDetailsDrawer

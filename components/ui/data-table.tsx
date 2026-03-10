@@ -102,7 +102,7 @@ function DataTable<TData>({
   loading = false,
   loadingRows = 5,
   emptyState,
-  maxHeight = "60vh",
+  maxHeight,
   className,
 }: DataTableProps<TData>) {
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
@@ -147,7 +147,7 @@ function DataTable<TData>({
       <div className="rounded-[var(--radius-lg)] border border-border-default bg-bg-card overflow-hidden flex flex-col min-h-0">
         <div
           className="overflow-auto flex-1 min-h-0"
-          style={{ maxHeight, minHeight: "280px" }}
+          style={{ maxHeight: maxHeight || undefined, minHeight: "280px" }}
         >
           <table className="w-full border-collapse text-sm">
             <thead className="sticky top-0 z-10">

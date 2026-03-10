@@ -101,8 +101,10 @@ export function ReportList({ userId }: ReportListProps) {
     );
   }
 
+  const isEmpty = reports.length === 0;
+
   return (
-    <div className="space-y-6">
+    <div className={cn("flex flex-col gap-6", isEmpty && "min-h-[calc(100dvh-10rem)]")}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-text-primary">Report Builder</h1>
@@ -118,15 +120,18 @@ export function ReportList({ userId }: ReportListProps) {
         </Link>
       </div>
 
-      <div className="rounded-lg border border-border-default bg-bg-card overflow-hidden">
+      <div className={cn(
+        "rounded-lg border border-border-default bg-bg-card overflow-hidden",
+        isEmpty && "flex-1 flex flex-col"
+      )}>
         <div className="border-b border-border-default bg-bg-card px-4 py-3">
           <h2 className="text-sm font-semibold text-text-primary">My reports</h2>
           <p className="text-xs text-text-muted mt-0.5">
             When you create and save a report, it appears here. You can edit, share, download, rename, or delete it.
           </p>
         </div>
-        {reports.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        {isEmpty ? (
+          <div className="flex flex-1 flex-col items-center justify-center py-16 px-4 text-center">
             <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-bg-subtle mb-4">
               <FileText className="h-7 w-7 text-text-muted" />
             </div>

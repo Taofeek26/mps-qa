@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import {
   ResponsiveContainer,
   BarChart,
@@ -46,7 +47,6 @@ import { useTabPdfExport } from "./use-tab-pdf-export";
 import type { Shipment } from "@/lib/types";
 
 const THRESHOLD = 80; // % — shipments below this are "light loads"
-const PAGE_SIZE = 10;
 
 type ShipmentWithEfficiency = Shipment & { efficiency: number };
 
@@ -64,6 +64,9 @@ export function LightLoadContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [lightLoadPage, setLightLoadPage] = React.useState(1);
   const hasData = shipments.length > 0;
@@ -475,15 +478,16 @@ export function LightLoadContent() {
 
           {/* Light Loads DataTable */}
           <PillTabsContent value="light-loads">
+            <div ref={tableRef}>
             <DataTable
               columns={lightLoadColumns}
               data={sortedLightLoads.slice(
-                (lightLoadPage - 1) * PAGE_SIZE,
-                lightLoadPage * PAGE_SIZE
+                (lightLoadPage - 1) * pageSize,
+                lightLoadPage * pageSize
               )}
               pagination={{
                 page: lightLoadPage,
-                pageSize: PAGE_SIZE,
+                pageSize: pageSize,
                 total: sortedLightLoads.length,
               }}
               onPaginationChange={setLightLoadPage}
@@ -493,6 +497,7 @@ export function LightLoadContent() {
                 </div>
               }
             />
+            </div>
           </PillTabsContent>
         </PillTabs>
       ) : (
