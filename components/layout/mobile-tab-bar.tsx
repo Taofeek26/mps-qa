@@ -77,19 +77,59 @@ const MORE_PREFIXES = ["/admin", "/reports/builder"];
 
 /* ─── Component ─── */
 
+// Total number of tab slots (3 tabs + 1 more button)
+const TAB_COUNT = TABS.length + 1;
+
 export function MobileTabBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
   const [moreOpen, setMoreOpen] = React.useState(false);
+  const barRef = React.useRef<HTMLDivElement>(null);
+  const tabRefs = React.useRef<Map<number, HTMLElement>>(new Map());
+  const [indicator, setIndicator] = React.useState<{ left: number; width: number } | null>(null);
+  const hasMounted = React.useRef(false);
 
   function isActive(tab: TabItem): boolean {
-    // Don't highlight Reports when on /reports/builder (that's under "More")
     if (tab.href === "/reports" && pathname.startsWith("/reports/builder")) return false;
     return tab.matchPrefixes.some((prefix) => pathname.startsWith(prefix));
   }
 
   const moreActive = MORE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+
+  // Find the active tab index
+  const activeIndex = React.useMemo(() => {
+    if (moreActive) return TABS.length; // More tab is last
+    for (let i = 0; i < TABS.length; i++) {
+      if (isActive(TABS[i])) return i;
+    }
+    return -1;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, moreActive]);
+
+  // Measure and position the indicator
+  const measureIndicator = React.useCallback(() => {
+    if (activeIndex < 0 || !barRef.current) {
+      setIndicator(null);
+      return;
+    }
+    const el = tabRefs.current.get(activeIndex);
+    if (!el) { setIndicator(null); return; }
+    const barRect = barRef.current.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    setIndicator({
+      left: elRect.left - barRect.left + (elRect.width - 32) / 2,
+      width: 32,
+    });
+  }, [activeIndex]);
+
+  React.useEffect(() => {
+    measureIndicator();
+    // Enable transitions after first paint
+    requestAnimationFrame(() => { hasMounted.current = true; });
+    window.addEventListener("resize", measureIndicator);
+    return () => window.removeEventListener("resize", measureIndicator);
+  }, [measureIndicator]);
 
   const filteredMoreItems = MORE_ITEMS.filter(
     (item) => !item.roles || (user && item.roles.includes(user.role))
@@ -116,14 +156,27 @@ export function MobileTabBar() {
       <nav
         className="fixed bottom-0 inset-x-0 z-40 lg:hidden border-t border-border-default bg-bg-card/95 backdrop-blur-md pb-safe"
       >
-        <div className="flex items-stretch">
-          {TABS.map((tab) => {
+        <div ref={barRef} className="relative flex items-stretch">
+          {/* Sliding indicator */}
+          {indicator && (
+            <div
+              className="absolute top-0 h-0.5 rounded-full bg-primary-400"
+              style={{
+                left: indicator.left,
+                width: indicator.width,
+                transition: hasMounted.current ? "left 300ms cubic-bezier(0.4, 0, 0.2, 1), width 300ms cubic-bezier(0.4, 0, 0.2, 1)" : "none",
+              }}
+            />
+          )}
+
+          {TABS.map((tab, i) => {
             const active = isActive(tab);
             const Icon = tab.icon;
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
+                ref={(el) => { if (el) tabRefs.current.set(i, el); }}
                 className={cn(
                   "relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors",
                   active
@@ -140,15 +193,13 @@ export function MobileTabBar() {
                 >
                   {tab.label}
                 </span>
-                {active && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-primary-400" />
-                )}
               </Link>
             );
           })}
 
           {/* More tab */}
           <button
+            ref={(el) => { if (el) tabRefs.current.set(TABS.length, el); }}
             onClick={() => setMoreOpen(true)}
             className={cn(
               "relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors cursor-pointer",
@@ -166,9 +217,6 @@ export function MobileTabBar() {
             >
               More
             </span>
-            {moreActive && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-primary-400" />
-            )}
           </button>
         </div>
       </nav>
