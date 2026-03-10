@@ -25,12 +25,12 @@ export const metadata: Metadata = {
   description: "Centralized waste shipment tracking and reporting platform",
   manifest: "/manifest.json",
   icons: {
-    icon: "/Favicon.png",
-    apple: "/Favicon.png",
+    icon: "/icon-192.png",
+    apple: "/icon-180.png",
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "MPS",
   },
   other: {
@@ -47,8 +47,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/Favicon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/Favicon.png" />
+        <link rel="icon" href="/icon-192.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/icon-180.png" />
 
         {/* iOS Splash Screens — iPhone */}
         <link rel="apple-touch-startup-image" href="/splash/iPhone_16_Pro_Max_portrait.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
