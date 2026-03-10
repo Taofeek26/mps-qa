@@ -93,11 +93,17 @@ This document lists all changes completed (from the original codebase) up to the
 |--------------|--------|
 | **Entry choice first** | First-time experience: user sees two options — “Upload data” or “Manually enter data” — instead of going straight to an empty table. | `app/(app)/shipments/new/page.tsx`, `_components/entry-choice.tsx` |
 | **Upload flow** | Dedicated upload step: drag-and-drop or browse for Excel/CSV → programmatic parse and column mapping → preview in same grid for review → validate and submit. | `_components/upload-shipments-step.tsx`, page state |
+| **Demo file download** | “Download sample file (CSV)” button on upload step; downloads a template with expected headers and sample rows. | `upload-shipments-step.tsx` |
 | **Manual entry speed** | “Add 10 / 25 / 50 rows” dropdown; “Duplicate selected” to clone rows; “Fill down” to copy focused cell value down the column; paste-from-Excel supported. | `components/ui/ag-grid-wrapper.tsx` (showAddNRows, showDuplicate, showFillDown), `new-shipment-grid.tsx` |
-| **Layout** | More vertical space (taller grid, reduced top margin); manual view uses wider max-width (max-w-6xl) so the grid has more horizontal room. | `page.tsx`, `new-shipment-grid.tsx` (height) |
-| **Imported banner** | After file upload, a short banner explains that rows are imported and invites review before submit. | `page.tsx` |
+| **Layout** | Full-width content; two-column grid on desktop: **left** = title + content (choice / upload / manual), **right** = vertical step indicator (sticky). Manual grid uses full width and taller height. | `page.tsx`, `new-shipment-grid.tsx` (height) |
+| **Page header** | No “New Shipment Entry” title block on this page; only “Back to Shipments” link at top. Title + subtitle removed per design. | `page.tsx` |
+| **No breadcrumb** | Breadcrumb “Shipments > New shipment > Select entry method” removed. | `page.tsx` (previously in PageHeader) |
+| **Step indicator** | Pill-style steps (Method, Upload, Review & Submit) with **gap between steps**; on desktop, steps shown in right sidebar as vertical list with numbers/checkmarks and “Steps” heading. | `page.tsx` (StepTrack) |
+| **Imported banner** | After file upload, a short banner explains that rows are imported and invites review before submit. | `page.tsx` (ImportedBanner) |
 | **Back link wording** | Single label **“Back to entry options”** used everywhere (upload step and manual view) so users returning to the selection screen see consistent wording. | `upload-shipments-step.tsx` (export), `page.tsx` |
-| **Visual design** | Entry and upload steps use rounded-xl cards, shadow-sm, hover states (shadow-md, border/hover), and clearer typography; manual view has refined banner (left accent), tip in a subtle box, and aligned action row. | `entry-choice.tsx`, `upload-shipments-step.tsx`, `page.tsx` |
+| **Full-width containers** | Entry choice card and option grid use full width (`w-full`); upload step inner content uses full width (no max-w-2xl). | `entry-choice.tsx`, `upload-shipments-step.tsx` |
+| **Left alignment** | Entry choice: heading, subtitle, option cards (icons + text) left-aligned. Upload step content left-aligned. | `entry-choice.tsx`, `upload-shipments-step.tsx` |
+| **Visual design** | Entry and upload steps use rounded-xl cards, shadow-sm, hover states; manual view has refined banner (left accent), tip in a subtle box, and aligned action row. | `entry-choice.tsx`, `upload-shipments-step.tsx`, `page.tsx` |
 
 ---
 
@@ -179,6 +185,8 @@ This document lists all changes completed (from the original codebase) up to the
 
 | File | Purpose |
 |------|---------|
+| `docs/CHANGES-SUMMARY.md` | **Summary of all completed changes** — high-level overview; no file-level detail. |
+| `docs/completed-changes-from-original.md` | Full changelog: every change with file references (this document). |
 | `docs/dashboard-architecture-and-design-system.md` | Architecture, stack, data flow, design system foundation. |
 | `docs/color-palette-reference.md` | Color list with hex and usage; points to `globals.css` as source of truth. |
 | `docs/required-changes-checklist.md` | Checklist from “message (34).txt” (Power BI, KPIs, engineering, etc.). |
@@ -194,6 +202,7 @@ This document lists all changes completed (from the original codebase) up to the
 - **Layout:** `components/layout/app-shell.tsx`, `sidebar-nav.tsx`, `mobile-sidebar.tsx`, `topbar.tsx`, `user-menu.tsx`, `notifications.tsx`
 - **UI primitives:** `components/ui/page-header.tsx`, `section-header.tsx`, `kpi-card.tsx`, `button.tsx`, `filter-bar.tsx`, `filter-chips.tsx`, `data-table.tsx`, `multi-select.tsx`, `breadcrumbs.tsx`, `tabs.tsx`, `pill-tabs.tsx`, `command-palette.tsx`
 - **Shipments:** `app/(app)/shipments/page.tsx`, `app/(app)/shipments/_components/shipment-filters.tsx`
+- **New Shipment Entry:** `app/(app)/shipments/new/page.tsx`, `_components/entry-choice.tsx`, `_components/upload-shipments-step.tsx`, `_components/new-shipment-grid.tsx`, `_components/validation-summary.tsx`
 - **Dashboard:** `app/(app)/dashboard/page.tsx`
 - **Report builder:** `app/(app)/reports/builder/` (page, new, [id]), `_components/report-list.tsx`, `report-builder.tsx`, `report-toolbar.tsx`, `use-report-builder.ts`, `rename-report-dialog.tsx`; `lib/saved-reports.ts`
 - **Charts:** `components/charts/chart-container.tsx`, `timeline-heatmap.tsx`
@@ -201,4 +210,4 @@ This document lists all changes completed (from the original codebase) up to the
 
 ---
 
-*Last updated to reflect all changes completed from the original design through the current state.*
+*Last updated to reflect all changes completed from the original design through the current state. For a short overview, see `docs/CHANGES-SUMMARY.md`.*
