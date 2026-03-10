@@ -1,6 +1,7 @@
 "use client";
 
-import { FileDown, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { FileDown, Loader2, ArrowLeft, Save } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -27,6 +28,9 @@ interface ReportToolbarProps {
   sectionCount: number;
   onExport: () => void;
   isExporting: boolean;
+  onSave?: () => void;
+  isSaving?: boolean;
+  showBack?: boolean;
 }
 
 export function ReportToolbar({
@@ -43,19 +47,32 @@ export function ReportToolbar({
   sectionCount,
   onExport,
   isExporting,
+  onSave,
+  isSaving = false,
+  showBack = false,
 }: ReportToolbarProps) {
   return (
     <div className="border-b border-border-default px-4 lg:px-6 py-3">
-      {/* Row 1: Title */}
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => onTitleChange(e.target.value)}
-        className="w-full text-lg font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-text-muted mb-3"
-        placeholder="Report title..."
-      />
+      {/* Row 1: Back + Title */}
+      <div className="flex items-center gap-2 mb-3">
+        {showBack && (
+          <Link href="/reports/builder">
+            <Button variant="ghost" size="sm" className="text-text-muted hover:text-text-primary -ml-1">
+              <ArrowLeft className="h-4 w-4" />
+              Back to my reports
+            </Button>
+          </Link>
+        )}
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => onTitleChange(e.target.value)}
+          className="flex-1 min-w-0 text-lg font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-text-muted"
+          placeholder="Report title..."
+        />
+      </div>
 
-      {/* Row 2: Filters + Export */}
+      {/* Row 2: Filters + Save + Export */}
       <div className="flex flex-wrap items-center gap-2.5">
         <DateRangePicker
           from={dateRange?.from}
@@ -85,7 +102,13 @@ export function ReportToolbar({
           placeholder="All Sites"
           className="w-[180px]"
         />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          {onSave && (
+            <Button variant="secondary" onClick={onSave} disabled={isSaving}>
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {isSaving ? "Saving..." : "Save report"}
+            </Button>
+          )}
           <Button onClick={onExport} disabled={sectionCount === 0 || isExporting}>
             {isExporting ? (
               <Loader2 className="h-4 w-4 animate-spin" />

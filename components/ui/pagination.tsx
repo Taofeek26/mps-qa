@@ -71,7 +71,7 @@ function Pagination({
             className={cn(
               btnBase,
               page === currentPage
-                ? "bg-primary-400 text-text-inverse shadow-sm"
+                ? "bg-button-400 text-text-inverse shadow-sm"
                 : "text-text-primary hover:bg-gray-100"
             )}
             aria-current={page === currentPage ? "page" : undefined}

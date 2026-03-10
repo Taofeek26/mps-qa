@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import {
   ResponsiveContainer,
   PieChart,
@@ -41,7 +42,6 @@ import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
 
-const PAGE_SIZE = 10;
 
 export function VendorIntelContent() {
   const {
@@ -57,6 +57,9 @@ export function VendorIntelContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const vendors = React.useMemo(() => getVendors(), []);
   const [compliancePage, setCompliancePage] = React.useState(1);
@@ -551,15 +554,16 @@ export function VendorIntelContent() {
 
           {/* Compliance Data Table */}
           <PillTabsContent value="compliance">
+            <div ref={tableRef}>
             <DataTable
               columns={complianceColumns}
               data={complianceData.slice(
-                (compliancePage - 1) * PAGE_SIZE,
-                compliancePage * PAGE_SIZE
+                (compliancePage - 1) * pageSize,
+                compliancePage * pageSize
               )}
               pagination={{
                 page: compliancePage,
-                pageSize: PAGE_SIZE,
+                pageSize: pageSize,
                 total: complianceData.length,
               }}
               onPaginationChange={setCompliancePage}
@@ -569,6 +573,7 @@ export function VendorIntelContent() {
                 </div>
               }
             />
+            </div>
           </PillTabsContent>
         </PillTabs>
       ) : (

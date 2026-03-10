@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Factory } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -265,7 +266,6 @@ function ReceivingFacilityForm({
 
 /* ─── Page ─── */
 
-const PAGE_SIZE = 10;
 
 export default function ReceivingFacilitiesPage() {
   return (
@@ -280,6 +280,9 @@ function ReceivingFacilitiesContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? "1");
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
@@ -314,10 +317,10 @@ function ReceivingFacilitiesContent() {
   }, [allData, search, companyFilter, statusFilter]);
 
   /* ─── Pagination ─── */
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paginatedData = React.useMemo(
-    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
     [filtered, safePage]
   );
 
@@ -367,6 +370,7 @@ function ReceivingFacilitiesContent() {
   }
 
   return (
+    <div ref={tableRef}>
     <CrudTable<ReceivingFacilityEntity>
       title="Receiving Facilities"
       subtitle={`${filtered.length} facilities`}
@@ -374,7 +378,7 @@ function ReceivingFacilitiesContent() {
       data={paginatedData}
       pagination={{
         page: safePage,
-        pageSize: PAGE_SIZE,
+        pageSize: pageSize,
         total: filtered.length,
       }}
       onPaginationChange={pushPage}
@@ -426,5 +430,6 @@ function ReceivingFacilitiesContent() {
         />
       )}
     />
+    </div>
   );
 }

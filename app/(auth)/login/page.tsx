@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,23 +61,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg-app p-4">
-      <Card className="w-full max-w-sm">
-        <CardContent className="flex flex-col items-center gap-6 px-6 pt-8 pb-8 sm:px-8">
-          <Image src="/logo.png" alt="MPS" width={120} height={42} priority />
+    <div className="flex min-h-screen items-center justify-center bg-bg-app p-4 sm:p-6">
+      <Card className="w-full max-w-[400px] border-border-default shadow-sm">
+        <CardContent className="flex flex-col items-stretch gap-6 px-5 pt-6 pb-6 sm:px-8 sm:pt-8 sm:pb-8">
+          <div className="flex justify-start">
+            <Image src="/logo.png" alt="MPS" width={120} height={42} priority />
+          </div>
 
-          <div className="text-center">
-            <h1 className="text-lg font-bold text-text-primary">
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-text-primary">
               Welcome back
             </h1>
-            <p className="mt-1 text-sm text-text-muted">
+            <p className="text-sm text-text-muted">
               Sign in to the MPS Waste Shipment Platform
             </p>
           </div>
 
-          {/* User picker for demo/testing */}
-          <div className="w-full space-y-1.5">
-            <label className="text-xs font-medium text-text-muted">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text-primary">
               Sign in as
             </label>
             <Select
@@ -106,12 +108,23 @@ export default function LoginPage() {
             Sign in with Microsoft
           </Button>
 
-          <div className="text-center">
-            <p className="text-[11px] text-text-muted">
+          <div className="border-t border-border-default pt-5 space-y-1.5">
+            <p className="text-xs text-text-muted">
               MPS Platform v1.0
             </p>
-            <p className="text-[10px] text-text-muted mt-0.5">
+            <p className="text-xs text-text-muted/80">
               Powered by MPS Group
+            </p>
+            <p className="text-xs text-text-muted/80">
+              Designed and built by{" "}
+              <Link
+                href="https://whitelabelresell.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-text-muted transition-colors"
+              >
+                White Label Resell
+              </Link>
             </p>
           </div>
         </CardContent>

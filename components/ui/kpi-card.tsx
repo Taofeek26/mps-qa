@@ -18,12 +18,9 @@ interface KpiCardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: KpiCardVariant;
 }
 
-const iconVariantStyles: Record<KpiCardVariant, string> = {
-  default: "bg-primary-50 text-primary-400",
-  success: "bg-success-100 text-success-600",
-  warning: "bg-warning-100 text-warning-600",
-  error: "bg-error-100 text-error-600",
-};
+/* Icon box: background #F9FAFB, border #F3F4F6, icon #99A1AF */
+const iconBoxStyles =
+  "bg-bg-app border border-border-default text-[var(--color-icon-muted)]";
 
 const KpiCard = React.forwardRef<HTMLDivElement, KpiCardProps>(
   ({ className, title, value, subtitle, icon: Icon, trend, variant = "default", ...props }, ref) => {
@@ -31,7 +28,7 @@ const KpiCard = React.forwardRef<HTMLDivElement, KpiCardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-[var(--radius-lg)] border border-border-default bg-bg-card p-5",
+          "rounded-[var(--radius-lg)] border border-border-default bg-bg-card p-5 transition-colors duration-150 hover:border-border-strong",
           className
         )}
         {...props}
@@ -65,7 +62,7 @@ const KpiCard = React.forwardRef<HTMLDivElement, KpiCardProps>(
             <div
               className={cn(
                 "flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)]",
-                iconVariantStyles[variant]
+                iconBoxStyles
               )}
             >
               <Icon className="h-5 w-5" />

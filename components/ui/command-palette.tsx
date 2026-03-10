@@ -108,7 +108,7 @@ export function CommandPalette() {
       {/* Trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-muted transition-colors hover:border-border-hover hover:text-text-secondary cursor-pointer"
+        className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-muted transition-colors duration-150 ease-out hover:border-border-hover hover:text-text-secondary cursor-pointer"
       >
         <Search className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Search...</span>

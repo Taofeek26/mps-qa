@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   ResponsiveContainer,
@@ -57,7 +58,6 @@ import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
 
-const PAGE_SIZE = 10;
 
 /* ─── Heatmap Cell ─── */
 
@@ -141,6 +141,9 @@ export function CostAnalysisContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [txnPage, setTxnPage] = React.useState(1);
   const hasData = shipments.length > 0;
@@ -860,10 +863,11 @@ export function CostAnalysisContent() {
 
           {/* Tab 4: Transactions Table */}
           <PillTabsContent value="transactions">
+            <div ref={tableRef}>
             <DataTable
               columns={txnColumns}
-              data={shipments.slice((txnPage - 1) * PAGE_SIZE, txnPage * PAGE_SIZE)}
-              pagination={{ page: txnPage, pageSize: PAGE_SIZE, total: shipments.length }}
+              data={shipments.slice((txnPage - 1) * pageSize, txnPage * pageSize)}
+              pagination={{ page: txnPage, pageSize: pageSize, total: shipments.length }}
               onPaginationChange={setTxnPage}
               emptyState={
                 <div className="flex items-center justify-center h-full text-sm text-text-muted">
@@ -871,6 +875,7 @@ export function CostAnalysisContent() {
                 </div>
               }
             />
+            </div>
           </PillTabsContent>
         </PillTabs>
       ) : (

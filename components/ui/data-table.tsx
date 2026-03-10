@@ -44,6 +44,8 @@ interface DataTableProps<TData> {
   loading?: boolean;
   loadingRows?: number;
   emptyState?: React.ReactNode;
+  /** Max height of the scrollable table body (e.g. "60vh" or "500px"). Table scrolls inside the box. */
+  maxHeight?: string;
   className?: string;
 }
 
@@ -100,6 +102,7 @@ function DataTable<TData>({
   loading = false,
   loadingRows = 5,
   emptyState,
+  maxHeight,
   className,
 }: DataTableProps<TData>) {
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
@@ -139,14 +142,17 @@ function DataTable<TData>({
     : 0;
 
   return (
-    <div className={cn("space-y-4", className)}>
-      {/* Table wrapper — horizontal scroll on mobile */}
-      <div className="rounded-[var(--radius-lg)] border border-border-default bg-bg-card overflow-hidden">
-        <div className="overflow-x-auto">
+    <div className={cn("space-y-5", className)}>
+      {/* Table box — scrolls inside; header stays sticky */}
+      <div className="rounded-[var(--radius-lg)] border border-border-default bg-bg-card overflow-hidden flex flex-col min-h-0">
+        <div
+          className="overflow-auto flex-1 min-h-0"
+          style={{ maxHeight: maxHeight || undefined, minHeight: "280px" }}
+        >
           <table className="w-full border-collapse text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id} className="border-b border-border-default bg-bg-subtle">
+                <tr key={headerGroup.id} className="border-b border-border-default bg-bg-subtle shadow-[0_1px_0_0_var(--color-border-default)]">
                   {headerGroup.headers.map((header) => {
                     const canSort = header.column.getCanSort();
                     const sorted = header.column.getIsSorted();
@@ -154,7 +160,7 @@ function DataTable<TData>({
                       <th
                         key={header.id}
                         className={cn(
-                          "h-10 px-4 text-left text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap",
+                          "h-12 px-4 py-3 text-left text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap",
                           canSort && "cursor-pointer select-none",
                           (header.column.columnDef.meta as Record<string, unknown>)?.align === "center" && "text-center"
                         )}
@@ -204,7 +210,7 @@ function DataTable<TData>({
                     className="border-b border-border-default"
                   >
                     {table.getVisibleLeafColumns().map((col) => (
-                      <td key={col.id} className="h-12 px-4">
+                      <td key={col.id} className="h-14 px-4 py-3">
                         <Skeleton className="h-4 w-3/4" />
                       </td>
                     ))}
@@ -230,7 +236,7 @@ function DataTable<TData>({
               {/* Data rows */}
               <AnimatePresence initial={false}>
                 {!loading &&
-                  table.getRowModel().rows.map((row) => {
+                  table.getRowModel().rows.map((row, index) => {
                     const isExpanded = expandedRows.has(row.id);
                     const subRowContent = renderSubRow?.(row.original);
                     const canExpand = !!renderSubRow && subRowContent != null;
@@ -247,8 +253,7 @@ function DataTable<TData>({
                             "group border-b border-border-default transition-colors",
                             "hover:bg-bg-hover",
                             row.getIsSelected() && "bg-primary-50",
-                            (onRowClick || canExpand) && "cursor-pointer",
-                            isExpanded && "bg-bg-subtle"
+                            (onRowClick || canExpand) && "cursor-pointer"
                           )}
                           onClick={() => {
                             if (onRowClick) {
@@ -262,7 +267,7 @@ function DataTable<TData>({
                             <td
                               key={cell.id}
                               className={cn(
-                                "h-12 px-4 text-text-primary whitespace-nowrap",
+                                "h-14 px-4 py-3 text-text-primary whitespace-nowrap",
                                 (cell.column.columnDef.meta as Record<string, unknown>)?.align === "center" && "text-center"
                               )}
                             >
@@ -279,7 +284,7 @@ function DataTable<TData>({
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.2, ease: "easeInOut" }}
-                            className="border-b border-border-default bg-bg-subtle"
+                            className="border-b border-border-default bg-bg-card"
                           >
                             <td
                               colSpan={row.getVisibleCells().length}

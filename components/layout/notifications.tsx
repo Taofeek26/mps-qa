@@ -39,7 +39,7 @@ export function Notifications() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="relative flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-text-muted transition-colors hover:bg-bg-surface hover:text-text-primary cursor-pointer focus-ring"
+          className="relative flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-text-muted transition-colors duration-150 ease-out hover:bg-bg-surface hover:text-text-primary cursor-pointer focus-ring"
           aria-label="Notifications"
         >
           <Bell className="h-4 w-4" />

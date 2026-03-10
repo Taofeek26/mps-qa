@@ -17,7 +17,7 @@ const SectionHeader = React.forwardRef<HTMLDivElement, SectionHeaderProps>(
         )}
         {...props}
       >
-        <h2 className="text-sm font-semibold text-text-primary tracking-wide uppercase">
+        <h2 className="text-base font-semibold text-text-primary tracking-tight">
           {title}
         </h2>
         {action && <div>{action}</div>}

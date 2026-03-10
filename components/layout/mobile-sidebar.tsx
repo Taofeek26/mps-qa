@@ -22,6 +22,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
+    if (href === "/reports") return pathname === "/reports" || (pathname.startsWith("/reports/") && !pathname.startsWith("/reports/builder"));
     return pathname.startsWith(href);
   }
 
@@ -41,15 +42,15 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center h-14 px-5 border-b border-border-default">
-            <Image src="/logo.png" alt="MPS" width={90} height={32} priority />
+          <div className="flex items-center h-20 pl-5 pr-4">
+            <Image src="/logo.png" alt="MPS" width={130} height={46} className="object-contain" priority />
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-5">
+          <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
             {filteredGroups.map((group) => (
               <div key={group.label}>
-                <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                <p className="px-2 mb-2 text-xs font-medium text-text-muted">
                   {group.label}
                 </p>
                 <div className="space-y-0.5">
@@ -62,10 +63,10 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                         href={item.href}
                         onClick={() => onOpenChange(false)}
                         className={cn(
-                          "flex items-center gap-3 px-3 h-9 rounded-[var(--radius-sm)] transition-colors text-sm font-medium",
+                          "flex items-center gap-3 px-2 h-10 rounded-md transition-colors text-sm",
                           active
-                            ? "bg-primary-50 text-primary-500"
-                            : "text-text-secondary hover:text-text-primary hover:bg-gray-100"
+                            ? "text-primary-600 font-semibold"
+                            : "text-text-secondary font-medium hover:text-text-primary hover:bg-black/4"
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
@@ -79,7 +80,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
           </nav>
 
           {/* Footer */}
-          <div className="shrink-0 border-t border-border-default px-5 py-3">
+          <div className="shrink-0 px-5 py-3">
             <p className="text-[11px] text-text-muted">MPS Platform v1.0</p>
           </div>
         </div>

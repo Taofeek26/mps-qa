@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MPS Dashboard Platform
 
-## Getting Started
+The MPS dashboard is a `Next.js 16` waste shipment operations platform with analytics, reports, admin management, a custom report builder, and an internal design-system showcase. Favicon and PWA icons use `public/Favicon.png`.
 
-First, run the development server:
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Useful scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `pnpm dev`
+- `pnpm build`
+- `pnpm start`
+- `pnpm lint`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Current Stack
 
-## Learn More
+- `Next.js 16.1.6`
+- `React 19.2.3`
+- `TypeScript`
+- `Tailwind CSS v4`
+- `radix-ui`
+- `motion`
+- `nuqs`
+- `@tanstack/react-table`
+- `ag-grid-react`
+- `recharts`
+- `react-hook-form` + `zod`
+- `xlsx`
+- `@react-pdf/renderer`
 
-To learn more about Next.js, take a look at the following resources:
+## Product Areas
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `Dashboard`: KPI cards, charts, activity, and operational alerts
+- `Shipments`: searchable shipment list with export, detail drawers, and delete/edit flows
+- `New Shipment Entry`: Entry choice (Upload data / Manually enter data), file upload with sample CSV download, AG Grid with paste/import, add N rows, duplicate, fill down, and step indicator
+- `Reports`: tabbed analytics across waste, cost, operations, logistics, emissions, and more
+- `Report Builder`: custom report assembly with PDF export
+- `Admin`: clients, sites, vendors, facilities, reference data, users, and audit log
+- `Design System`: live component and token showcase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture At A Glance
 
-## Deploy on Vercel
+- `app/`: App Router routes, route groups, and layouts
+- `components/ui/`: shared design-system primitives
+- `components/layout/`: shell, sidebar, topbar, mobile navigation, route guard
+- `components/charts/`: reusable Recharts wrappers
+- `components/report-builder/`: widget rendering and PDF/report assembly
+- `components/patterns/`: higher-order reusable feature patterns like CRUD tables
+- `lib/mock-data.ts`: current in-memory data source and mutation layer
+- `lib/types.ts`: shared domain model
+- `lib/navigation.ts`: nav, labels, and breadcrumbs
+- `app/globals.css`: design tokens and theme definitions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **[Completed changes](./docs/completed-changes-from-original.md)** — Full changelog with file references.
+- **[Changes summary](./docs/CHANGES-SUMMARY.md)** — Short list of all completed changes.
+- **[Architecture & design system](./docs/dashboard-architecture-and-design-system.md)** — Stack, data flow, design tokens.
+- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** — Brand theme and token summary.
+
+## Important Notes
+
+- The app currently uses a mock in-memory data layer, not a real backend.
+- Auth is client-side and persisted in `localStorage`.
+- The global runtime theme is `theme-brand`.
+- Favicon and app icons: `public/Favicon.png` (used in layout and `manifest.json`).

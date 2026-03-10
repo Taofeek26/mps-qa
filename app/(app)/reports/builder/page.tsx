@@ -1,19 +1,21 @@
 "use client";
 
 import { Suspense } from "react";
-import { Spinner } from "@/components/ui/spinner";
-import { ReportBuilder } from "./_components/report-builder";
+import { useAuth } from "@/lib/auth-context";
+import { ReportList } from "./_components/report-list";
 
 export default function ReportBuilderPage() {
+  const { user } = useAuth();
+
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center h-[60vh]">
-          <Spinner size="lg" />
+    <Suspense fallback={null}>
+      {user ? (
+        <ReportList userId={user.id} />
+      ) : (
+        <div className="rounded-lg border border-border-default bg-bg-card p-8 text-center text-text-muted">
+          Sign in to view and manage your reports.
         </div>
-      }
-    >
-      <ReportBuilder />
+      )}
     </Suspense>
   );
 }

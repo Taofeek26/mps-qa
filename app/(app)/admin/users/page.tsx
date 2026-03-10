@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Users } from "lucide-react";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
@@ -48,7 +49,6 @@ const roleLabel: Record<UserRole, string> = {
 
 /* ─── Page ─── */
 
-const PAGE_SIZE = 10;
 
 export default function UsersPage() {
   return (
@@ -63,6 +63,9 @@ function UsersContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? "1");
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
@@ -196,10 +199,10 @@ function UsersContent() {
   }, [allData, search, roleFilter, statusFilter]);
 
   /* ─── Pagination ─── */
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paginatedData = React.useMemo(
-    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
     [filtered, safePage]
   );
 
@@ -249,6 +252,7 @@ function UsersContent() {
   }
 
   return (
+    <div ref={tableRef}>
     <CrudTable<User>
       title="Users & Roles"
       subtitle={`${filtered.length} users`}
@@ -256,7 +260,7 @@ function UsersContent() {
       data={paginatedData}
       pagination={{
         page: safePage,
-        pageSize: PAGE_SIZE,
+        pageSize: pageSize,
         total: filtered.length,
       }}
       onPaginationChange={pushPage}
@@ -308,6 +312,7 @@ function UsersContent() {
         />
       )}
     />
+    </div>
   );
 }
 

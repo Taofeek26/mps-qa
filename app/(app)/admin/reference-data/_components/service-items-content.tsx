@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Wrench } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -165,13 +166,15 @@ function ServiceItemForm({
 
 /* ─── Content ─── */
 
-const PAGE_SIZE = 10;
 
 export function ServiceItemsContent() {
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [page, setPage] = React.useState(1);
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const allData = React.useMemo(() => getServiceItems(), [refreshKey]);
 
@@ -190,10 +193,10 @@ export function ServiceItemsContent() {
   }, [allData, search, statusFilter]);
 
   /* ─── Pagination ─── */
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paginatedData = React.useMemo(
-    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
     [filtered, safePage]
   );
 
@@ -224,6 +227,7 @@ export function ServiceItemsContent() {
   }
 
   return (
+    <div ref={tableRef}>
     <CrudTable<ServiceItem>
       title="Service Items"
       subtitle={`${filtered.length} service items`}
@@ -231,7 +235,7 @@ export function ServiceItemsContent() {
       data={paginatedData}
       pagination={{
         page: safePage,
-        pageSize: PAGE_SIZE,
+        pageSize: pageSize,
         total: filtered.length,
       }}
       onPaginationChange={setPage}
@@ -262,5 +266,6 @@ export function ServiceItemsContent() {
         <ServiceItemForm item={item} onClose={onClose} onSaved={refresh} />
       )}
     />
+    </div>
   );
 }

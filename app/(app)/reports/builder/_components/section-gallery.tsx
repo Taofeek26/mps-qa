@@ -36,21 +36,21 @@ export function SectionGallery({ onAdd, onRemove, isSectionAdded }: SectionGalle
                     className={cn(
                       "w-full flex items-start gap-2.5 rounded-[var(--radius-sm)] px-3 py-2.5 text-left transition-colors",
                       added
-                        ? "bg-primary-50 border border-primary-200"
-                        : "bg-bg-card border border-border-default hover:border-primary-300 hover:bg-bg-hover"
+                        ? "bg-button-50 border border-button-200"
+                        : "bg-bg-card border border-border-default hover:border-border-strong hover:bg-bg-subtle"
                     )}
                   >
                     <div
                       className={cn(
                         "flex-none flex items-center justify-center w-7 h-7 rounded-md mt-0.5",
-                        added ? "bg-primary-400 text-text-inverse" : "bg-bg-subtle text-text-muted"
+                        added ? "bg-button-400 text-text-inverse" : "bg-bg-subtle text-text-muted"
                       )}
                     >
                       {added ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className={cn("text-xs font-medium truncate", added ? "text-primary-600" : "text-text-primary")}>
+                        <span className={cn("text-xs font-medium truncate", added ? "text-button-600" : "text-text-primary")}>
                           {widget.label}
                         </span>
                         {!added && <Plus className="h-3 w-3 flex-none text-text-muted opacity-0 group-hover:opacity-100" />}

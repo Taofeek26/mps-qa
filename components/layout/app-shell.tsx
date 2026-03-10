@@ -40,7 +40,7 @@ export function AppShell({ children }: AppShellProps) {
         <div ref={tabsPortalRef} className="sticky top-14 z-20" />
         <main className="flex-1">
           {/* pb-20 on mobile to clear the fixed bottom tab bar */}
-          <div className="mx-auto max-w-[1440px] p-4 pb-20 lg:p-6 lg:pb-6">
+          <div className="px-4 pt-4 pb-20 lg:px-6 lg:pt-6 lg:pb-6">
             <TabsPortalProvider container={portalNode}>
               <RouteGuard>{children}</RouteGuard>
             </TabsPortalProvider>

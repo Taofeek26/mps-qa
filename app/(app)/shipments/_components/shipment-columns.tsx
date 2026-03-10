@@ -43,6 +43,28 @@ interface ShipmentColumnActions {
   onDelete: (shipment: Shipment) => void;
 }
 
+/** Column ids and labels for the column visibility picker (excludes select + actions) */
+export const SHIPMENT_COLUMN_OPTIONS: { id: string; label: string }[] = [
+  { id: "shipmentDate", label: "Date" },
+  { id: "siteName", label: "Site" },
+  { id: "clientName", label: "Client" },
+  { id: "vendorName", label: "Vendor" },
+  { id: "wasteTypeName", label: "Waste Type" },
+  { id: "wasteCategory", label: "Category" },
+  { id: "treatmentMethod", label: "Treatment" },
+  { id: "weightValue", label: "Weight" },
+  { id: "manifestNumber", label: "Manifest #" },
+  { id: "receivingFacility", label: "Facility" },
+  { id: "transporterName", label: "Transporter" },
+  { id: "milesFromFacility", label: "Miles" },
+  { id: "containerType", label: "Container" },
+  { id: "mpsCostTotal", label: "MPS Cost" },
+  { id: "custCostTotal", label: "Cust. Cost" },
+  { id: "margin", label: "Margin" },
+  { id: "notes", label: "Notes" },
+  { id: "status", label: "Status" },
+];
+
 /** All available columns — the page determines default visibility */
 export function getShipmentColumns(
   actions: ShipmentColumnActions
@@ -149,6 +171,33 @@ export function getShipmentColumns(
       accessorKey: "transporterName",
       header: "Transporter",
       size: 150,
+      cell: ({ getValue }) => {
+        const val = getValue() as string | undefined;
+        return val ? (
+          <span className="text-text-secondary">{val}</span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
+      accessorKey: "milesFromFacility",
+      header: "Miles",
+      size: 90,
+      meta: { align: "center" },
+      cell: ({ getValue }) => {
+        const val = getValue() as number | undefined;
+        return val != null ? (
+          <span className="text-text-secondary">{val.toLocaleString()}</span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
+      accessorKey: "containerType",
+      header: "Container",
+      size: 120,
       cell: ({ getValue }) => {
         const val = getValue() as string | undefined;
         return val ? (

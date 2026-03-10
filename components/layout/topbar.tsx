@@ -20,7 +20,7 @@ export function Topbar({ onMobileMenuToggle }: TopbarProps) {
   const crumbs = buildBreadcrumbs(pathname, tab);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border-default bg-bg-card/95 backdrop-blur-sm px-4 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border-default bg-bg-card/95 backdrop-blur-sm px-4 lg:px-6 transition-colors duration-150 ease-out">
       {/* Left: mobile hamburger + breadcrumbs */}
       <div className="flex items-center gap-3">
         <div className="lg:hidden">

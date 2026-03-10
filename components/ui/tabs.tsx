@@ -94,7 +94,7 @@ const TabsList = React.forwardRef<
       />
       <div
         ref={indicatorRef}
-        className="absolute bottom-0 h-0.5 bg-primary-400 rounded-full"
+        className="absolute bottom-0 h-0.5 bg-text-primary rounded-full"
       />
     </div>
   );
@@ -116,7 +116,7 @@ const TabsTrigger = React.forwardRef<
     className={cn(
       "inline-flex items-center justify-center px-4 py-3 text-sm font-medium text-text-muted transition-colors duration-150 cursor-pointer",
       "hover:text-text-primary",
-      "data-[state=active]:text-primary-400 data-[state=active]:font-semibold",
+      "data-[state=active]:text-text-primary data-[state=active]:font-semibold",
       "focus-ring rounded-t-[var(--radius-sm)]",
       "disabled:pointer-events-none disabled:opacity-40",
       className

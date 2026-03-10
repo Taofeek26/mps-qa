@@ -11,6 +11,8 @@ interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   height?: number;
   /** Tailwind classes for chart wrapper (use for responsive heights, e.g. "h-[250px] lg:h-[300px]") */
   chartClassName?: string;
+  /** Optional left accent border for primary/hero chart */
+  accent?: "left" | "none";
 }
 
 export function ChartContainer({
@@ -19,6 +21,7 @@ export function ChartContainer({
   action,
   height = 300,
   chartClassName,
+  accent = "none",
   children,
   className,
   ...props
@@ -27,6 +30,7 @@ export function ChartContainer({
     <div
       className={cn(
         "rounded-[var(--radius-lg)] border border-border-default bg-bg-card p-4 sm:p-5",
+        accent === "left" && "border-l-4 border-l-primary-400",
         className
       )}
       role="figure"

@@ -9,9 +9,31 @@ import { ReportToolbar } from "./report-toolbar";
 import { ReportPreview } from "./report-preview";
 import { exportReportPdf } from "./pdf-export";
 import type { SectionType } from "@/lib/report-builder-types";
+import type { ReportBuilderInitialState } from "./use-report-builder";
 
-export function ReportBuilder() {
-  const builder = useReportBuilder();
+export interface ReportBuilderProps {
+  /** When provided, load this saved report (edit mode). */
+  initialState?: ReportBuilderInitialState | null;
+  /** When provided, show Save and Back; onSave receives snapshot for persistence. */
+  reportId?: string | null;
+  onSave?: (data: {
+    name: string;
+    title: string;
+    dateRange: { from: string; to: string } | null;
+    clientId: string;
+    siteId: string;
+    sections: ReturnType<typeof useReportBuilder>["sections"];
+  }) => void;
+  isSaving?: boolean;
+}
+
+export function ReportBuilder({
+  initialState,
+  reportId,
+  onSave,
+  isSaving = false,
+}: ReportBuilderProps) {
+  const builder = useReportBuilder(initialState);
   const previewRef = React.useRef<HTMLDivElement>(null);
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
   const [isMobile, setIsMobile] = React.useState(false);
@@ -42,6 +64,18 @@ export function ReportBuilder() {
     const section = builder.sections.find((s) => s.type === type);
     if (section) builder.removeSection(section.id);
   };
+
+  const handleSave = React.useCallback(() => {
+    if (!onSave) return;
+    onSave({
+      name: builder.title,
+      title: builder.title,
+      dateRange: builder.snapshot.dateRange,
+      clientId: builder.snapshot.clientId,
+      siteId: builder.snapshot.siteId,
+      sections: builder.sections,
+    });
+  }, [onSave, builder.title, builder.snapshot, builder.sections]);
 
   if (isMobile) {
     return (
@@ -76,6 +110,9 @@ export function ReportBuilder() {
         sectionCount={builder.sections.length}
         onExport={handleExport}
         isExporting={builder.isExporting}
+        onSave={onSave ? handleSave : undefined}
+        isSaving={isSaving}
+        showBack={!!(onSave || reportId)}
       />
 
       {/* Main area: Sidebar + Preview */}

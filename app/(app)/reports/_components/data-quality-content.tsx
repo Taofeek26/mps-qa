@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import {
   ResponsiveContainer,
   BarChart,
@@ -113,7 +114,6 @@ function getVariantLabel(variant: "success" | "warning" | "error"): string {
   return "Critical";
 }
 
-const PAGE_SIZE = 10;
 
 /* ─── Duplicate Manifest Row Type ─── */
 
@@ -142,6 +142,9 @@ export function DataQualityContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [dupPage, setDupPage] = React.useState(1);
   const hasData = shipments.length > 0;
@@ -636,15 +639,16 @@ export function DataQualityContent() {
           {/* ── Tab 3: Issues ── */}
           <PillTabsContent value="issues" className="space-y-4">
             {/* Duplicate Manifests Table */}
+            <div ref={tableRef}>
             <DataTable
               columns={dupColumns}
               data={duplicateManifests.slice(
-                (dupPage - 1) * PAGE_SIZE,
-                dupPage * PAGE_SIZE
+                (dupPage - 1) * pageSize,
+                dupPage * pageSize
               )}
               pagination={{
                 page: dupPage,
-                pageSize: PAGE_SIZE,
+                pageSize: pageSize,
                 total: duplicateManifests.length,
               }}
               onPaginationChange={setDupPage}
@@ -656,6 +660,7 @@ export function DataQualityContent() {
                 </div>
               }
             />
+            </div>
 
             {/* Container Fill Rate Chart */}
             <ChartContainer

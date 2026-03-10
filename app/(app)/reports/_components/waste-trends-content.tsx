@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import {
   ResponsiveContainer,
   LineChart,
@@ -47,7 +48,6 @@ import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
 
-const PAGE_SIZE = 10;
 
 export function WasteTrendsContent() {
   const {
@@ -63,6 +63,9 @@ export function WasteTrendsContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [wasteTypePage, setWasteTypePage] = React.useState(1);
   const hasData = shipments.length > 0;
@@ -275,10 +278,11 @@ export function WasteTrendsContent() {
 
           {/* Waste Streams Data Table */}
           <PillTabsContent value="waste-streams">
+            <div ref={tableRef}>
             <DataTable
               columns={wasteTypeColumns}
-              data={wasteTypeData.slice((wasteTypePage - 1) * PAGE_SIZE, wasteTypePage * PAGE_SIZE)}
-              pagination={{ page: wasteTypePage, pageSize: PAGE_SIZE, total: wasteTypeData.length }}
+              data={wasteTypeData.slice((wasteTypePage - 1) * pageSize, wasteTypePage * pageSize)}
+              pagination={{ page: wasteTypePage, pageSize: pageSize, total: wasteTypeData.length }}
               onPaginationChange={setWasteTypePage}
               emptyState={
                 <div className="flex items-center justify-center h-full text-sm text-text-muted">
@@ -286,6 +290,7 @@ export function WasteTrendsContent() {
                 </div>
               }
             />
+            </div>
           </PillTabsContent>
         </PillTabs>
       ) : (

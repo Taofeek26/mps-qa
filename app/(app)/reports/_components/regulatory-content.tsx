@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   ResponsiveContainer,
@@ -79,7 +80,6 @@ function statusVariant(status: string | undefined): "neutral" | "warning" | "suc
 
 /* ─── Content ─── */
 
-const PAGE_SIZE = 10;
 
 export function RegulatoryContent() {
   const {
@@ -92,6 +92,9 @@ export function RegulatoryContent() {
     resetFilters,
     shipments,
   } = useReportFilters({ includeSite: false });
+
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  const pageSize = useAutoPageSize(tableRef);
 
   const [pendingPage, setPendingPage] = React.useState(1);
   const [gemPage, setGemPage] = React.useState(1);
@@ -452,10 +455,11 @@ export function RegulatoryContent() {
               <h3 className="text-sm font-semibold text-text-primary">
                 Pending Manifests Detail
               </h3>
+              <div ref={tableRef}>
               <DataTable
                 columns={pendingColumns}
-                data={pendingShipments.slice((pendingPage - 1) * PAGE_SIZE, pendingPage * PAGE_SIZE)}
-                pagination={{ page: pendingPage, pageSize: PAGE_SIZE, total: pendingShipments.length }}
+                data={pendingShipments.slice((pendingPage - 1) * pageSize, pendingPage * pageSize)}
+                pagination={{ page: pendingPage, pageSize: pageSize, total: pendingShipments.length }}
                 onPaginationChange={setPendingPage}
                 emptyState={
                   <div className="flex items-center justify-center h-full text-sm text-text-muted">
@@ -463,6 +467,7 @@ export function RegulatoryContent() {
                   </div>
                 }
               />
+              </div>
             </CardContent>
           </Card>
 
@@ -505,8 +510,8 @@ export function RegulatoryContent() {
 
           <DataTable
             columns={gemColumns}
-            data={shipments.slice((gemPage - 1) * PAGE_SIZE, gemPage * PAGE_SIZE)}
-            pagination={{ page: gemPage, pageSize: PAGE_SIZE, total: shipments.length }}
+            data={shipments.slice((gemPage - 1) * pageSize, gemPage * pageSize)}
+            pagination={{ page: gemPage, pageSize: pageSize, total: shipments.length }}
             onPaginationChange={setGemPage}
             emptyState={
               <div className="flex items-center justify-center h-full text-sm text-text-muted">
@@ -581,8 +586,8 @@ export function RegulatoryContent() {
 
           <DataTable
             columns={gmr2Columns}
-            data={shipments.slice((gmr2Page - 1) * PAGE_SIZE, gmr2Page * PAGE_SIZE)}
-            pagination={{ page: gmr2Page, pageSize: PAGE_SIZE, total: shipments.length }}
+            data={shipments.slice((gmr2Page - 1) * pageSize, gmr2Page * pageSize)}
+            pagination={{ page: gmr2Page, pageSize: pageSize, total: shipments.length }}
             onPaginationChange={setGmr2Page}
             emptyState={
               <div className="flex items-center justify-center h-full text-sm text-text-muted">

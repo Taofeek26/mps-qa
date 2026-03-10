@@ -1,7 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { FilterBar } from "@/components/ui/filter-bar";
+import { AnimatePresence, motion } from "motion/react";
+import { SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { FilterChips, type FilterChip } from "@/components/ui/filter-chips";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { MultiSelect, type MultiSelectOption } from "@/components/ui/multi-select";
@@ -13,6 +16,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { TextInput } from "@/components/ui/text-input";
+import { cn } from "@/lib/utils";
 import type { ShipmentFilters as Filters, ShipmentStatus, WasteCategory } from "@/lib/types";
 import { getSites, getClients, getVendors, getWasteTypes } from "@/lib/mock-data";
 
@@ -22,6 +27,8 @@ interface ShipmentFiltersBarProps {
   onReset: () => void;
   /** If set, only these sites are shown in the Sites filter (for site_user role) */
   allowedSiteIds?: string[];
+  /** Optional trailing content rendered in the compact bar (e.g. Columns picker) */
+  trailing?: React.ReactNode;
 }
 
 export function ShipmentFiltersBar({
@@ -29,7 +36,10 @@ export function ShipmentFiltersBar({
   onChange,
   onReset,
   allowedSiteIds,
+  trailing,
 }: ShipmentFiltersBarProps) {
+  const [panelOpen, setPanelOpen] = React.useState(false);
+
   const sites = React.useMemo(() => {
     const all = getSites();
     if (allowedSiteIds) return all.filter((s) => allowedSiteIds.includes(s.id));
@@ -48,6 +58,9 @@ export function ShipmentFiltersBar({
   const chips: FilterChip[] = React.useMemo(() => {
     const result: FilterChip[] = [];
 
+    if (filters.search?.trim()) {
+      result.push({ key: "search", label: "Search", value: filters.search.trim() });
+    }
     if (filters.dateFrom || filters.dateTo) {
       const from = filters.dateFrom ?? "...";
       const to = filters.dateTo ?? "...";
@@ -79,6 +92,9 @@ export function ShipmentFiltersBar({
     return result;
   }, [filters, sites, clients, vendors, wasteTypes]);
 
+  /** Count of advanced filters (everything except search) */
+  const advancedCount = chips.filter((c) => c.key !== "search").length;
+
   function handleDateChange(range: DateRange | undefined) {
     onChange({
       ...filters,
@@ -89,7 +105,9 @@ export function ShipmentFiltersBar({
 
   function handleRemoveChip(key: string) {
     const updated = { ...filters };
-    if (key === "date") {
+    if (key === "search") {
+      updated.search = undefined;
+    } else if (key === "date") {
       updated.dateFrom = undefined;
       updated.dateTo = undefined;
     } else if (key.startsWith("site-")) {
@@ -110,85 +128,179 @@ export function ShipmentFiltersBar({
 
   return (
     <div className="space-y-3">
-      <FilterBar onReset={onReset}>
-        <div className="w-full sm:w-48">
-          <DateRangePicker
-            from={filters.dateFrom ? new Date(filters.dateFrom + "T00:00:00") : undefined}
-            to={filters.dateTo ? new Date(filters.dateTo + "T00:00:00") : undefined}
-            onChange={handleDateChange}
-            placeholder="Date range"
-          />
-        </div>
-        <div className="w-full sm:w-44">
-          <MultiSelect
-            options={siteOptions}
-            value={filters.siteIds ?? []}
-            onChange={(v) => onChange({ ...filters, siteIds: v.length ? v : undefined })}
-            placeholder="Sites"
-          />
-        </div>
-        <div className="w-full sm:w-44">
-          <MultiSelect
-            options={clientOptions}
-            value={filters.clientIds ?? []}
-            onChange={(v) => onChange({ ...filters, clientIds: v.length ? v : undefined })}
-            placeholder="Clients"
-          />
-        </div>
-        <div className="w-full sm:w-44">
-          <MultiSelect
-            options={vendorOptions}
-            value={filters.vendorIds ?? []}
-            onChange={(v) => onChange({ ...filters, vendorIds: v.length ? v : undefined })}
-            placeholder="Vendors"
-          />
-        </div>
-        <div className="w-full sm:w-44">
-          <MultiSelect
-            options={wasteTypeOptions}
-            value={filters.wasteTypeIds ?? []}
-            onChange={(v) => onChange({ ...filters, wasteTypeIds: v.length ? v : undefined })}
-            placeholder="Waste Types"
-          />
-        </div>
-        <div className="w-full sm:w-36">
-          <Select
-            value={filters.status ?? "all"}
-            onValueChange={(v) => onChange({ ...filters, status: v === "all" ? undefined : v as ShipmentStatus })}
-          >
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="submitted">Submitted</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="void">Void</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-full sm:w-44">
-          <Select
-            value={filters.wasteCategory ?? "all"}
-            onValueChange={(v) => onChange({ ...filters, wasteCategory: v === "all" ? undefined : v as WasteCategory })}
-          >
-            <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="Non Haz">Non Haz</SelectItem>
-              <SelectItem value="Hazardous Waste">Hazardous</SelectItem>
-              <SelectItem value="Recycling">Recycling</SelectItem>
-              <SelectItem value="Medical">Medical</SelectItem>
-              <SelectItem value="E-Waste">E-Waste</SelectItem>
-              <SelectItem value="Universal">Universal</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </FilterBar>
+      {/* ─── Compact toolbar row ─── */}
+      <div className="flex flex-wrap items-center gap-3">
+        <TextInput
+          variant="search"
+          placeholder="Search manifest, site, client, vendor..."
+          value={filters.search ?? ""}
+          onChange={(e) => onChange({ ...filters, search: e.target.value || undefined })}
+          className="w-full sm:w-72"
+        />
 
-      <FilterChips
-        filters={chips}
-        onRemove={handleRemoveChip}
-        onClearAll={onReset}
-      />
+        <Button
+          variant={panelOpen ? "primary" : "secondary"}
+          size="sm"
+          onClick={() => setPanelOpen((v) => !v)}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Filters
+          {advancedCount > 0 && !panelOpen && (
+            <Badge variant="info" className="ml-1 rounded-full px-1.5 py-0 text-[10px] leading-4">
+              {advancedCount}
+            </Badge>
+          )}
+          <ChevronDown
+            className={cn(
+              "h-3.5 w-3.5 transition-transform duration-200",
+              panelOpen && "rotate-180"
+            )}
+          />
+        </Button>
+
+        {advancedCount > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReset}
+            className="text-text-muted hover:text-text-primary"
+          >
+            Clear all
+          </Button>
+        )}
+
+        {/* Trailing slot — Columns picker, etc. */}
+        {trailing && <div className="ml-auto flex items-center gap-3">{trailing}</div>}
+      </div>
+
+      {/* ─── Collapsible advanced filters panel ─── */}
+      <AnimatePresence initial={false}>
+        {panelOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="rounded-lg border border-border-default bg-bg-card p-5 shadow-sm">
+              <div className="grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Date range
+                  </label>
+                  <DateRangePicker
+                    from={filters.dateFrom ? new Date(filters.dateFrom + "T00:00:00") : undefined}
+                    to={filters.dateTo ? new Date(filters.dateTo + "T00:00:00") : undefined}
+                    onChange={handleDateChange}
+                    placeholder="Select dates"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Sites
+                  </label>
+                  <MultiSelect
+                    options={siteOptions}
+                    value={filters.siteIds ?? []}
+                    onChange={(v) => onChange({ ...filters, siteIds: v.length ? v : undefined })}
+                    placeholder="All sites"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Clients
+                  </label>
+                  <MultiSelect
+                    options={clientOptions}
+                    value={filters.clientIds ?? []}
+                    onChange={(v) => onChange({ ...filters, clientIds: v.length ? v : undefined })}
+                    placeholder="All clients"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Vendors
+                  </label>
+                  <MultiSelect
+                    options={vendorOptions}
+                    value={filters.vendorIds ?? []}
+                    onChange={(v) => onChange({ ...filters, vendorIds: v.length ? v : undefined })}
+                    placeholder="All vendors"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Waste types
+                  </label>
+                  <MultiSelect
+                    options={wasteTypeOptions}
+                    value={filters.wasteTypeIds ?? []}
+                    onChange={(v) => onChange({ ...filters, wasteTypeIds: v.length ? v : undefined })}
+                    placeholder="All types"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Status
+                  </label>
+                  <Select
+                    value={filters.status ?? "all"}
+                    onValueChange={(v) => onChange({ ...filters, status: v === "all" ? undefined : v as ShipmentStatus })}
+                  >
+                    <SelectTrigger className="w-full"><SelectValue placeholder="All statuses" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All statuses</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="void">Void</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-0">
+                  <label className="mb-1.5 block text-xs font-medium text-text-muted">
+                    Category
+                  </label>
+                  <Select
+                    value={filters.wasteCategory ?? "all"}
+                    onValueChange={(v) => onChange({ ...filters, wasteCategory: v === "all" ? undefined : v as WasteCategory })}
+                  >
+                    <SelectTrigger className="w-full"><SelectValue placeholder="All categories" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All categories</SelectItem>
+                      <SelectItem value="Non Haz">Non Haz</SelectItem>
+                      <SelectItem value="Hazardous Waste">Hazardous</SelectItem>
+                      <SelectItem value="Recycling">Recycling</SelectItem>
+                      <SelectItem value="Medical">Medical</SelectItem>
+                      <SelectItem value="E-Waste">E-Waste</SelectItem>
+                      <SelectItem value="Universal">Universal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Filter chips — only when panel is collapsed and filters are active ─── */}
+      <AnimatePresence initial={false}>
+        {!panelOpen && chips.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <FilterChips
+              filters={chips}
+              onRemove={handleRemoveChip}
+              onClearAll={onReset}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
