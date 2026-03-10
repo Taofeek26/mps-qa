@@ -41,6 +41,8 @@ export interface SectionConfig {
   notes?: string;
   /** Table row limit for PDF */
   tableRowLimit?: number;
+  /** KPI blocks: which individual KPI keys to show. Undefined = show all. */
+  visibleKpis?: string[];
 }
 
 /* ─── Widget catalog entry ─── */

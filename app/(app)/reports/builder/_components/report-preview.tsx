@@ -32,16 +32,18 @@ export function ReportPreview({
 }: ReportPreviewProps) {
   if (sections.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center px-6">
-        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-bg-subtle mb-4">
-          <FileText className="h-8 w-8 text-text-muted" />
+      <div className="h-full p-6">
+        <div className="flex flex-col items-center justify-center h-full rounded-lg bg-bg-card border border-border-default text-center px-6">
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-bg-subtle mb-4">
+            <FileText className="h-8 w-8 text-text-muted" />
+          </div>
+          <h3 className="text-base font-semibold text-text-primary mb-1">
+            Start building your report
+          </h3>
+          <p className="text-sm text-text-muted max-w-xs">
+            Select sections from the panel on the left to add KPIs, charts, tables, and notes to your custom report.
+          </p>
         </div>
-        <h3 className="text-base font-semibold text-text-primary mb-1">
-          Start building your report
-        </h3>
-        <p className="text-sm text-text-muted max-w-xs">
-          Select sections from the panel on the left to add KPIs, charts, tables, and notes to your custom report.
-        </p>
       </div>
     );
   }
@@ -78,6 +80,8 @@ export function ReportPreview({
                 onMoveDown={() => onMoveSection(section.id, "down")}
                 onRemove={() => onRemoveSection(section.id)}
                 hideControls={hideControls}
+                config={section.config}
+                onConfigChange={(cfg) => onUpdateConfig(section.id, cfg)}
               >
                 {renderWidget(section.type, {
                   shipments,

@@ -12,6 +12,7 @@ import {
   computeCostKpis,
   computeComplianceKpis,
   computeDiversionKpis,
+  isKpiVisible,
   computeMonthlyVolume,
   computeMonthlyCost,
   computeWasteCategoryDonut,
@@ -63,52 +64,60 @@ const s = StyleSheet.create({
 
 /* ─── KPI Widgets ─── */
 
-function PdfKpiWasteVolume({ shipments }: { shipments: Shipment[] }) {
+function PdfKpiWasteVolume({ shipments, config }: { shipments: Shipment[]; config: SectionConfig }) {
   const d = computeWasteVolumeKpis(shipments);
-  return (
-    <PdfKpiRow>
-      <PdfKpiCard label="Total Tons" value={`${fmtNum(d.totalTons)} t`} sub="Standardized weight" />
-      <PdfKpiCard label="Shipments" value={d.totalShipments.toLocaleString()} sub="All manifests" />
-      <PdfKpiCard label="Container Util" value={fmtPct(d.containerUtilPct)} sub="Avg fill rate" />
-      <PdfKpiCard label="Avg Load" value={`${d.avgLoadLbs.toLocaleString()} lbs`} sub="Per shipment" />
-    </PdfKpiRow>
-  );
+  const vis = config.visibleKpis;
+  const show = (key: string) => isKpiVisible(key, vis, "kpi-waste-volume");
+  const cards = [
+    show("totalTons") && <PdfKpiCard key="totalTons" label="Total Tons" value={`${fmtNum(d.totalTons)} t`} sub="Standardized weight" />,
+    show("totalShipments") && <PdfKpiCard key="totalShipments" label="Shipments" value={d.totalShipments.toLocaleString()} sub="All manifests" />,
+    show("containerUtil") && <PdfKpiCard key="containerUtil" label="Container Util" value={fmtPct(d.containerUtilPct)} sub="Avg fill rate" />,
+    show("avgLoad") && <PdfKpiCard key="avgLoad" label="Avg Load" value={`${d.avgLoadLbs.toLocaleString()} lbs`} sub="Per shipment" />,
+  ].filter(Boolean);
+  if (cards.length === 0) return null;
+  return <PdfKpiRow>{cards}</PdfKpiRow>;
 }
 
-function PdfKpiCostSummary({ shipments }: { shipments: Shipment[] }) {
+function PdfKpiCostSummary({ shipments, config }: { shipments: Shipment[]; config: SectionConfig }) {
   const d = computeCostKpis(shipments);
-  return (
-    <PdfKpiRow>
-      <PdfKpiCard label="MPS Cost" value={fmtDollar(d.mpsCostTotal)} sub="Total spend" />
-      <PdfKpiCard label="Revenue" value={fmtDollar(d.custCostTotal)} sub="Customer billed" />
-      <PdfKpiCard label="Margin" value={fmtPct(d.marginPct)} sub={fmtDollar(d.margin)} />
-      <PdfKpiCard label="Cost/Ton" value={fmtDollar(d.costPerTon)} sub="MPS cost basis" />
-    </PdfKpiRow>
-  );
+  const vis = config.visibleKpis;
+  const show = (key: string) => isKpiVisible(key, vis, "kpi-cost-summary");
+  const cards = [
+    show("revenue") && <PdfKpiCard key="revenue" label="Revenue" value={fmtDollar(d.custCostTotal)} sub="Customer billed" />,
+    show("mpsCost") && <PdfKpiCard key="mpsCost" label="MPS Cost" value={fmtDollar(d.mpsCostTotal)} sub="Total spend" />,
+    show("margin") && <PdfKpiCard key="margin" label="Margin" value={fmtPct(d.marginPct)} sub={fmtDollar(d.margin)} />,
+    show("costPerTon") && <PdfKpiCard key="costPerTon" label="Cost/Ton" value={fmtDollar(d.costPerTon)} sub="MPS cost basis" />,
+  ].filter(Boolean);
+  if (cards.length === 0) return null;
+  return <PdfKpiRow>{cards}</PdfKpiRow>;
 }
 
-function PdfKpiCompliance({ shipments }: { shipments: Shipment[] }) {
+function PdfKpiCompliance({ shipments, config }: { shipments: Shipment[]; config: SectionConfig }) {
   const d = computeComplianceKpis(shipments);
-  return (
-    <PdfKpiRow>
-      <PdfKpiCard label="Manifest Coverage" value={fmtPct(d.manifestCoverage)} sub={`${d.totalShipments} shipments`} />
-      <PdfKpiCard label="Hazardous %" value={fmtPct(d.hazPct)} sub="Of total shipments" />
-      <PdfKpiCard label="Completion Rate" value={fmtPct(d.completionRate)} sub="Submitted" />
-      <PdfKpiCard label="Total Records" value={d.totalShipments.toString()} sub="In dataset" />
-    </PdfKpiRow>
-  );
+  const vis = config.visibleKpis;
+  const show = (key: string) => isKpiVisible(key, vis, "kpi-compliance");
+  const cards = [
+    show("manifestCoverage") && <PdfKpiCard key="manifestCoverage" label="Manifest Coverage" value={fmtPct(d.manifestCoverage)} sub={`${d.totalShipments} shipments`} />,
+    show("hazPct") && <PdfKpiCard key="hazPct" label="Hazardous %" value={fmtPct(d.hazPct)} sub="Of total shipments" />,
+    show("completionRate") && <PdfKpiCard key="completionRate" label="Completion Rate" value={fmtPct(d.completionRate)} sub="Submitted" />,
+    show("complianceScore") && <PdfKpiCard key="complianceScore" label="Total Records" value={d.totalShipments.toString()} sub="In dataset" />,
+  ].filter(Boolean);
+  if (cards.length === 0) return null;
+  return <PdfKpiRow>{cards}</PdfKpiRow>;
 }
 
-function PdfKpiDiversion({ shipments }: { shipments: Shipment[] }) {
+function PdfKpiDiversion({ shipments, config }: { shipments: Shipment[]; config: SectionConfig }) {
   const d = computeDiversionKpis(shipments);
-  return (
-    <PdfKpiRow>
-      <PdfKpiCard label="Diversion Rate" value={fmtPct(d.diversionRate)} sub="Recycled / total" />
-      <PdfKpiCard label="Recycling" value={`${fmtNum(d.recyclingTons)} t`} sub="Tons diverted" />
-      <PdfKpiCard label="Landfill" value={`${fmtNum(d.landfillTons)} t`} sub="Tons to landfill" />
-      <PdfKpiCard label="Total Volume" value={`${fmtNum(d.totalTons)} t`} sub="All methods" />
-    </PdfKpiRow>
-  );
+  const vis = config.visibleKpis;
+  const show = (key: string) => isKpiVisible(key, vis, "kpi-diversion");
+  const cards = [
+    show("diversionRate") && <PdfKpiCard key="diversionRate" label="Diversion Rate" value={fmtPct(d.diversionRate)} sub="Recycled / total" />,
+    show("recyclingTons") && <PdfKpiCard key="recyclingTons" label="Recycling" value={`${fmtNum(d.recyclingTons)} t`} sub="Tons diverted" />,
+    show("landfillTons") && <PdfKpiCard key="landfillTons" label="Landfill" value={`${fmtNum(d.landfillTons)} t`} sub="Tons to landfill" />,
+    show("totalVolume") && <PdfKpiCard key="totalVolume" label="Total Volume" value={`${fmtNum(d.totalTons)} t`} sub="All methods" />,
+  ].filter(Boolean);
+  if (cards.length === 0) return null;
+  return <PdfKpiRow>{cards}</PdfKpiRow>;
 }
 
 /* ─── Section Renderer ─── */
@@ -118,10 +127,10 @@ function PdfSection({ section, shipments }: { section: ReportSection; shipments:
 
   const widget = (() => {
     switch (type) {
-      case "kpi-waste-volume": return <PdfKpiWasteVolume shipments={shipments} />;
-      case "kpi-cost-summary": return <PdfKpiCostSummary shipments={shipments} />;
-      case "kpi-compliance": return <PdfKpiCompliance shipments={shipments} />;
-      case "kpi-diversion": return <PdfKpiDiversion shipments={shipments} />;
+      case "kpi-waste-volume": return <PdfKpiWasteVolume shipments={shipments} config={config} />;
+      case "kpi-cost-summary": return <PdfKpiCostSummary shipments={shipments} config={config} />;
+      case "kpi-compliance": return <PdfKpiCompliance shipments={shipments} config={config} />;
+      case "kpi-diversion": return <PdfKpiDiversion shipments={shipments} config={config} />;
       case "chart-volume-trend":
         return <PdfBarChart data={computeMonthlyVolume(shipments)} dataKey="tons" label="Monthly Volume Trend" subtitle="Tonnage by month" />;
       case "chart-cost-comparison":

@@ -4,7 +4,55 @@
    ============================================ */
 
 import type { Shipment } from "./types";
+import type { SectionType } from "./report-builder-types";
 import { totalMpsCost, totalCustomerCost, getMonthKey, formatMonthLabel } from "./report-utils";
+
+/* ─── KPI Definitions ─── */
+
+export interface KpiDefinition {
+  key: string;
+  label: string;
+  description: string;
+}
+
+/** Per-block KPI definitions — keys match what each widget uses internally */
+export const KPI_DEFINITIONS: Record<string, KpiDefinition[]> = {
+  "kpi-waste-volume": [
+    { key: "totalTons", label: "Total Tons", description: "Standardized weight in tons" },
+    { key: "totalShipments", label: "Shipments", description: "Total manifest count" },
+    { key: "containerUtil", label: "Container Util", description: "Average container fill rate" },
+    { key: "avgLoad", label: "Avg Load", description: "Average load per shipment" },
+  ],
+  "kpi-cost-summary": [
+    { key: "revenue", label: "Revenue", description: "Customer billed amount" },
+    { key: "mpsCost", label: "MPS Cost", description: "Total platform cost" },
+    { key: "margin", label: "Margin", description: "Revenue minus cost" },
+    { key: "costPerTon", label: "Cost / Ton", description: "Blended cost per ton" },
+  ],
+  "kpi-compliance": [
+    { key: "manifestCoverage", label: "Manifest Coverage", description: "Percentage with manifest" },
+    { key: "hazPct", label: "Hazardous %", description: "Hazardous waste percentage" },
+    { key: "completionRate", label: "Completion Rate", description: "Submitted shipments" },
+    { key: "complianceScore", label: "Compliance Score", description: "Letter grade based on coverage" },
+  ],
+  "kpi-diversion": [
+    { key: "diversionRate", label: "Diversion Rate", description: "Recycled or reused percentage" },
+    { key: "recyclingTons", label: "Recycling", description: "Tons diverted from landfill" },
+    { key: "landfillTons", label: "Landfill", description: "Tons sent to landfill" },
+    { key: "totalVolume", label: "Total Volume", description: "All treatment methods" },
+  ],
+};
+
+/** Get all KPI keys for a section type (returns empty array for non-KPI types) */
+export function getKpiKeys(sectionType: SectionType): string[] {
+  return (KPI_DEFINITIONS[sectionType] ?? []).map((d) => d.key);
+}
+
+/** Check if a KPI key should be visible given config */
+export function isKpiVisible(key: string, visibleKpis: string[] | undefined, sectionType: SectionType): boolean {
+  if (!visibleKpis || visibleKpis.length === 0) return true; // undefined = show all
+  return visibleKpis.includes(key);
+}
 
 /* ─── KPI: Waste Volume ─── */
 
