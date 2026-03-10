@@ -9,7 +9,9 @@ import { useAuth } from "@/lib/auth-context";
 import {
   Drawer,
   DrawerContent,
+  DrawerTitle,
 } from "@/components/ui/drawer";
+import { VisuallyHidden } from "radix-ui";
 
 interface MobileSidebarProps {
   open: boolean;
@@ -40,6 +42,9 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
         className="w-[280px] sm:max-w-[280px] bg-bg-card"
         aria-label="Main navigation"
       >
+        <VisuallyHidden.Root>
+          <DrawerTitle>Main navigation</DrawerTitle>
+        </VisuallyHidden.Root>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center h-20 pl-5 pr-4">
