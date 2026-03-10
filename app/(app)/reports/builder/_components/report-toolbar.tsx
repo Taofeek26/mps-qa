@@ -52,7 +52,7 @@ export function ReportToolbar({
   showBack = false,
 }: ReportToolbarProps) {
   return (
-    <div className="border-b border-border-default px-4 lg:px-6 py-3">
+    <div className="border-b border-border-default py-3">
       {/* Row 1: Back + Title */}
       <div className="flex items-center gap-2 mb-3">
         {showBack && (
@@ -67,7 +67,7 @@ export function ReportToolbar({
           type="text"
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
-          className="flex-1 min-w-0 text-lg font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-text-muted"
+          className="flex-1 min-w-0 h-9 rounded-[var(--radius-sm)] border border-border-default bg-bg-card px-3 text-sm font-semibold text-text-primary outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition-colors placeholder:text-text-muted"
           placeholder="Report title..."
         />
       </div>

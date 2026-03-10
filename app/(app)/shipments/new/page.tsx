@@ -362,7 +362,7 @@ export default function NewShipmentPage() {
   const showManualView = viewMode === "manual";
 
   return (
-    <div className="max-w-screen-xl mx-auto px-1">
+    <div className="max-w-screen-xl mx-auto">
       {/* Page header with breadcrumb + step track */}
       <PageHeader viewMode={viewMode} onBack={handleBack} />
 

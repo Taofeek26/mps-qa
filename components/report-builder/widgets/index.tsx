@@ -30,13 +30,13 @@ export function renderWidget(type: SectionType, props: WidgetProps) {
 
   switch (type) {
     case "kpi-waste-volume":
-      return <KpiWasteVolume shipments={shipments} />;
+      return <KpiWasteVolume shipments={shipments} config={config} />;
     case "kpi-cost-summary":
-      return <KpiCostSummary shipments={shipments} />;
+      return <KpiCostSummary shipments={shipments} config={config} />;
     case "kpi-compliance":
-      return <KpiCompliance shipments={shipments} />;
+      return <KpiCompliance shipments={shipments} config={config} />;
     case "kpi-diversion":
-      return <KpiDiversion shipments={shipments} />;
+      return <KpiDiversion shipments={shipments} config={config} />;
     case "chart-volume-trend":
       return <ChartVolumeTrend shipments={shipments} />;
     case "chart-cost-comparison":

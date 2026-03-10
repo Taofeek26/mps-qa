@@ -94,7 +94,7 @@ export function ReportBuilder({
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)]">
+    <div className="flex flex-col h-[calc(100dvh-6.5rem)]">
       {/* Toolbar */}
       <ReportToolbar
         title={builder.title}
@@ -119,7 +119,7 @@ export function ReportBuilder({
       <div className="flex flex-1 min-h-0">
         {/* Sidebar */}
         <div
-          className={`flex-none border-r border-border-default bg-bg-app transition-all duration-200 ${
+          className={`flex-none border-r border-border-default bg-bg-card transition-all duration-200 ${
             sidebarOpen ? "w-[280px]" : "w-0"
           } overflow-hidden`}
         >

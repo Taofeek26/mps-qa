@@ -2,7 +2,8 @@
 
 import { ChevronUp, ChevronDown, X } from "lucide-react";
 import { getWidgetDefinition } from "@/lib/report-builder-widgets";
-import type { SectionType } from "@/lib/report-builder-types";
+import type { SectionType, SectionConfig } from "@/lib/report-builder-types";
+import { KpiConfigPopover } from "@/components/report-builder/widgets/kpi-config-popover";
 
 interface SectionWrapperProps {
   type: SectionType;
@@ -14,7 +15,13 @@ interface SectionWrapperProps {
   children: React.ReactNode;
   /** Hide controls during PDF export */
   hideControls?: boolean;
+  /** Current section config (needed for KPI config popover) */
+  config?: SectionConfig;
+  /** Config change handler (needed for KPI config popover) */
+  onConfigChange?: (config: Partial<SectionConfig>) => void;
 }
+
+const KPI_TYPES = new Set(["kpi-waste-volume", "kpi-cost-summary", "kpi-compliance", "kpi-diversion"]);
 
 export function SectionWrapper({
   type,
@@ -25,8 +32,11 @@ export function SectionWrapper({
   onRemove,
   children,
   hideControls,
+  config,
+  onConfigChange,
 }: SectionWrapperProps) {
   const def = getWidgetDefinition(type);
+  const isKpi = KPI_TYPES.has(type);
 
   return (
     <div className="group relative">
@@ -50,6 +60,13 @@ export function SectionWrapper({
           >
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
+          {isKpi && config && onConfigChange && (
+            <KpiConfigPopover
+              sectionType={type}
+              config={config}
+              onConfigChange={onConfigChange}
+            />
+          )}
           <button
             type="button"
             onClick={onRemove}
