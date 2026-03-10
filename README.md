@@ -1,6 +1,6 @@
 # MPS Dashboard Platform
 
-The MPS dashboard is a `Next.js 16` waste shipment operations platform with analytics, reports, admin management, a custom report builder, and an internal design-system showcase.
+The MPS dashboard is a `Next.js 16` waste shipment operations platform with analytics, reports, admin management, a custom report builder, and an internal design-system showcase. Favicon and PWA icons use `public/Favicon.png`.
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ Useful scripts:
 
 - `Dashboard`: KPI cards, charts, activity, and operational alerts
 - `Shipments`: searchable shipment list with export, detail drawers, and delete/edit flows
-- `New Shipment Entry`: AG Grid bulk-entry workflow with paste/import/validation
+- `New Shipment Entry`: Entry choice (Upload data / Manually enter data), file upload with sample CSV download, AG Grid with paste/import, add N rows, duplicate, fill down, and step indicator
 - `Reports`: tabbed analytics across waste, cost, operations, logistics, emissions, and more
 - `Report Builder`: custom report assembly with PDF export
 - `Admin`: clients, sites, vendors, facilities, reference data, users, and audit log
@@ -55,10 +55,16 @@ Useful scripts:
 - `lib/navigation.ts`: nav, labels, and breadcrumbs
 - `app/globals.css`: design tokens and theme definitions
 
+## Documentation
+
+- **[Completed changes](./docs/completed-changes-from-original.md)** — Full changelog with file references.
+- **[Changes summary](./docs/CHANGES-SUMMARY.md)** — Short list of all completed changes.
+- **[Architecture & design system](./docs/dashboard-architecture-and-design-system.md)** — Stack, data flow, design tokens.
+- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** — Brand theme and token summary.
+
 ## Important Notes
 
 - The app currently uses a mock in-memory data layer, not a real backend.
 - Auth is client-side and persisted in `localStorage`.
 - The global runtime theme is `theme-brand`.
-- The full architecture and design-system foundation are documented in [`docs/dashboard-architecture-and-design-system.md`](./docs/dashboard-architecture-and-design-system.md).
-- The legacy design-system writeup still exists in [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md), but the new architecture doc is the better high-level source of truth.
+- Favicon and app icons: `public/Favicon.png` (used in layout and `manifest.json`).
