@@ -38,12 +38,9 @@ interface ScorecardCardProps extends React.HTMLAttributes<HTMLDivElement> {
   status?: ScorecardStatus;
 }
 
-const iconVariantStyles: Record<ScorecardCardVariant, string> = {
-  default: "bg-primary-50 text-primary-400",
-  success: "bg-success-100 text-success-600",
-  warning: "bg-warning-100 text-warning-600",
-  error: "bg-error-100 text-error-600",
-};
+/* Aligned with KpiCard: neutral icon box and muted icon color */
+const iconBoxStyles =
+  "bg-bg-app border border-border-default text-[var(--color-icon-muted)]";
 
 const statusBarStyles: Record<ScorecardStatus, string> = {
   "on-track": "bg-success-600",
@@ -139,12 +136,12 @@ const ScorecardCard = React.forwardRef<HTMLDivElement, ScorecardCardProps>(
               )}
             </div>
 
-            {/* Icon badge */}
+            {/* Icon badge — neutral styling to match design system (KpiCard) */}
             {Icon && (
               <div
                 className={cn(
                   "flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)]",
-                  iconVariantStyles[variant]
+                  iconBoxStyles
                 )}
               >
                 <Icon className="h-5 w-5" />

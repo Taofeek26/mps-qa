@@ -30,7 +30,6 @@ import {
 } from "recharts";
 import { subDays, subMonths, startOfYear } from "date-fns";
 import type { DateRange } from "react-day-picker";
-import { PageHeader } from "@/components/ui/page-header";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
@@ -175,7 +174,7 @@ function ActivityItem({ entry }: { entry: AuditLogEntry }) {
   const timeAgo = getRelativeTime(entry.timestamp);
 
   return (
-    <div className="flex items-start gap-3 py-3">
+    <div className="flex items-start gap-3 py-2.5">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-500">
         {initials}
       </div>
@@ -312,7 +311,7 @@ export default function DashboardPage() {
     [user?.id, selectedClientId]
   );
   const recentActivity = React.useMemo(
-    () => getAuditLog(undefined, 1, 5),
+    () => getAuditLog(undefined, 1, 10),
     []
   );
 
@@ -340,8 +339,6 @@ export default function DashboardPage() {
     return exp <= in90Days && exp >= now;
   });
 
-  // Pending shipments for contextual alerts
-  const pendingShipments = allShipments.filter((s) => s.status === "pending");
   const voidedShipments = allShipments.filter((s) => s.status === "void");
 
   /* ─── Monthly Trend Data ─── */
@@ -483,60 +480,66 @@ export default function DashboardPage() {
 
   const hasData = allShipments.length > 0;
 
+  const displayName = user?.displayName?.trim() || "there";
+
   return (
-    <div className="space-y-8">
-      {/* ─── Header with filters ─── */}
-      <PageHeader
-        title="Dashboard"
-        actions={
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <DateRangePicker
-              from={dateRange?.from}
-              to={dateRange?.to}
-              onChange={setDateRange}
-              presets={DASHBOARD_DATE_PRESETS}
-              placeholder="All time"
-              className="w-full sm:w-[220px]"
-            />
-            {!isSiteUser && (
-              <Select
-                value={selectedClientId || "all"}
-                onValueChange={(val) =>
-                  setSelectedClientId(val === "all" ? "" : val)
-                }
-              >
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Customers</SelectItem>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-        }
-      />
+    <div className="space-y-6">
+      {/* ─── Welcome ─── */}
+      <div>
+        <h1 className="text-2xl font-bold text-text-primary">
+          Welcome, {displayName}!
+        </h1>
+        <p className="mt-1 text-base text-text-secondary">
+          Your MPS dashboard is ready. Track shipments, monitor costs, and manage waste analytics in one place.
+        </p>
+      </div>
+
+      {/* ─── Filters (no redundant "Dashboard" title) ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-3 pb-4">
+        <DateRangePicker
+          from={dateRange?.from}
+          to={dateRange?.to}
+          onChange={setDateRange}
+          presets={DASHBOARD_DATE_PRESETS}
+          placeholder="All time"
+          className="w-full sm:w-[220px]"
+        />
+        {!isSiteUser && (
+          <Select
+            value={selectedClientId || "all"}
+            onValueChange={(val) =>
+              setSelectedClientId(val === "all" ? "" : val)
+            }
+          >
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Customers</SelectItem>
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
 
       {/* ─── Tabs ─── */}
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
         {/* ════════════════════════════════════════════════════════════ */}
         {/* Tab: Overview                                               */}
         {/* ════════════════════════════════════════════════════════════ */}
         <TabsContent value="overview">
-          <div className="space-y-8">
-            {/* ─── KPI Cards — 6 cards matching HTML Executive Summary ─── */}
-            <div className="grid grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3 sm:gap-4">
+          <div className="space-y-6">
+            {/* ─── KPI Cards — 3×3 grid (3 columns, 2 rows of 6 cards) ─── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <KpiCard
                 title="Total Shipments"
                 value={totalShipments.toLocaleString()}
@@ -579,8 +582,8 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* ─── Contextual Alerts (compact inline banners) ─── */}
-            {(expiringVendors.length > 0 || pendingShipments.length > 0 || voidedShipments.length > 0) && (
+            {/* ─── Contextual Alerts (compact inline banners; no pending-shipments banner — see Overview activity) ─── */}
+            {(expiringVendors.length > 0 || voidedShipments.length > 0) && (
               <div className="flex flex-wrap items-center gap-2">
                 {expiringVendors.length > 0 && (
                   <Link
@@ -589,16 +592,6 @@ export default function DashboardPage() {
                   >
                     <AlertTriangle className="h-3.5 w-3.5 text-warning-600" />
                     {expiringVendors.length} vendor{expiringVendors.length > 1 ? "s" : ""} expiring within 90 days
-                    <ArrowRight className="h-3 w-3 text-text-muted" />
-                  </Link>
-                )}
-                {pendingShipments.length > 0 && (
-                  <Link
-                    href="/shipments"
-                    className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-primary-200 bg-primary-50 px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-primary-100"
-                  >
-                    <Truck className="h-3.5 w-3.5 text-primary-500" />
-                    {pendingShipments.length} pending shipment{pendingShipments.length > 1 ? "s" : ""} awaiting review
                     <ArrowRight className="h-3 w-3 text-text-muted" />
                   </Link>
                 )}
@@ -704,6 +697,74 @@ export default function DashboardPage() {
                 />
               </Card>
             )}
+
+            {/* ─── Recent Shipments + Recent Activity (same row height; activity scrolls inside) ─── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-stretch">
+              <section className="lg:col-span-2 flex flex-col min-h-0">
+                <div className="flex items-center justify-between mb-3 shrink-0">
+                  <h2 className="text-base font-semibold tracking-tight text-text-primary">
+                    Recent Shipments
+                  </h2>
+                  <Link
+                    href="/shipments"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 hover:text-primary-500 transition-colors"
+                  >
+                    View All <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+                {recentShipments.data.length > 0 ? (
+                  <div className="flex-1 min-h-0 flex flex-col">
+                    <DataTable
+                      columns={recentShipmentColumns}
+                      data={recentShipments.data}
+                    />
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-border-default bg-bg-card">
+                    <EmptyState
+                      icon={<Truck className="h-8 w-8" />}
+                      title="No recent shipments"
+                      description="Shipments will appear here once they are entered."
+                      className="py-10"
+                    />
+                  </div>
+                )}
+              </section>
+
+              <section className="flex flex-col min-h-0 lg:min-h-[320px]">
+                <div className="flex items-center justify-between mb-3 shrink-0">
+                  <h2 className="text-base font-semibold tracking-tight text-text-primary">
+                    Recent Activity
+                  </h2>
+                  {canViewAuditLog && (
+                    <Link
+                      href="/admin/audit-log"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 hover:text-primary-500 transition-colors"
+                    >
+                      View All <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+                </div>
+                {recentActivity.data.length > 0 ? (
+                  <div className="flex-1 min-h-0 flex flex-col rounded-lg border border-border-default bg-bg-card overflow-hidden">
+                    <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-border-default px-4 py-2">
+                      {recentActivity.data.map((entry) => (
+                        <ActivityItem key={entry.id} entry={entry} />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 min-h-0 rounded-lg border border-border-default bg-bg-card flex items-center justify-center">
+                    <EmptyState
+                      icon={<TrendingUp className="h-8 w-8" />}
+                      title="No recent activity"
+                      description="Activity will appear here as actions are taken."
+                      className="py-10"
+                    />
+                  </div>
+                )}
+              </section>
+            </div>
           </div>
         </TabsContent>
 
@@ -712,7 +773,7 @@ export default function DashboardPage() {
         {/* ════════════════════════════════════════════════════════════ */}
         <TabsContent value="analytics">
           {hasData ? (
-            <div className="space-y-8">
+            <div className="space-y-6">
               <SectionHeader title="Analytics" className="mb-4" />
 
               {/* Charts Row 1: Cost Per Ton by Waste Type + Regional Performance */}
@@ -822,17 +883,18 @@ export default function DashboardPage() {
                   />
                 </ChartContainer>
 
-                <Card>
-                  <CardHeader>
+                <Card className="flex min-h-0 flex-col">
+                  <CardHeader className="min-w-0 shrink-0">
                     <CardTitle className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-warning-500" />
                       Vendor Expirations
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="min-w-0 w-full">
                     <TimelineHeatmap
                       data={vendorExpirationTimeline}
                       maxMonths={6}
+                      className="w-full"
                     />
                   </CardContent>
                 </Card>
@@ -851,76 +913,6 @@ export default function DashboardPage() {
               />
             </Card>
           )}
-        </TabsContent>
-
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* Tab: Activity                                               */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        <TabsContent value="activity">
-          <div className="space-y-8">
-            <SectionHeader title="Activity" className="mb-4" />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Recent Shipments — wider */}
-              <Card className="lg:col-span-2">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Recent Shipments</CardTitle>
-                  <Link
-                    href="/shipments"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 hover:text-primary-500 transition-colors"
-                  >
-                    View All <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </CardHeader>
-                <CardContent>
-                  {recentShipments.data.length > 0 ? (
-                    <DataTable
-                      columns={recentShipmentColumns}
-                      data={recentShipments.data}
-                    />
-                  ) : (
-                    <EmptyState
-                      icon={<Truck className="h-8 w-8" />}
-                      title="No recent shipments"
-                      description="Shipments will appear here once they are entered."
-                      className="py-10"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Sidebar: Activity */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Recent Activity</CardTitle>
-                  {canViewAuditLog && (
-                    <Link
-                      href="/admin/audit-log"
-                      className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 hover:text-primary-500 transition-colors"
-                    >
-                      View All <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {recentActivity.data.length > 0 ? (
-                    <div className="divide-y divide-border-default">
-                      {recentActivity.data.map((entry) => (
-                        <ActivityItem key={entry.id} entry={entry} />
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState
-                      icon={<TrendingUp className="h-8 w-8" />}
-                      title="No recent activity"
-                      description="Activity will appear here as actions are taken."
-                      className="py-10"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
         </TabsContent>
       </Tabs>
     </div>

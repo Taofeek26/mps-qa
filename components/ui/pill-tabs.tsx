@@ -35,7 +35,7 @@ const PillTabsTrigger = React.forwardRef<
   <RadixTabs.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] px-4 py-1.5 text-sm font-medium transition-all duration-150 cursor-pointer",
+      "group inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] px-4 py-1.5 text-sm font-medium transition-all duration-150 cursor-pointer",
       "text-text-muted hover:text-text-primary",
       "data-[state=active]:bg-bg-card data-[state=active]:text-text-primary data-[state=active]:font-semibold data-[state=active]:shadow-sm",
       "focus-ring",
@@ -46,7 +46,7 @@ const PillTabsTrigger = React.forwardRef<
   >
     {children}
     {count !== undefined && (
-      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-50 text-primary-400 text-[10px] font-bold px-1">
+      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-bg-subtle text-text-secondary text-[10px] font-bold px-1 group-data-[state=active]:bg-gray-200 group-data-[state=active]:text-text-primary">
         {count}
       </span>
     )}

@@ -13,21 +13,21 @@ interface BreadcrumbsProps extends React.HTMLAttributes<HTMLElement> {
 
 function Breadcrumbs({ items, className, ...props }: BreadcrumbsProps) {
   return (
-    <nav aria-label="Breadcrumb" className={cn("", className)} {...props}>
+    <nav aria-label="Breadcrumb" className={cn("transition-opacity duration-150 ease-out", className)} {...props}>
       <ol className="flex items-center gap-1 text-sm">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <li key={index} className="flex items-center gap-1">
+            <li key={index} className="flex items-center gap-1 transition-transform duration-150 ease-out">
               {index > 0 && (
-                <ChevronRight className="h-3 w-3 text-gray-400" />
+                <ChevronRight className="h-3 w-3 text-gray-400 transition-opacity duration-150 ease-out" />
               )}
               {isLast || !item.href ? (
                 <span
                   className={cn(
-                    "px-1",
+                    "px-1 transition-colors duration-150 ease-out",
                     isLast
-                      ? "font-medium text-primary-400"
+                      ? "font-medium text-text-primary"
                       : "text-text-muted"
                   )}
                   aria-current={isLast ? "page" : undefined}
@@ -37,7 +37,7 @@ function Breadcrumbs({ items, className, ...props }: BreadcrumbsProps) {
               ) : (
                 <a
                   href={item.href}
-                  className="px-1 text-text-muted hover:text-text-primary transition-colors rounded-[var(--radius-sm)] focus-ring"
+                  className="px-1 text-text-secondary hover:text-text-primary transition-colors duration-150 ease-out rounded-[var(--radius-sm)] focus-ring"
                 >
                   {item.label}
                 </a>

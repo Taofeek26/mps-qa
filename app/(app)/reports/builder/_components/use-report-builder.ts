@@ -3,6 +3,7 @@
 import * as React from "react";
 import type { DateRange } from "react-day-picker";
 import type { ReportSection, SectionType, SectionConfig } from "@/lib/report-builder-types";
+import type { SavedReport } from "@/lib/saved-reports";
 import { getWidgetDefinition } from "@/lib/report-builder-widgets";
 import { getAllShipments, getClients, getSites } from "@/lib/mock-data";
 import type { ShipmentFilters } from "@/lib/types";
@@ -12,13 +13,48 @@ function generateId(): string {
   return `section-${nextId++}`;
 }
 
-export function useReportBuilder() {
-  const [title, setTitle] = React.useState("Untitled Report");
-  const [sections, setSections] = React.useState<ReportSection[]>([]);
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
-  const [clientId, setClientId] = React.useState("");
-  const [siteId, setSiteId] = React.useState("");
+function savedToDateRange(saved: SavedReport["dateRange"]): DateRange | undefined {
+  if (!saved?.from) return undefined;
+  return {
+    from: new Date(saved.from),
+    to: saved.to ? new Date(saved.to) : new Date(saved.from),
+  };
+}
+
+export interface ReportBuilderInitialState {
+  title: string;
+  name: string;
+  dateRange: SavedReport["dateRange"];
+  clientId: string;
+  siteId: string;
+  sections: ReportSection[];
+}
+
+export function useReportBuilder(initialState?: ReportBuilderInitialState | null) {
+  const [title, setTitle] = React.useState(initialState?.title ?? "Untitled Report");
+  const [sections, setSections] = React.useState<ReportSection[]>(initialState?.sections ?? []);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
+    initialState ? savedToDateRange(initialState.dateRange) : undefined
+  );
+  const [clientId, setClientId] = React.useState(initialState?.clientId ?? "");
+  const [siteId, setSiteId] = React.useState(initialState?.siteId ?? "");
   const [isExporting, setIsExporting] = React.useState(false);
+
+  const loadState = React.useCallback((saved: ReportBuilderInitialState | null) => {
+    if (!saved) {
+      setTitle("Untitled Report");
+      setSections([]);
+      setDateRange(undefined);
+      setClientId("");
+      setSiteId("");
+      return;
+    }
+    setTitle(saved.title);
+    setSections(saved.sections);
+    setDateRange(savedToDateRange(saved.dateRange));
+    setClientId(saved.clientId ?? "");
+    setSiteId(saved.siteId ?? "");
+  }, []);
 
   const clients = React.useMemo(() => getClients(), []);
   const allSites = React.useMemo(() => getSites(), []);
@@ -98,6 +134,22 @@ export function useReportBuilder() {
     return parts.join(" \u00b7 ");
   }, [dateRange, clientId, siteId, clients, allSites]);
 
+  const snapshot = React.useMemo(
+    () => ({
+      title,
+      dateRange: dateRange
+        ? {
+            from: dateRange.from.toISOString().slice(0, 10),
+            to: dateRange.to ? dateRange.to.toISOString().slice(0, 10) : dateRange.from.toISOString().slice(0, 10),
+          }
+        : null,
+      clientId,
+      siteId,
+      sections,
+    }),
+    [title, dateRange, clientId, siteId, sections]
+  );
+
   return {
     title,
     setTitle,
@@ -107,6 +159,8 @@ export function useReportBuilder() {
     moveSection,
     updateConfig,
     isSectionAdded,
+    loadState,
+    snapshot,
     // Filters
     dateRange,
     setDateRange,

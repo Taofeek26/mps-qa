@@ -1,19 +1,47 @@
 @import "tailwindcss";
 
 /* ============================================
-   MPS ENTERPRISE DESIGN TOKENS (Default: Industrial)
-   @theme generates CSS custom properties that
-   .theme-warm can override via cascade.
+   SINGLE SOURCE OF TRUTH: Dashboard colors & typography
+   Change this file to control the entire dashboard look.
+   - Colors: edit .theme-brand below (primary #00BD9D, CTAs use darker teal #0D796C).
+   - Typography: font sizes/weights/line-height are in @theme; font
+     family is set in app/layout.tsx (Inter + JetBrains Mono).
+   Active theme: .theme-brand (applied on body in layout.tsx)
    ============================================ */
 
 @theme {
   --color-gray-*: initial;
 
-  /* --- Fonts --- */
+  /* ─── Typography (control all type from here) ─── */
   --font-sans: ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, monospace;
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
 
-  /* --- Primary (Trust / Authority) --- */
+  /* ─── Button scale (placeholder; overridden by .theme-brand) ─── */
+  --color-button-50: #FDF2F8;
+  --color-button-100: #FCE7F3;
+  --color-button-200: #FBCFE8;
+  --color-button-300: #F9A8D4;
+  --color-button-400: #9E1F63;
+  --color-button-500: #831853;
+  --color-button-600: #6B1240;
+  --color-button-700: #4C0D2E;
+
+  /* --- Primary (placeholder; overridden by .theme-brand) --- */
   --color-primary-700: #0F2A3D;
   --color-primary-600: #163A52;
   --color-primary-500: #1E4F73;
@@ -23,7 +51,7 @@
   --color-primary-100: #D6E8F7;
   --color-primary-50: #EDF4FB;
 
-  /* --- Secondary (ESG / Responsibility) --- */
+  /* --- Secondary (placeholder; overridden by .theme-brand) --- */
   --color-secondary-600: #1F3F36;
   --color-secondary-500: #2E5E50;
   --color-secondary-400: #4A7D6F;
@@ -81,9 +109,9 @@
   /* --- Focus --- */
   --color-focus-ring: #4F89B8;
 
-  /* --- Radius --- */
-  --radius-sm: 8px;
-  --radius-lg: 16px;
+  /* --- Radius (subtle corners) --- */
+  --radius-sm: 4px;
+  --radius-lg: 8px;
 
   /* --- Animations --- */
   --animate-spin-once: spin-once 0.45s ease-in-out;
@@ -227,79 +255,111 @@ code, pre, .font-mono {
   /* --- Focus --- */
   --color-focus-ring: #6366F1;
 
-  /* --- Radius (slightly softer) --- */
-  --radius-sm: 8px;
-  --radius-lg: 14px;
+  /* --- Radius --- */
+  --radius-sm: 4px;
+  --radius-lg: 8px;
 }
 
 /* ============================================
-   THEME: BRAND (MPS Website-Aligned)
-   Anchored to actual mpsgrp.com colors:
-   #1863DC (CTA blue), #2b7bb9 (link blue),
-   #00b38c (teal accent), #333/#757575 (text).
-   Activate by wrapping content in .theme-brand
+   THEME: BRAND — Active dashboard theme (body.theme-brand)
+   Primary: #00BD9D (accent); darker teal for CTAs. Refined neutrals for hierarchy.
+   Edit this block to change the entire dashboard.
    ============================================ */
 
 .theme-brand {
-  /* --- Primary (Brand Blue — #1863DC at 400 for buttons) --- */
-  --color-primary-700: #0E3B84;
-  --color-primary-600: #134FB0;
-  --color-primary-500: #1550C0;
-  --color-primary-400: #1863DC;
-  --color-primary-300: #2B7BB9;
-  --color-primary-200: #91BDEB;
-  --color-primary-100: #C8DEF5;
-  --color-primary-50: #EBF2FC;
+  /* --- Primary (Brand Teal #00BD9D at 400) — links, focus, accents, active states --- */
+  --color-primary-700: #065F54;
+  --color-primary-600: #0D796C;
+  --color-primary-500: #009B85;
+  --color-primary-400: #00BD9D;
+  --color-primary-300: #2DD4BF;
+  --color-primary-200: #5EEAD4;
+  --color-primary-100: #99F6E4;
+  --color-primary-50: #F0FDFA;
 
-  /* --- Secondary (Brand Teal — #00b38c anchor) --- */
-  --color-secondary-600: #008F70;
-  --color-secondary-500: #00B38C;
-  --color-secondary-400: #00C99D;
-  --color-secondary-300: #4DD4AF;
+  /* --- Button / CTA (darker teal for contrast) — primary actions use primary-600/500 --- */
+  --color-button-50: #F0FDFA;
+  --color-button-100: #CCFBF1;
+  --color-button-200: #99F6E4;
+  --color-button-300: #5EEAD4;
+  --color-button-400: #0D796C;
+  --color-button-500: #009B85;
+  --color-button-600: #008B78;
+  --color-button-700: #065F54;
 
-  /* --- Neutral (Website Gray — #333 + #757575 anchors) --- */
-  --color-gray-950: #111111;
-  --color-gray-900: #1A1A1A;
-  --color-gray-800: #333333;
-  --color-gray-700: #4D4D4D;
-  --color-gray-600: #666666;
-  --color-gray-500: #757575;
-  --color-gray-400: #999999;
-  --color-gray-300: #BFBFBF;
-  --color-gray-200: #E0E0E0;
-  --color-gray-100: #F2F2F2;
-  --color-gray-50: #F8F8F8;
+  /* --- Secondary (same hue, for charts/secondary UI) --- */
+  --color-secondary-600: #065F54;
+  --color-secondary-500: #0D796C;
+  --color-secondary-400: #00BD9D;
+  --color-secondary-300: #2DD4BF;
 
-  /* --- Semantic (same as Industrial — already restrained) --- */
+  /* --- Teal alias (charts) --- */
+  --color-teal-200: #99F6E4;
+  --color-teal-400: #00BD9D;
+  --color-teal-600: #008B78;
 
-  /* --- Surfaces (website-aligned) --- */
-  --color-bg-app: #F4F5F7;
+  /* --- Neutral (slate — clear hierarchy, readable) --- */
+  --color-gray-950: #0F172A;
+  --color-gray-900: #1E293B;
+  --color-gray-800: #334155;
+  --color-gray-700: #475569;
+  --color-gray-600: #64748B;
+  --color-gray-500: #94A3B8;
+  --color-gray-400: #CBD5E1;
+  --color-gray-300: #E2E8F0;
+  --color-gray-200: #F1F5F9;
+  --color-gray-100: #F8FAFC;
+  --color-gray-50: #F8FAFC;
+
+  /* --- Surfaces (dashboard base #F9FAFB) --- */
+  --color-bg-app: #F9FAFB;
   --color-bg-card: #FFFFFF;
-  --color-bg-subtle: #F5F5F5;
-  --color-bg-hover: #EBEBEB;
+  --color-bg-subtle: #F3F4F6;
+  --color-bg-hover: #E5E7EB;
   --color-bg-elevated: #FFFFFF;
 
-  /* --- Navigation (white — matches mpsgrp.com) --- */
+  /* --- Navigation (priority: active > default > group label) --- */
   --color-nav-sidebar: #FFFFFF;
   --color-nav-top: #FFFFFF;
+  --color-nav-item: #64748B;           /* default: muted (lower priority) */
+  --color-nav-item-hover: #0F172A;    /* hover: primary text */
+  --color-nav-item-active: #0D796C;   /* active: brand teal (highest priority) */
+  --color-nav-group-label: #94A3B8;   /* section label: lowest priority */
 
-  /* --- Borders (website divider) --- */
-  --color-border-default: #E0E0E0;
-  --color-border-strong: #BFBFBF;
-  --color-border-focus: #1863DC;
+  /* --- Borders (#F3F4F6 default) --- */
+  --color-border-default: #F3F4F6;
+  --color-border-strong: #E5E7EB;
+  --color-border-focus: #00BD9D;
 
-  /* --- Text (website #333 + #757575 anchors) --- */
-  --color-text-primary: #333333;
-  --color-text-secondary: #666666;
-  --color-text-muted: #757575;
+  /* --- Metric / KPI icon (neutral) --- */
+  --color-icon-muted: #99A1AF;
+
+  /* --- Text (strong hierarchy, WCAG-friendly) --- */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
   --color-text-inverse: #FFFFFF;
 
   /* --- Focus --- */
-  --color-focus-ring: #1863DC;
+  --color-focus-ring: #00BD9D;
 
-  /* --- Radius (sharp / enterprise) --- */
-  --radius-sm: 8px;
-  --radius-lg: 16px;
+  /* --- Semantic (refined, cohesive) --- */
+  --color-success-600: #047857;
+  --color-success-500: #059669;
+  --color-success-400: #34D399;
+  --color-success-100: #D1FAE5;
+  --color-warning-600: #B45309;
+  --color-warning-500: #D97706;
+  --color-warning-400: #FBBF24;
+  --color-warning-100: #FEF3C7;
+  --color-error-600: #B91C1C;
+  --color-error-500: #DC2626;
+  --color-error-400: #F87171;
+  --color-error-100: #FEE2E2;
+
+  /* --- Radius (subtle corners) --- */
+  --radius-sm: 4px;
+  --radius-lg: 8px;
 }
 
 /* ============================================
@@ -322,7 +382,7 @@ code, pre, .font-mono {
   --ag-range-selection-border-color: var(--color-border-focus);
   --ag-range-selection-background-color: var(--color-primary-50);
   --ag-input-focus-border-color: var(--color-border-focus);
-  --ag-checkbox-checked-color: var(--color-primary-400);
+  --ag-checkbox-checked-color: var(--color-button-400);
   --ag-checkbox-unchecked-color: var(--color-border-strong);
   --ag-cell-horizontal-padding: 12px;
   --ag-row-height: 40px;

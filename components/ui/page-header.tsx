@@ -13,13 +13,13 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 pb-6",
+          "flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 pb-4",
           className
         )}
         {...props}
       >
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-text-primary">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
             {title}
           </h1>
           {subtitle && (

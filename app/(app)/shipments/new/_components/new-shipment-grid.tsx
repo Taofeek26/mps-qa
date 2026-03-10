@@ -192,7 +192,10 @@ export function NewShipmentGrid({
       onImport={onImport}
       cellErrors={cellErrors}
       defaultRow={createEmptyRow()}
-      height={460}
+      height="min(calc(100vh - 320px), 560px)"
+      showAddNRows
+      showDuplicate
+      showFillDown
       className={className}
     />
   );

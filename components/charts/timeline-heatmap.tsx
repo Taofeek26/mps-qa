@@ -44,7 +44,7 @@ export function TimelineHeatmap({
   const maxCount = Math.max(...visibleData.map((d) => d.count), 1);
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex w-full min-w-0 flex-col gap-2", className)}>
       {visibleData.map((entry) => {
         const widthPercent =
           maxCount > 0 ? (entry.count / maxCount) * 100 : 0;
@@ -55,8 +55,8 @@ export function TimelineHeatmap({
           <div
             key={entry.period}
             className={cn(
-              "grid items-center gap-3",
-              "grid-cols-[4rem_1fr_auto] sm:grid-cols-[5rem_1fr_auto]"
+              "grid min-w-0 items-center gap-3",
+              "grid-cols-[4rem_minmax(0,1fr)_auto] sm:grid-cols-[5rem_minmax(0,1fr)_auto]"
             )}
           >
             {/* Period label */}

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Popover as RadixPopover } from "radix-ui";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MultiSelectOption {
@@ -57,18 +57,12 @@ function MultiSelect({
     }
   }
 
-  function removeChip(val: string, e: React.MouseEvent) {
-    e.stopPropagation();
-    onChange(value.filter((v) => v !== val));
-  }
-
-  function clearAll(e: React.MouseEvent) {
-    e.stopPropagation();
-    onChange([]);
-  }
-
-  const visibleChips = selectedLabels.slice(0, maxVisibleChips);
-  const overflow = selectedLabels.length - maxVisibleChips;
+  const triggerLabel =
+    value.length === 0
+      ? placeholder
+      : value.length === 1
+        ? selectedLabels[0]?.label ?? "1 selected"
+        : `${value.length} selected`;
 
   return (
     <RadixPopover.Root
@@ -85,7 +79,7 @@ function MultiSelect({
           aria-expanded={open}
           aria-disabled={disabled || undefined}
           className={cn(
-            "flex min-h-[36px] w-full items-center gap-1.5 rounded-[var(--radius-sm)] border bg-bg-card px-2.5 text-sm text-left transition-colors duration-150 cursor-pointer",
+            "flex min-h-[36px] w-full items-center justify-between gap-2 rounded-[var(--radius-sm)] border bg-bg-card px-3 text-sm text-left transition-colors duration-150 cursor-pointer",
             "focus-ring",
             disabled && "cursor-not-allowed opacity-40 bg-gray-100",
             error
@@ -94,60 +88,10 @@ function MultiSelect({
             className
           )}
         >
-          <div className="flex flex-1 flex-wrap items-center gap-1 py-1">
-            {value.length === 0 && (
-              <span className="text-text-muted">{placeholder}</span>
-            )}
-            {visibleChips.map((chip) => (
-              <span
-                key={chip.value}
-                className="inline-flex items-center gap-1 rounded-[4px] bg-gray-100 px-2 py-0.5 text-xs font-medium text-text-primary"
-              >
-                {chip.label}
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => removeChip(chip.value, e)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      removeChip(chip.value, e as unknown as React.MouseEvent);
-                    }
-                  }}
-                  className="text-text-muted hover:text-text-primary cursor-pointer"
-                  aria-label={`Remove ${chip.label}`}
-                >
-                  <X className="h-3 w-3" />
-                </span>
-              </span>
-            ))}
-            {overflow > 0 && (
-              <span className="text-xs font-medium text-text-muted">
-                +{overflow} more
-              </span>
-            )}
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1">
-            {value.length > 0 && (
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={clearAll}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    clearAll(e as unknown as React.MouseEvent);
-                  }
-                }}
-                className="text-text-muted hover:text-text-primary p-0.5 cursor-pointer"
-                aria-label="Clear all"
-              >
-                <X className="h-3.5 w-3.5" />
-              </span>
-            )}
-            <ChevronDown className="h-4 w-4 text-text-muted" />
-          </div>
+          <span className={value.length === 0 ? "text-text-muted" : "text-text-primary truncate"}>
+            {triggerLabel}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-text-muted" />
         </div>
       </RadixPopover.Trigger>
 

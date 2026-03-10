@@ -20,7 +20,7 @@ const FilterBar = React.forwardRef<HTMLDivElement, FilterBarProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-wrap items-end gap-3",
+          "flex flex-wrap items-end gap-4",
           className
         )}
         {...props}

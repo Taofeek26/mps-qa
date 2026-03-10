@@ -32,6 +32,8 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
+    // Report Builder has its own highlight; don’t mark Reports active when on /reports/builder
+    if (href === "/reports") return pathname === "/reports" || (pathname.startsWith("/reports/") && !pathname.startsWith("/reports/builder"));
     return pathname.startsWith(href);
   }
 
@@ -43,30 +45,30 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col shrink-0 border-r border-border-default bg-nav-sidebar sticky top-0 h-screen transition-[width] duration-200",
+        "hidden lg:flex flex-col shrink-0 border-r border-border-default bg-nav-sidebar sticky top-0 h-screen transition-[width] duration-200 ease-out",
         collapsed ? "w-[72px]" : "w-[260px]"
       )}
     >
       {/* Logo */}
       <div
         className={cn(
-          "flex items-center border-b border-border-default shrink-0",
-          collapsed ? "justify-center h-14 px-2" : "h-14 px-5"
+          "flex items-center shrink-0 transition-[padding] duration-200 ease-out",
+          collapsed ? "h-16 pl-3 pr-2" : "h-20 pl-5 pr-4"
         )}
       >
         {collapsed ? (
-          <Image src="/logo.png" alt="MPS" width={32} height={32} priority />
+          <Image src="/logo.png" alt="MPS" width={44} height={44} className="object-contain" priority />
         ) : (
-          <Image src="/logo.png" alt="MPS" width={90} height={32} priority />
+          <Image src="/logo.png" alt="MPS" width={130} height={46} className="object-contain" priority />
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
         {filteredGroups.map((group) => (
           <div key={group.label}>
             {!collapsed && (
-              <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+              <p className="px-2 mb-2 text-xs font-medium text-text-muted">
                 {group.label}
               </p>
             )}
@@ -85,12 +87,12 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
       </nav>
 
       {/* Collapse toggle */}
-      <div className="shrink-0 border-t border-border-default p-2">
+      <div className="shrink-0 p-3">
         <button
           onClick={onToggleCollapse}
           className={cn(
-            "flex items-center gap-2 w-full rounded-[var(--radius-sm)] text-text-muted hover:text-text-primary hover:bg-gray-100 transition-colors cursor-pointer",
-            collapsed ? "justify-center h-9 w-full" : "px-3 h-9"
+            "flex items-center gap-2 w-full rounded-md text-text-muted hover:text-text-primary hover:bg-black/4 transition-colors duration-150 ease-out cursor-pointer",
+            collapsed ? "justify-center h-9 w-full" : "px-2 h-9"
           )}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -125,11 +127,11 @@ function NavLink({
     <Link
       href={item.href}
       className={cn(
-        "flex items-center gap-3 rounded-[var(--radius-sm)] transition-colors text-sm font-medium",
-        collapsed ? "justify-center h-9 w-full" : "px-3 h-9",
+        "flex items-center gap-3 rounded-md transition-colors duration-150 ease-out text-sm",
+        collapsed ? "justify-center h-10 w-full" : "px-2 h-10",
         active
-          ? "bg-primary-50 text-primary-500"
-          : "text-text-secondary hover:text-text-primary hover:bg-gray-100"
+          ? "text-primary-600 font-semibold"
+          : "text-text-secondary font-medium hover:text-text-primary hover:bg-black/4"
       )}
     >
       <Icon className="h-4 w-4 shrink-0" />

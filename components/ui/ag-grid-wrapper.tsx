@@ -12,10 +12,16 @@ import {
   type ITooltipParams,
   createTheme,
 } from "ag-grid-community";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { ChevronDown, Copy, Plus, Trash2, Upload } from "lucide-react";
 import { read, utils } from "xlsx";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const modules = [AllCommunityModule];
 
@@ -40,6 +46,12 @@ interface AGGridWrapperProps<TData> {
   onImport?: (rows: Record<string, unknown>[]) => void;
   showRowNumbers?: boolean;
   showToolbar?: boolean;
+  /** Show "Add 10 / 25 / 50 rows" dropdown */
+  showAddNRows?: boolean;
+  /** Show "Duplicate selected" button */
+  showDuplicate?: boolean;
+  /** Show "Fill down" button (copy focused cell value down the column) */
+  showFillDown?: boolean;
   height?: number | string;
   className?: string;
 }
@@ -56,6 +68,9 @@ function AGGridWrapper<TData extends Record<string, unknown>>({
   onImport,
   showRowNumbers = true,
   showToolbar = true,
+  showAddNRows = false,
+  showDuplicate = false,
+  showFillDown = false,
   height = 500,
   className,
 }: AGGridWrapperProps<TData>) {
@@ -257,6 +272,37 @@ function AGGridWrapper<TData extends Record<string, unknown>>({
     onRowDataChange?.(newData);
   }
 
+  function handleAddNRows(n: number) {
+    const newRows = Array.from({ length: n }, () => ({ ...defaultRow } as TData));
+    onRowDataChange?.([...rowData, ...newRows]);
+  }
+
+  function handleDuplicateRows() {
+    if (!api) return;
+    const selected = api.getSelectedNodes();
+    if (selected.length === 0) return;
+    const clones = selected.map((node) => {
+      const data = node.data as TData & { _rowId?: string };
+      return { ...data, _rowId: crypto.randomUUID() } as TData;
+    });
+    onRowDataChange?.([...rowData, ...clones]);
+  }
+
+  function handleFillDown() {
+    if (!api) return;
+    const focused = api.getFocusedCell();
+    const colDef = focused?.column.getColDef();
+    const field = colDef?.field as string | undefined;
+    if (focused?.rowIndex == null || !field) return;
+    const value = (rowData[focused.rowIndex] as Record<string, unknown>)[field];
+    const updated = [...rowData];
+    for (let i = focused.rowIndex + 1; i < updated.length; i++) {
+      updated[i] = { ...updated[i], [field]: value } as TData;
+    }
+    onRowDataChange?.(updated);
+    api.refreshCells({ force: true });
+  }
+
   function handleCellChanged(event: CellValueChangedEvent<TData>) {
     onCellValueChanged?.(event);
     /* If onRowDataChange provided, update the data immutably */
@@ -281,11 +327,37 @@ function AGGridWrapper<TData extends Record<string, unknown>>({
   return (
     <div className={cn("space-y-3", className)}>
       {showToolbar && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" size="sm" onClick={handleAddRow}>
             <Plus className="h-4 w-4" />
             Add Row
           </Button>
+          {showAddNRows && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="sm">
+                  Add 10 / 25 / 50 rows
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => handleAddNRows(10)}>Add 10 rows</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddNRows(25)}>Add 25 rows</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddNRows(50)}>Add 50 rows</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {showDuplicate && (
+            <Button variant="ghost" size="sm" onClick={handleDuplicateRows}>
+              <Copy className="h-4 w-4" />
+              Duplicate selected
+            </Button>
+          )}
+          {showFillDown && (
+            <Button variant="ghost" size="sm" onClick={handleFillDown}>
+              Fill down
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
