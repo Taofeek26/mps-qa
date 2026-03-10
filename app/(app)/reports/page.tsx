@@ -40,15 +40,13 @@ function ReportsContent() {
 
   return (
     <Tabs value={tab} onValueChange={setTab}>
-      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-        <TabsList className="w-max sm:w-full">
-          {REPORT_TABS.map((t) => (
-            <TabsTrigger key={t.value} value={t.value} className="whitespace-nowrap text-xs sm:text-sm">
-              {t.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </div>
+      <TabsList>
+        {REPORT_TABS.map((t) => (
+          <TabsTrigger key={t.value} value={t.value}>
+            {t.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
 
       <PageHeader
         title={currentLabel}

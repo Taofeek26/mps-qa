@@ -1,53 +1,56 @@
 "use client";
 
 import * as React from "react";
-import { Dialog as RadixDialog } from "radix-ui";
-import { AnimatePresence, motion } from "motion/react";
-import { X } from "lucide-react";
+import { Drawer } from "vaul";
 import { cn } from "@/lib/utils";
 
-const Dialog = RadixDialog.Root;
-const DialogTrigger = RadixDialog.Trigger;
-const DialogClose = RadixDialog.Close;
+const Dialog = ({
+  children,
+  ...props
+}: React.ComponentProps<typeof Drawer.Root>) => (
+  <Drawer.Root direction="bottom" {...props}>
+    {children}
+  </Drawer.Root>
+);
+Dialog.displayName = "Dialog";
+
+const DialogTrigger = Drawer.Trigger;
+const DialogClose = Drawer.Close;
 
 interface DialogContentProps
-  extends React.ComponentPropsWithoutRef<typeof RadixDialog.Content> {}
+  extends React.ComponentPropsWithoutRef<typeof Drawer.Content> {
+  showHandle?: boolean;
+}
 
 const DialogContent = React.forwardRef<
-  React.ComponentRef<typeof RadixDialog.Content>,
+  React.ComponentRef<typeof Drawer.Content>,
   DialogContentProps
->(({ className, children, ...props }, ref) => (
-  <RadixDialog.Portal>
-    <RadixDialog.Overlay asChild>
-      <motion.div
-        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-      />
-    </RadixDialog.Overlay>
-    <RadixDialog.Content ref={ref} asChild {...props}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2",
-          "rounded-[var(--radius-lg)] border border-border-default bg-bg-card p-6 shadow-xl",
-          "focus:outline-none",
-          className
-        )}
-      >
+>(({ className, children, showHandle = true, ...props }, ref) => (
+  <Drawer.Portal>
+    <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]" />
+    <Drawer.Content
+      ref={ref}
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col",
+        "rounded-t-[var(--radius-lg)] border border-b-0 border-border-default bg-bg-card shadow-xl",
+        "focus:outline-none",
+        className
+      )}
+      {...props}
+    >
+      {/* Drag handle */}
+      {showHandle && (
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="h-1.5 w-10 rounded-full bg-text-muted/30" />
+        </div>
+      )}
+
+      {/* Content wrapper */}
+      <div className="flex flex-1 flex-col overflow-y-auto px-6 pb-6 pt-2">
         {children}
-        <RadixDialog.Close className="absolute right-4 top-4 rounded-[var(--radius-sm)] p-1 text-text-muted hover:text-text-primary hover:bg-gray-100 transition-colors focus-ring">
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </RadixDialog.Close>
-      </motion.div>
-    </RadixDialog.Content>
-  </RadixDialog.Portal>
+      </div>
+    </Drawer.Content>
+  </Drawer.Portal>
 ));
 DialogContent.displayName = "DialogContent";
 
@@ -60,10 +63,10 @@ const DialogHeader = ({
 DialogHeader.displayName = "DialogHeader";
 
 const DialogTitle = React.forwardRef<
-  React.ComponentRef<typeof RadixDialog.Title>,
-  React.ComponentPropsWithoutRef<typeof RadixDialog.Title>
+  React.ComponentRef<typeof Drawer.Title>,
+  React.ComponentPropsWithoutRef<typeof Drawer.Title>
 >(({ className, ...props }, ref) => (
-  <RadixDialog.Title
+  <Drawer.Title
     ref={ref}
     className={cn("text-base font-semibold text-text-primary", className)}
     {...props}
@@ -72,10 +75,10 @@ const DialogTitle = React.forwardRef<
 DialogTitle.displayName = "DialogTitle";
 
 const DialogDescription = React.forwardRef<
-  React.ComponentRef<typeof RadixDialog.Description>,
-  React.ComponentPropsWithoutRef<typeof RadixDialog.Description>
+  React.ComponentRef<typeof Drawer.Description>,
+  React.ComponentPropsWithoutRef<typeof Drawer.Description>
 >(({ className, ...props }, ref) => (
-  <RadixDialog.Description
+  <Drawer.Description
     ref={ref}
     className={cn("text-sm text-text-muted", className)}
     {...props}
