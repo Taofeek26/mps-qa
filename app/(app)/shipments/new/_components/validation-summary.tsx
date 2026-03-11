@@ -65,7 +65,7 @@ export function ValidationSummary({
             key={`${error.rowIndex}-${error.field}-${i}`}
             type="button"
             onClick={() => onErrorClick?.(error.rowIndex, error.field)}
-            className="flex items-center gap-2 w-full text-left text-xs text-text-secondary hover:text-error-600 hover:bg-error-100/50 rounded px-2 py-1 transition-colors"
+            className="flex items-center gap-2 w-full text-left text-xs text-text-secondary hover:text-error-600 hover:bg-error-100/50 rounded px-2 py-1 transition-colors cursor-pointer"
           >
             <span className="font-mono text-text-muted shrink-0">
               Row {error.rowIndex + 1}

@@ -34,7 +34,7 @@ export function EntryChoice({ onChoose, className }: EntryChoiceProps) {
           type="button"
           onClick={() => onChoose("upload")}
           className={cn(
-            "group relative flex flex-col items-start gap-5 rounded-xl border border-border-default bg-bg-card p-8 text-left",
+            "group relative flex flex-col items-start gap-5 rounded-xl border border-border-default bg-bg-card p-8 text-left cursor-pointer",
             "shadow-sm hover:shadow-md hover:border-primary-300/60 hover:bg-primary-50/30",
             "transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
           )}
@@ -54,7 +54,7 @@ export function EntryChoice({ onChoose, className }: EntryChoiceProps) {
           type="button"
           onClick={() => onChoose("manual")}
           className={cn(
-            "group relative flex flex-col items-start gap-5 rounded-xl border border-border-default bg-bg-card p-8 text-left",
+            "group relative flex flex-col items-start gap-5 rounded-xl border border-border-default bg-bg-card p-8 text-left cursor-pointer",
             "shadow-sm hover:shadow-md hover:border-primary-300/60 hover:bg-primary-50/30",
             "transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
           )}

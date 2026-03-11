@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { Drawer } from "vaul";
 import { Dialog as RadixDialog } from "radix-ui";
+import { motion, AnimatePresence } from "motion/react";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS } from "@/lib/navigation";
@@ -192,24 +193,45 @@ export function CommandPalette() {
           </Drawer.Portal>
         </Drawer.Root>
       ) : (
-        /* Desktop: centered dialog */
+        /* Desktop: centered dialog with motion enter/exit */
         <RadixDialog.Root open={open} onOpenChange={setOpen}>
-          <RadixDialog.Portal>
-            <RadixDialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
-            <RadixDialog.Content
-              className={cn(
-                "fixed left-1/2 top-[20%] z-50 -translate-x-1/2",
-                "flex max-h-[min(480px,70dvh)] w-[min(90vw,36rem)] lg:w-[min(50vw,42rem)] 2xl:w-[min(40vw,48rem)] flex-col",
-                "rounded-[var(--radius-lg)] border border-border-default bg-bg-card shadow-xl",
-                "focus:outline-none",
-                "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
-                "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]"
-              )}
-            >
-              <RadixDialog.Title className="sr-only">Search</RadixDialog.Title>
-              {commandContent}
-            </RadixDialog.Content>
-          </RadixDialog.Portal>
+          <AnimatePresence>
+            {open && (
+              <RadixDialog.Portal forceMount>
+                <RadixDialog.Overlay asChild forceMount>
+                  <motion.div
+                    className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  />
+                </RadixDialog.Overlay>
+                <RadixDialog.Content asChild forceMount>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96, y: -8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.96, y: -8 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 30,
+                      mass: 0.8,
+                    }}
+                    className={cn(
+                      "fixed left-1/2 top-[20%] z-50 -translate-x-1/2",
+                      "flex max-h-[min(480px,70dvh)] w-[min(90vw,36rem)] lg:w-[min(50vw,42rem)] 2xl:w-[min(40vw,48rem)] flex-col",
+                      "rounded-[var(--radius-lg)] border border-border-default bg-bg-card shadow-xl",
+                      "focus:outline-none"
+                    )}
+                  >
+                    <RadixDialog.Title className="sr-only">Search</RadixDialog.Title>
+                    {commandContent}
+                  </motion.div>
+                </RadixDialog.Content>
+              </RadixDialog.Portal>
+            )}
+          </AnimatePresence>
         </RadixDialog.Root>
       )}
     </>
