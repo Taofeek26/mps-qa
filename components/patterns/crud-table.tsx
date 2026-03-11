@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { DataTable, type DataTablePagination } from "@/components/ui/data-table";
 import { FilterBar } from "@/components/ui/filter-bar";
-import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Drawer,
@@ -200,35 +199,29 @@ function CrudTable<TData>({
 
   return (
     <div className={cn("space-y-4", className)}>
-      {/* Header */}
-      <PageHeader
-        title={title}
-        subtitle={subtitle}
-        actions={
-          (formContent || onCreateNew) && (
-            <Button onClick={handleCreate}>
+      {/* Filters + Actions */}
+      {(onSearchChange || filterSlots || formContent || onCreateNew) && (
+        <div className="flex flex-wrap items-end gap-4">
+          <FilterBar onReset={onResetFilters} className="flex-1 min-w-0">
+            {onSearchChange && (
+              <div className="w-full sm:w-64">
+                <TextInput
+                  variant="search"
+                  value={searchValue}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder={searchPlaceholder}
+                />
+              </div>
+            )}
+            {filterSlots}
+          </FilterBar>
+          {(formContent || onCreateNew) && (
+            <Button size="sm" className="shrink-0" onClick={handleCreate}>
               <Plus className="h-4 w-4" />
               Add {entityName}
             </Button>
-          )
-        }
-      />
-
-      {/* Filters */}
-      {(onSearchChange || filterSlots) && (
-        <FilterBar onReset={onResetFilters}>
-          {onSearchChange && (
-            <div className="w-full sm:w-64">
-              <TextInput
-                variant="search"
-                value={searchValue}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder={searchPlaceholder}
-              />
-            </div>
           )}
-          {filterSlots}
-        </FilterBar>
+        </div>
       )}
 
       {/* Table */}

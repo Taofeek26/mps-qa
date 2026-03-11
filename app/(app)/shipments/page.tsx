@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Download, Plus, Truck, Columns3 } from "lucide-react";
 import { type SortingState, type VisibilityState } from "@tanstack/react-table";
-import { PageHeader } from "@/components/ui/page-header";
+
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -153,27 +153,6 @@ function ShipmentsContent() {
 
   return (
     <>
-      <PageHeader
-        title="Shipments"
-        subtitle={`${result.total} total shipments`}
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setExportOpen(true)}
-            >
-              <Download className="h-4 w-4" /> Export
-            </Button>
-            <Link href="/shipments/new">
-              <Button size="sm">
-                <Plus className="h-4 w-4" /> New Shipment
-              </Button>
-            </Link>
-          </>
-        }
-      />
-
       <div className="space-y-6">
         <ShipmentFiltersBar
           filters={urlFilters}
@@ -181,36 +160,50 @@ function ShipmentsContent() {
           onReset={handleResetFilters}
           allowedSiteIds={allowedSiteIds}
           trailing={
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="sm">
-                  <Columns3 className="h-4 w-4" />
-                  Columns
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="secondary" size="sm">
+                    <Columns3 className="h-4 w-4" />
+                    Columns
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="max-h-[min(70vh,400px)] overflow-y-auto w-56">
+                  {SHIPMENT_COLUMN_OPTIONS.map(({ id, label }) => (
+                    <DropdownMenuItem
+                      key={id}
+                      onSelect={(e) => e.preventDefault()}
+                      className="gap-2"
+                    >
+                      <Checkbox
+                        checked={columnVisibility[id] !== false}
+                        onCheckedChange={(checked) => {
+                          setColumnVisibility((prev) => ({
+                            ...prev,
+                            [id]: checked !== false,
+                          }));
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Toggle ${label}`}
+                      />
+                      <span>{label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setExportOpen(true)}
+              >
+                <Download className="h-4 w-4" /> Export
+              </Button>
+              <Link href="/shipments/new">
+                <Button size="sm">
+                  <Plus className="h-4 w-4" /> New Shipment
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="max-h-[min(70vh,400px)] overflow-y-auto w-56">
-                {SHIPMENT_COLUMN_OPTIONS.map(({ id, label }) => (
-                  <DropdownMenuItem
-                    key={id}
-                    onSelect={(e) => e.preventDefault()}
-                    className="gap-2"
-                  >
-                    <Checkbox
-                      checked={columnVisibility[id] !== false}
-                      onCheckedChange={(checked) => {
-                        setColumnVisibility((prev) => ({
-                          ...prev,
-                          [id]: checked !== false,
-                        }));
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={`Toggle ${label}`}
-                    />
-                    <span>{label}</span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </Link>
+            </>
           }
         />
 

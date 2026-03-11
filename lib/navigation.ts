@@ -9,6 +9,15 @@ import {
   FileText,
   Factory,
   FileBarChart,
+  Package,
+  DollarSign,
+  Scale,
+  ShieldCheck,
+  Activity,
+  DatabaseZap,
+  Globe,
+  MapPin,
+  Leaf,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +29,8 @@ export interface NavItem {
   icon: LucideIcon;
   /** Only visible to these roles. Omit = visible to all. */
   roles?: string[];
+  /** Expandable child links (rendered as a collapsible sub-menu) */
+  children?: NavItem[];
 }
 
 export interface NavGroup {
@@ -33,7 +44,20 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "Shipments", href: "/shipments", icon: Truck },
-      { label: "Reports", href: "/reports", icon: TrendingUp },
+      {
+        label: "Reports", href: "/reports", icon: TrendingUp,
+        children: [
+          { label: "Waste Trends", href: "/reports?tab=waste-trends", icon: Package },
+          { label: "Cost Analysis", href: "/reports?tab=cost-analysis", icon: DollarSign },
+          { label: "Light Load", href: "/reports?tab=light-load", icon: Scale },
+          { label: "Regulatory", href: "/reports?tab=regulatory", icon: ShieldCheck },
+          { label: "Operations", href: "/reports?tab=operations", icon: Activity },
+          { label: "Data Quality", href: "/reports?tab=data-quality", icon: DatabaseZap },
+          { label: "Vendor Intel", href: "/reports?tab=vendor-intel", icon: Globe },
+          { label: "Logistics", href: "/reports?tab=logistics", icon: MapPin },
+          { label: "Emissions", href: "/reports?tab=emissions", icon: Leaf },
+        ],
+      },
       { label: "Report Builder", href: "/reports/builder", icon: FileBarChart },
     ],
   },
