@@ -17,13 +17,9 @@ import type {
   AuditLogFilters,
   SortParams,
   PaginatedResult,
-  WeightUnit,
-  ShipmentStatus,
-  CostBreakdown,
   WasteCategory,
   TreatmentMethod,
   ServiceFrequency,
-  ManagementMethod,
   ReceivingFacility,
   /* Enterprise schema normalized types */
   ServiceItem,
@@ -43,6 +39,7 @@ import type {
   ShipmentCostCustomer,
   ShipmentExternalIdentifier,
 } from "./types";
+import { GENERATED_SHIPMENTS } from "./generated-shipment-data";
 
 /* ─── Clients ─── */
 
@@ -92,56 +89,56 @@ export const VENDORS: Vendor[] = [
     id: "vnd-1", name: "Waste Connections", vendorType: "Disposal", city: "Pegram", state: "TN", active: true,
     vendorCode: "WAST00", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal", "Transport"], supplierForm: "Certificate of Insurance",
-    dateEntered: "2024-07-01", dateReviewed: "2024-07-01", expirationDate: "2025-06-30",
+    dateEntered: "2024-07-01", dateReviewed: "2024-07-01", expirationDate: "2026-04-15",
     reviewedBy: "K. Hollins", vendorStatus: "Active",
   },
   {
     id: "vnd-2", name: "Safety Kleen", vendorType: "Disposal", city: "Nashville", state: "TN", active: true,
     vendorCode: "SAFE00", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal", "Processing"], supplierForm: "Supplier Pre-Qualification",
-    dateEntered: "2020-01-15", dateReviewed: "2020-01-15", expirationDate: "2025-01-15",
+    dateEntered: "2020-01-15", dateReviewed: "2020-01-15", expirationDate: "2026-05-20",
     reviewedBy: "C. King", vendorStatus: "Active",
   },
   {
     id: "vnd-3", name: "Republic Services", vendorType: "Disposal", city: "Phoenix", state: "AZ", active: true,
     vendorCode: "GROE00", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal"], supplierForm: "Certificate of Insurance",
-    dateEntered: "2024-07-01", dateReviewed: "2024-07-01", expirationDate: "2025-06-30",
+    dateEntered: "2024-07-01", dateReviewed: "2024-07-01", expirationDate: "2026-06-30",
     reviewedBy: "K. Hollins", vendorStatus: "Active",
   },
   {
     id: "vnd-4", name: "Waste Management", vendorType: "Disposal", city: "Houston", state: "TX", active: true,
     vendorCode: "WAST103", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal"], supplierForm: "Certificate of Insurance",
-    dateEntered: "2023-12-19", dateReviewed: "2023-12-19", expirationDate: "2025-01-01",
+    dateEntered: "2023-12-19", dateReviewed: "2023-12-19", expirationDate: "2026-03-28",
     reviewedBy: "K. Hollins", vendorStatus: "Active",
   },
   {
     id: "vnd-5", name: "Domtar / New Indy", vendorType: "Recycler", city: "Kingsport", state: "TN", active: true,
     vendorCode: "DOMT00", completionStatus: "Complete", riskLevel: "Level 2 - Medium",
     commodities: ["Disposal", "Processing"], supplierForm: "Supplier Pre-Qualification",
-    dateEntered: "2020-06-01", dateReviewed: "2020-06-01", expirationDate: "2025-06-01",
+    dateEntered: "2020-06-01", dateReviewed: "2020-06-01", expirationDate: "2026-07-01",
     reviewedBy: "C. King", vendorStatus: "Active",
   },
   {
     id: "vnd-6", name: "Heritage Environmental", vendorType: "Disposal", city: "East Liverpool", state: "OH", active: true,
     vendorCode: "HERI05", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal", "Transport"], supplierForm: "Certificate of Insurance",
-    dateEntered: "2024-11-26", dateReviewed: "2024-11-26", expirationDate: "2025-01-31",
+    dateEntered: "2024-11-26", dateReviewed: "2024-11-26", expirationDate: "2026-04-30",
     reviewedBy: "K. Hollins", vendorStatus: "Active",
   },
   {
     id: "vnd-7", name: "Veolia", vendorType: "Disposal", city: "Atlanta", state: "GA", active: true,
     vendorCode: "VEOL00", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal", "Processing"], supplierForm: "Supplier Pre-Qualification",
-    dateEntered: "2019-12-06", dateReviewed: "2019-12-06", expirationDate: "2024-12-06",
+    dateEntered: "2019-12-06", dateReviewed: "2019-12-06", expirationDate: "2026-08-15",
     reviewedBy: "C. King", vendorStatus: "Active",
   },
   {
     id: "vnd-8", name: "Reworld Solutions", vendorType: "Disposal", city: "Voorhees", state: "NJ", active: true,
     vendorCode: "COVA00", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal", "Consultants/Professional"], supplierForm: "Supplier Pre-Qualification",
-    dateEntered: "2019-12-06", dateReviewed: "2019-12-06", expirationDate: "2024-12-06",
+    dateEntered: "2019-12-06", dateReviewed: "2019-12-06", expirationDate: "2026-05-10",
     reviewedBy: "C. King", vendorStatus: "Active",
   },
   {
@@ -155,28 +152,28 @@ export const VENDORS: Vendor[] = [
     id: "vnd-10", name: "Bavarian Waste Services", vendorType: "Processor", city: "Munich", state: "MI", active: true,
     vendorCode: "BAVA00", completionStatus: "Complete", riskLevel: "Level 2 - Medium",
     commodities: ["Disposal"], supplierForm: "Supplier Pre-Qualification",
-    dateEntered: "2019-12-06", dateReviewed: "2019-12-06", expirationDate: "2024-12-06",
+    dateEntered: "2019-12-06", dateReviewed: "2019-12-06", expirationDate: "2026-06-15",
     reviewedBy: "C. King", vendorStatus: "Active",
   },
   {
     id: "vnd-11", name: "Boyas Excavating", vendorType: "Disposal", city: "Cleveland", state: "OH", active: true,
     vendorCode: "BOYA00", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal", "Processing"], supplierForm: "Certificate of Insurance",
-    dateEntered: "2024-07-12", dateReviewed: "2024-07-12", expirationDate: "2025-07-08",
+    dateEntered: "2024-07-12", dateReviewed: "2024-07-12", expirationDate: "2026-07-08",
     reviewedBy: "K. Hollins", vendorStatus: "Active",
   },
   {
     id: "vnd-12", name: "Direct Shred LLC", vendorType: "Processor", city: "Nashville", state: "TN", active: true,
     vendorCode: "DIRE00", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal", "Transport"], supplierForm: "Certificate of Insurance",
-    dateEntered: "2024-11-05", dateReviewed: "2024-11-05", expirationDate: "2025-07-01",
+    dateEntered: "2024-11-05", dateReviewed: "2024-11-05", expirationDate: "2026-03-25",
     reviewedBy: "K. Hollins", vendorStatus: "Active",
   },
   {
     id: "vnd-13", name: "Metalworking Lubricants Co.", vendorType: "Processor", city: "Toledo", state: "OH", active: true,
     vendorCode: "META00", completionStatus: "Incomplete", riskLevel: "Level 1 - High",
     commodities: ["Disposal"], supplierForm: "Supplier Pre-Qualification",
-    dateEntered: "2020-03-12", dateReviewed: "2020-03-12", expirationDate: "2025-03-12",
+    dateEntered: "2020-03-12", dateReviewed: "2020-03-12", expirationDate: "2026-04-12",
     reviewedBy: "C. King", vendorStatus: "Temporary",
   },
   {
@@ -197,7 +194,7 @@ export const VENDORS: Vendor[] = [
     id: "vnd-16", name: "Lonewolf Petroleum Co.", vendorType: "Processor", city: "Oklahoma City", state: "OK", active: true,
     vendorCode: "LONE00", completionStatus: "Complete", riskLevel: "Level 1 - High",
     commodities: ["Disposal", "Transport"], supplierForm: "Certificate of Insurance",
-    dateEntered: "2024-10-11", dateReviewed: "2024-10-11", expirationDate: "2025-02-08",
+    dateEntered: "2024-10-11", dateReviewed: "2024-10-11", expirationDate: "2026-08-08",
     reviewedBy: "K. Hollins", vendorStatus: "Active",
   },
 ];
@@ -579,208 +576,9 @@ export function deleteUser(id: string): boolean {
   return true;
 }
 
-/* ─── Shipment data generation ─── */
+/* ─── Shipment data (generated from Golden CSV) ─── */
 
-interface ShipmentTemplate {
-  wasteTypeId: string;
-  siteId: string;
-  vendorId: string;
-  unit: string;
-  qty: number;
-  weightPerUnit: number;
-  targetLoadWeight: number;
-  containerType: string;
-  serviceFrequency: ServiceFrequency;
-  treatmentMethod: TreatmentMethod;
-  wasteCategory: WasteCategory;
-  containerLocation: string;
-  receivingFacilityIdx: number;
-  transporterName: string;
-  mpsHaul: number;
-  mpsDisposalEach: number;
-  mpsFuel: number;
-  mpsEnv: number;
-  mpsOther: number;
-  custHaul: number;
-  custDisposalEach: number;
-  custFuel: number;
-  custEnv: number;
-  custRebate: number;
-  custOther: number;
-  profileNumber?: string;
-  wasteCodes?: string;
-  sourceCode?: string;
-  formCode?: string;
-  treatmentCode?: string;
-  ewcNumber?: string;
-  managementMethod?: ManagementMethod;
-  triWasteCode?: string;
-}
-
-function generateShipments(): Shipment[] {
-  const shipments: Shipment[] = [];
-  const statuses: ShipmentStatus[] = ["submitted", "submitted", "submitted", "submitted", "pending"];
-
-  // Templates based on real data from the spreadsheets
-  const templates: ShipmentTemplate[] = [
-    // AO Smith Ashland City — Trash (various containers)
-    { wasteTypeId: "wt-1", siteId: "site-1", vendorId: "vnd-1", unit: "Ton", qty: 3.56, weightPerUnit: 2000, targetLoadWeight: 2500, containerType: "30CY Roll Off", serviceFrequency: "On Call", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "Dock 10", receivingFacilityIdx: 0, transporterName: "Waste Connections", mpsHaul: 450.98, mpsDisposalEach: 108.58, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 275, custDisposalEach: 90, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 0 },
-    { wasteTypeId: "wt-1", siteId: "site-1", vendorId: "vnd-1", unit: "Ton", qty: 5.31, weightPerUnit: 2000, targetLoadWeight: 16000, containerType: "42CY Compactor", serviceFrequency: "2x Week", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "Dock 10", receivingFacilityIdx: 0, transporterName: "Waste Connections", mpsHaul: 450.98, mpsDisposalEach: 108.58, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 275, custDisposalEach: 90, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 0 },
-    { wasteTypeId: "wt-1", siteId: "site-1", vendorId: "vnd-1", unit: "Ton", qty: 2.25, weightPerUnit: 2000, targetLoadWeight: 2500, containerType: "30CY Roll Off", serviceFrequency: "On Call", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "Trash Room", receivingFacilityIdx: 0, transporterName: "Waste Connections", mpsHaul: 450.98, mpsDisposalEach: 108.58, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 275, custDisposalEach: 90, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 0 },
-    // Filter Cake
-    { wasteTypeId: "wt-2", siteId: "site-1", vendorId: "vnd-1", unit: "Ton", qty: 8.52, weightPerUnit: 2000, targetLoadWeight: 16000, containerType: "30CY Roll Off", serviceFrequency: "On Call", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "WWT", receivingFacilityIdx: 0, transporterName: "Waste Connections", mpsHaul: 717.46, mpsDisposalEach: 80.71, mpsFuel: 0, mpsEnv: 0, mpsOther: 122.97, custHaul: 400, custDisposalEach: 45, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 75 },
-    { wasteTypeId: "wt-2", siteId: "site-1", vendorId: "vnd-1", unit: "Ton", qty: 6.89, weightPerUnit: 2000, targetLoadWeight: 16000, containerType: "30CY Roll Off", serviceFrequency: "On Call", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "WWT", receivingFacilityIdx: 0, transporterName: "Waste Connections", mpsHaul: 717.46, mpsDisposalEach: 80.71, mpsFuel: 0, mpsEnv: 0, mpsOther: 122.97, custHaul: 400, custDisposalEach: 45, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 75 },
-    // Paint Filter
-    { wasteTypeId: "wt-3", siteId: "site-1", vendorId: "vnd-1", unit: "Ton", qty: 3.28, weightPerUnit: 2000, targetLoadWeight: 2000, containerType: "30CY Roll Off", serviceFrequency: "On Call", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "WWT", receivingFacilityIdx: 0, transporterName: "Waste Connections", mpsHaul: 717.46, mpsDisposalEach: 80.71, mpsFuel: 0, mpsEnv: 0, mpsOther: 122.97, custHaul: 400, custDisposalEach: 45, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 75 },
-    // Cardboard/OCC — generates rebate (negative customer cost)
-    { wasteTypeId: "wt-4", siteId: "site-1", vendorId: "vnd-5", unit: "Ton", qty: 11.46, weightPerUnit: 2000, targetLoadWeight: 16000, containerType: "Trailer", serviceFrequency: "On Call", treatmentMethod: "Recycling", wasteCategory: "Recycling", containerLocation: "Trash Room", receivingFacilityIdx: 1, transporterName: "New Indy", mpsHaul: 0, mpsDisposalEach: 7.50, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 0, custDisposalEach: 0, custFuel: 0, custEnv: 0, custRebate: 1776.30, custOther: 0 },
-    // Hazardous — MEK
-    { wasteTypeId: "wt-5", siteId: "site-1", vendorId: "vnd-2", unit: "DM", qty: 6, weightPerUnit: 420, targetLoadWeight: 420, containerType: "55gal Drum", serviceFrequency: "On Call", treatmentMethod: "Incineration", wasteCategory: "Hazardous Waste", containerLocation: "Drum Pad", receivingFacilityIdx: 2, transporterName: "Safety Kleen", mpsHaul: 30, mpsDisposalEach: 125, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 0, custDisposalEach: 0, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 0, profileNumber: "41587", wasteCodes: "D001, F005", sourceCode: "G06", formCode: "W209", treatmentCode: "H040", ewcNumber: "08 01 11*" },
-    // Hazardous — Paint and Solvent
-    { wasteTypeId: "wt-6", siteId: "site-1", vendorId: "vnd-2", unit: "DM", qty: 8, weightPerUnit: 420, targetLoadWeight: 420, containerType: "55gal Drum", serviceFrequency: "On Call", treatmentMethod: "Incineration", wasteCategory: "Hazardous Waste", containerLocation: "Drum Pad", receivingFacilityIdx: 2, transporterName: "Safety Kleen", mpsHaul: 30, mpsDisposalEach: 125, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 0, custDisposalEach: 0, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 0, profileNumber: "41588", wasteCodes: "D001, F005", sourceCode: "G06", formCode: "W209", treatmentCode: "H040", ewcNumber: "08 01 11*" },
-    // Hazardous — Paint Solids
-    { wasteTypeId: "wt-7", siteId: "site-1", vendorId: "vnd-2", unit: "DM", qty: 4, weightPerUnit: 300, targetLoadWeight: 2000, containerType: "55gal Drum", serviceFrequency: "On Call", treatmentMethod: "Incineration", wasteCategory: "Hazardous Waste", containerLocation: "Drum Pad", receivingFacilityIdx: 2, transporterName: "Safety Kleen", mpsHaul: 30, mpsDisposalEach: 425, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 0, custDisposalEach: 0, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 0, profileNumber: "41589", wasteCodes: "D001, F005", sourceCode: "G06", formCode: "W209", treatmentCode: "H040", ewcNumber: "08 01 11*" },
-    // Ceramic Balls
-    { wasteTypeId: "wt-8", siteId: "site-1", vendorId: "vnd-2", unit: "DM", qty: 3, weightPerUnit: 550, targetLoadWeight: 550, containerType: "55gal Drum", serviceFrequency: "On Call", treatmentMethod: "Recycling", wasteCategory: "Non Haz", containerLocation: "Drum Pad", receivingFacilityIdx: 2, transporterName: "Safety Kleen", mpsHaul: 0, mpsDisposalEach: 1334.03, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 0, custDisposalEach: 0, custFuel: 0, custEnv: 0, custRebate: 0, custOther: 0, profileNumber: "41590" },
-    // GM Plant — Broken Battery
-    { wasteTypeId: "wt-9", siteId: "site-6", vendorId: "vnd-3", unit: "Lb", qty: 1, weightPerUnit: 105, targetLoadWeight: 500, containerType: "Fiberboard or plastic drums, barrels, kegs", serviceFrequency: "On Call", treatmentMethod: "Recycling", wasteCategory: "Hazardous Waste", containerLocation: "Waste Dock", receivingFacilityIdx: 3, transporterName: "Republic Services", mpsHaul: 150, mpsDisposalEach: 85, mpsFuel: 25, mpsEnv: 0, mpsOther: 0, custHaul: 200, custDisposalEach: 100, custFuel: 30, custEnv: 0, custRebate: 0, custOther: 0, managementMethod: "RE", triWasteCode: "M93" },
-    // GM Plant — Washer Fluid
-    { wasteTypeId: "wt-10", siteId: "site-6", vendorId: "vnd-6", unit: "Lb", qty: 1, weightPerUnit: 459, targetLoadWeight: 1000, containerType: "Metal drums, barrels, kegs", serviceFrequency: "On Call", treatmentMethod: "Fuel Blending", wasteCategory: "Hazardous Waste", containerLocation: "Chemical Storage", receivingFacilityIdx: 5, transporterName: "Heritage Environmental", mpsHaul: 200, mpsDisposalEach: 150, mpsFuel: 30, mpsEnv: 15, mpsOther: 0, custHaul: 250, custDisposalEach: 175, custFuel: 35, custEnv: 20, custRebate: 0, custOther: 0, managementMethod: "ER", triWasteCode: "M56" },
-    // GM Plant — General Plant Trash
-    { wasteTypeId: "wt-1", siteId: "site-6", vendorId: "vnd-4", unit: "Lb", qty: 1, weightPerUnit: 70780, targetLoadWeight: 80000, containerType: "Metal boxes, cartons, cases (including roll-offs)", serviceFrequency: "2x Week", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "Trash Compactor", receivingFacilityIdx: 4, transporterName: "Waste Management", mpsHaul: 850, mpsDisposalEach: 45, mpsFuel: 75, mpsEnv: 0, mpsOther: 0, custHaul: 950, custDisposalEach: 55, custFuel: 85, custEnv: 0, custRebate: 0, custOther: 0, managementMethod: "LF", triWasteCode: "M64" },
-    // Stellantis — Trash
-    { wasteTypeId: "wt-1", siteId: "site-8", vendorId: "vnd-3", unit: "Ton", qty: 4.2, weightPerUnit: 2000, targetLoadWeight: 16000, containerType: "42CY Compactor", serviceFrequency: "3x Week", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "Loading Dock B", receivingFacilityIdx: 3, transporterName: "Republic Services", mpsHaul: 525, mpsDisposalEach: 95, mpsFuel: 45, mpsEnv: 0, mpsOther: 0, custHaul: 600, custDisposalEach: 110, custFuel: 50, custEnv: 0, custRebate: 0, custOther: 0 },
-    // Stellantis — Cardboard
-    { wasteTypeId: "wt-4", siteId: "site-8", vendorId: "vnd-9", unit: "Ton", qty: 8.75, weightPerUnit: 2000, targetLoadWeight: 16000, containerType: "Trailer", serviceFrequency: "On Call", treatmentMethod: "Recycling", wasteCategory: "Recycling", containerLocation: "Recycling Bay", receivingFacilityIdx: 3, transporterName: "Pratt Industries", mpsHaul: 0, mpsDisposalEach: 5.00, mpsFuel: 0, mpsEnv: 0, mpsOther: 0, custHaul: 0, custDisposalEach: 0, custFuel: 0, custEnv: 0, custRebate: 1350, custOther: 0 },
-    // Ford — Paint Booth waste
-    { wasteTypeId: "wt-20", siteId: "site-10", vendorId: "vnd-6", unit: "DM", qty: 6, weightPerUnit: 459, targetLoadWeight: 3000, containerType: "Metal drums, barrels, kegs", serviceFrequency: "On Call", treatmentMethod: "Landfill", wasteCategory: "Non Haz", containerLocation: "Paint Shop", receivingFacilityIdx: 5, transporterName: "Heritage Environmental", mpsHaul: 350, mpsDisposalEach: 200, mpsFuel: 40, mpsEnv: 20, mpsOther: 0, custHaul: 425, custDisposalEach: 240, custFuel: 50, custEnv: 25, custRebate: 0, custOther: 0 },
-    // Ford — Pallets
-    { wasteTypeId: "wt-22", siteId: "site-10", vendorId: "vnd-14", unit: "Lb", qty: 1, weightPerUnit: 12000, targetLoadWeight: 15000, containerType: "Dump truck", serviceFrequency: "Once a Month", treatmentMethod: "Recycling", wasteCategory: "Recycling", containerLocation: "Yard", receivingFacilityIdx: 4, transporterName: "Millennium Recycling", mpsHaul: 200, mpsDisposalEach: 0, mpsFuel: 25, mpsEnv: 0, mpsOther: 0, custHaul: 250, custDisposalEach: 0, custFuel: 30, custEnv: 0, custRebate: 450, custOther: 0 },
-  ];
-
-  // Generate ~120 shipments across 8 months (Jul 2024 – Feb 2025)
-  const startDate = new Date(2024, 6, 1); // Jul 1, 2024
-  const endDate = new Date(2025, 1, 28); // Feb 28, 2025
-  const dayRange = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-
-  for (let i = 0; i < 120; i++) {
-    const tmpl = templates[i % templates.length];
-    const site = siteMap.get(tmpl.siteId)!;
-    const client = clientMap.get(site.clientId)!;
-    const vendor = vendorMap.get(tmpl.vendorId)!;
-    const wasteType = wasteTypeMap.get(tmpl.wasteTypeId)!;
-    const creator = USERS[i % 4];
-
-    // Spread dates across the range with some randomness
-    const daysOffset = Math.floor((i / 120) * dayRange) + (i % 7);
-    const shipDate = new Date(startDate.getTime() + daysOffset * 86400000);
-    const dateStr = shipDate.toISOString().split("T")[0];
-
-    // Vary quantities slightly
-    const qtyVariance = 0.7 + ((i * 17) % 60) / 100; // 0.7 to 1.3
-    const qty = Math.round(tmpl.qty * qtyVariance * 100) / 100;
-    const standardizedLbs = Math.round(qty * tmpl.weightPerUnit * 100) / 100;
-    const standardizedKg = Math.round(standardizedLbs / 2.2 * 100) / 100;
-
-    const rf = RECEIVING_FACILITIES[tmpl.receivingFacilityIdx];
-    const manifestNum = tmpl.wasteCategory === "Hazardous Waste"
-      ? `0${19928103 + i}FLE`
-      : `${410058 + i}`;
-
-    const mpsCost: CostBreakdown = {
-      haulCharge: tmpl.mpsHaul,
-      disposalFeeEach: tmpl.mpsDisposalEach,
-      disposalFeeTotal: Math.round(tmpl.mpsDisposalEach * qty * 100) / 100,
-      fuelFee: tmpl.mpsFuel,
-      environmentalFee: tmpl.mpsEnv,
-      rebate: 0,
-      otherFees: tmpl.mpsOther,
-    };
-
-    const customerCost: CostBreakdown = {
-      haulCharge: tmpl.custHaul,
-      disposalFeeEach: tmpl.custDisposalEach,
-      disposalFeeTotal: Math.round(tmpl.custDisposalEach * qty * 100) / 100,
-      fuelFee: tmpl.custFuel,
-      environmentalFee: tmpl.custEnv,
-      rebate: tmpl.custRebate > 0 ? Math.round(tmpl.custRebate * qtyVariance * 100) / 100 : 0,
-      otherFees: tmpl.custOther,
-    };
-
-    const totalMpsCost = mpsCost.haulCharge + mpsCost.disposalFeeTotal + mpsCost.fuelFee + mpsCost.environmentalFee + mpsCost.otherFees;
-
-    shipments.push({
-      id: `shp-${String(i + 1).padStart(4, "0")}`,
-      clientId: client.id,
-      siteId: site.id,
-      vendorId: vendor.id,
-      wasteTypeId: wasteType.id,
-      shipmentDate: dateStr,
-      weightValue: standardizedLbs,
-      weightUnit: "lbs" as WeightUnit,
-      notes: i % 8 === 0 ? "Scheduled pickup" : i % 12 === 0 ? "Emergency cleanup" : undefined,
-      status: statuses[i % statuses.length],
-      createdBy: creator.id,
-      createdAt: shipDate.toISOString(),
-      updatedAt: shipDate.toISOString(),
-      siteName: site.name,
-      clientName: client.name,
-      vendorName: vendor.name,
-      wasteTypeName: wasteType.name,
-      createdByName: creator.displayName,
-
-      // Extended fields
-      wasteStreamName: wasteType.name,
-      containerLocation: tmpl.containerLocation,
-      manifestNumber: manifestNum,
-      unit: tmpl.unit,
-      qty,
-      weightPerUnit: tmpl.weightPerUnit,
-      standardizedVolumeLbs: standardizedLbs,
-      standardizedVolumeKg: standardizedKg,
-      targetLoadWeight: tmpl.targetLoadWeight,
-      wasteCategory: tmpl.wasteCategory,
-      treatmentMethod: tmpl.treatmentMethod,
-      containerType: tmpl.containerType,
-      serviceFrequency: tmpl.serviceFrequency,
-      profileNumber: tmpl.profileNumber,
-      wasteCodes: tmpl.wasteCodes,
-      sourceCode: tmpl.sourceCode,
-      formCode: tmpl.formCode,
-      treatmentCode: tmpl.treatmentCode,
-      ewcNumber: tmpl.ewcNumber,
-
-      // Receiving facility
-      receivingCompany: rf.company,
-      receivingFacility: rf.facilityName,
-      milesFromFacility: [12.3, 281.5, 26.9, 45.2, 85.7, 120.3, 200.1, 150.6][tmpl.receivingFacilityIdx],
-      receivingAddress: rf.address,
-      receivingCity: rf.city,
-      receivingState: rf.state,
-      receivingZip: rf.zip,
-      receivingEpaId: rf.epaId,
-
-      transporterName: tmpl.transporterName,
-      mpsCost,
-      customerCost,
-
-      // Return manifest date — submitted shipments get a return 5-20 days later
-      returnManifestDate: statuses[i % statuses.length] === "submitted"
-        ? new Date(shipDate.getTime() + ((i % 16) + 5) * 86400000).toISOString().split("T")[0]
-        : undefined,
-
-      // GM-specific
-      plantId: tmpl.managementMethod ? "550781" : undefined,
-      managementMethod: tmpl.managementMethod,
-      triWasteCode: tmpl.triWasteCode,
-      numberOfContainers: Math.max(1, Math.ceil(qty)),
-    });
-  }
-
-  return shipments;
-}
-
-const ALL_SHIPMENTS = generateShipments();
+const ALL_SHIPMENTS: Shipment[] = [...GENERATED_SHIPMENTS];
 
 /* ════════════════════════════════════════════════════════════
    Enterprise Schema — Normalized Transaction Data
@@ -1163,7 +961,7 @@ export function insertShipments(
     const creator = USERS[0];
 
     const shipment: Shipment = {
-      id: `shp-${String(ALL_SHIPMENTS.length + 1).padStart(4, "0")}`,
+      id: `shp-new-${Date.now()}-${i}`,
       ...row,
       weightUnit: row.weightUnit as Shipment["weightUnit"],
       status: "submitted",

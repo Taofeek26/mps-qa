@@ -25,8 +25,8 @@ interface TimelineHeatmapProps {
 
 function getBarColorClass(count: number): string {
   if (count === 0) return "bg-bg-subtle";
-  if (count <= 2) return "bg-warning-200";
-  return "bg-error-300";
+  if (count <= 2) return "bg-warning-400";
+  return "bg-error-400";
 }
 
 function getTooltipText(items?: TimelineHeatmapItem[]): string | undefined {

@@ -67,12 +67,12 @@ export function DonutChart({
 
   return (
     <div className="flex h-full w-full items-center">
-      <div className="h-[115%] aspect-square shrink-0">
+      <div className="h-full max-h-[90%] aspect-square shrink-0">
         {chart}
       </div>
-      <ul className="flex flex-1 flex-col gap-2 min-w-0 pl-6">
+      <ul className="flex flex-1 flex-col gap-2 min-w-0 pl-4">
         {data.map((d, i) => (
-          <li key={d.name} className="flex items-center gap-2.5 text-sm leading-tight text-text-primary">
+          <li key={d.name} className="flex items-center gap-2 text-sm leading-tight text-text-primary">
             <span
               className="inline-block h-3 w-3 shrink-0 rounded-full"
               style={{ backgroundColor: palette[i] }}
