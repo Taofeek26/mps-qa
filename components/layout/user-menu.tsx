@@ -62,10 +62,10 @@ export function UserMenu() {
           </Badge>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push("/profile")}>
           <User className="h-3.5 w-3.5" /> Profile
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push("/settings")}>
           <Settings className="h-3.5 w-3.5" /> Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
