@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { type ColumnDef, type SortingState, type OnChangeFn } from "@tanstack/react-table";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { DataTable, type DataTablePagination } from "@/components/ui/data-table";
@@ -157,7 +157,6 @@ function renderAuditSubRow(entry: AuditLogEntry): React.ReactNode {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <ChevronDown className="h-3.5 w-3.5 text-text-muted" />
         <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
           Change Details
         </span>

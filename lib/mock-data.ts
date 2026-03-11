@@ -713,24 +713,147 @@ function generateAuditLog(): AuditLogEntry[] {
   const entities = ["shipment", "vendor", "site", "waste_type", "client", "user"];
 
   const summaries: Record<string, string[]> = {
-    create: ["Created new {entity}", "Added {entity} record"],
-    update: ["Updated {entity} details", "Modified {entity} fields"],
-    delete: ["Deleted {entity}", "Removed {entity} record"],
-    export: ["Exported shipment data as CSV", "Generated waste trends report"],
-    login: ["Signed in to the platform", "Authenticated via Microsoft SSO"],
+    create: ["Created new {entity}", "Added {entity} record", "Registered new {entity}"],
+    update: ["Updated {entity} details", "Modified {entity} fields", "Changed {entity} configuration"],
+    delete: ["Deleted {entity}", "Removed {entity} record", "Archived {entity}"],
+    export: [
+      "Exported shipment data as CSV",
+      "Generated waste trends report",
+      "Downloaded regulatory compliance PDF",
+      "Exported vendor performance summary",
+    ],
+    login: [
+      "Signed in to the platform",
+      "Authenticated via Microsoft SSO",
+      "Session started from new device",
+      "Re-authenticated after timeout",
+    ],
   };
 
-  for (let i = 0; i < 25; i++) {
+  /* Diverse payloads per action × entity */
+  const updatePayloads: Record<string, Array<{ previousValues: Record<string, unknown>; newValues: Record<string, unknown> }>> = {
+    shipment: [
+      { previousValues: { status: "pending" }, newValues: { status: "submitted" } },
+      { previousValues: { status: "submitted" }, newValues: { status: "in_transit" } },
+      { previousValues: { manifestNumber: "" }, newValues: { manifestNumber: "MAN-2026-04821" } },
+      { previousValues: { weight: 1200, unit: "lbs" }, newValues: { weight: 1450, unit: "lbs" } },
+      { previousValues: { vendorId: "vnd-0003" }, newValues: { vendorId: "vnd-0007" } },
+      { previousValues: { scheduledDate: "2026-02-15" }, newValues: { scheduledDate: "2026-02-22" } },
+      { previousValues: { containerCount: 3 }, newValues: { containerCount: 5 } },
+      { previousValues: { costInternal: 2800 }, newValues: { costInternal: 3150 } },
+    ],
+    vendor: [
+      { previousValues: { vendorStatus: "pending_review" }, newValues: { vendorStatus: "approved" } },
+      { previousValues: { riskLevel: "medium" }, newValues: { riskLevel: "low" } },
+      { previousValues: { insuranceExpiry: "2025-12-31" }, newValues: { insuranceExpiry: "2026-12-31" } },
+      { previousValues: { contactEmail: "old@vendor.com" }, newValues: { contactEmail: "new@vendor.com" } },
+      { previousValues: { dbeFlag: false }, newValues: { dbeFlag: true } },
+    ],
+    site: [
+      { previousValues: { siteManager: "J. Smith" }, newValues: { siteManager: "R. Patel" } },
+      { previousValues: { address: "100 Industrial Blvd" }, newValues: { address: "200 Commerce Dr" } },
+      { previousValues: { active: true }, newValues: { active: false } },
+    ],
+    waste_type: [
+      { previousValues: { hazardousFlag: false }, newValues: { hazardousFlag: true } },
+      { previousValues: { treatmentMethod: "Landfill" }, newValues: { treatmentMethod: "Incineration" } },
+      { previousValues: { epaCode: "" }, newValues: { epaCode: "D001" } },
+      { previousValues: { description: "Used oil" }, newValues: { description: "Used oil (contaminated)" } },
+    ],
+    client: [
+      { previousValues: { primaryContact: "Alice Johnson" }, newValues: { primaryContact: "Mark Davis" } },
+      { previousValues: { billingAddress: "123 Main St" }, newValues: { billingAddress: "456 Corporate Pkwy" } },
+      { previousValues: { contractEndDate: "2026-06-30" }, newValues: { contractEndDate: "2027-06-30" } },
+    ],
+    user: [
+      { previousValues: { role: "viewer" }, newValues: { role: "editor" } },
+      { previousValues: { active: true }, newValues: { active: false } },
+      { previousValues: { email: "jdoe@mpsgrp.com" }, newValues: { email: "john.doe@mpsgrp.com" } },
+    ],
+  };
+
+  const createPayloads: Record<string, Array<Record<string, unknown>>> = {
+    shipment: [
+      { status: "pending", wasteType: "Used Oil", weight: 2400, unit: "lbs", client: "AO Smith" },
+      { status: "pending", wasteType: "Spent Solvent", containerCount: 4, client: "Stellantis" },
+    ],
+    vendor: [
+      { name: "EcoWaste Solutions", vendorStatus: "pending_review", riskLevel: "medium" },
+      { name: "GreenHaul Transport", vendorStatus: "approved", riskLevel: "low" },
+    ],
+    site: [
+      { name: "Detroit Assembly Plant", state: "MI", client: "GM" },
+      { name: "Toledo Engine North", state: "OH", client: "Stellantis" },
+    ],
+    waste_type: [
+      { name: "PCB Ballasts", hazardousFlag: true, epaCode: "D001" },
+      { name: "Cardboard (OCC)", hazardousFlag: false, category: "recyclable" },
+    ],
+    client: [
+      { name: "Rivian Automotive", industry: "EV Manufacturing", state: "IL" },
+    ],
+    user: [
+      { displayName: "Sarah Chen", role: "editor", email: "schen@mpsgrp.com" },
+    ],
+  };
+
+  const deletePayloads: Record<string, Array<Record<string, unknown>>> = {
+    shipment: [
+      { reason: "Duplicate entry", shipmentId: "SHP-2026-0412" },
+      { reason: "Client cancelled pickup", shipmentId: "SHP-2026-0388" },
+    ],
+    vendor: [
+      { reason: "Contract terminated", vendorName: "WastePro Inc" },
+    ],
+    site: [
+      { reason: "Facility decommissioned", siteName: "Flint Assembly South" },
+    ],
+    waste_type: [
+      { reason: "Merged with existing type", mergedInto: "General Industrial Waste" },
+    ],
+    client: [
+      { reason: "Account closed", clientName: "Legacy Motors" },
+    ],
+    user: [
+      { reason: "Employee departed", email: "former@mpsgrp.com" },
+    ],
+  };
+
+  const exportPayloads = [
+    { format: "CSV", recordCount: 342, dateRange: "2026-01-01 to 2026-02-28" },
+    { format: "PDF", reportType: "Waste Trends", pages: 12 },
+    { format: "CSV", recordCount: 87, reportType: "Light Load Analysis" },
+    { format: "PDF", reportType: "GMR2 Regulatory", state: "MI" },
+    { format: "XLSX", recordCount: 1204, reportType: "Cost Analysis" },
+  ];
+
+  for (let i = 0; i < 40; i++) {
     const user = USERS[i % USERS.length];
     const action = actions[i % actions.length];
     const entity = action === "login" ? "session" : entities[i % entities.length];
-    const daysAgo = Math.floor(i * 0.8);
+    const daysAgo = Math.floor(i * 0.5);
     const date = new Date();
     date.setDate(date.getDate() - daysAgo);
     date.setHours(8 + (i % 10), (i * 7) % 60);
 
     const summaryTemplates = summaries[action] ?? ["Performed action"];
     const summary = summaryTemplates[i % summaryTemplates.length].replace("{entity}", entity);
+
+    let payload: Record<string, unknown> | undefined;
+    if (action === "login") {
+      payload = undefined;
+    } else if (action === "update") {
+      const pool = updatePayloads[entity] ?? updatePayloads.shipment;
+      payload = pool[i % pool.length];
+    } else if (action === "create") {
+      const pool = createPayloads[entity] ?? createPayloads.shipment;
+      payload = { newValues: pool[i % pool.length] };
+    } else if (action === "delete") {
+      const pool = deletePayloads[entity] ?? deletePayloads.shipment;
+      payload = pool[i % pool.length];
+    } else if (action === "export") {
+      payload = exportPayloads[i % exportPayloads.length];
+    }
 
     entries.push({
       id: `aud-${String(i + 1).padStart(4, "0")}`,
@@ -740,10 +863,7 @@ function generateAuditLog(): AuditLogEntry[] {
       entityType: entity,
       entityId: action === "login" ? user.id : `${entity.slice(0, 3)}-${String((i % 10) + 1).padStart(4, "0")}`,
       summary,
-      payload:
-        action === "login"
-          ? undefined
-          : { previousValues: { status: "pending" }, newValues: { status: "submitted" } },
+      payload,
     });
   }
 
