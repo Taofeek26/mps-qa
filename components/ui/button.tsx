@@ -59,7 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           "inline-flex items-center justify-center font-semibold transition-all duration-150 cursor-pointer select-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4",
           "focus-ring",
-          "disabled:pointer-events-none disabled:opacity-40",
+          "disabled:opacity-40 disabled:cursor-not-allowed",
           variantStyles[variant],
           sizeStyles[size],
           className
@@ -102,7 +102,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         className={cn(
           "inline-flex items-center justify-center transition-all duration-150 cursor-pointer",
           "focus-ring",
-          "disabled:pointer-events-none disabled:opacity-40",
+          "disabled:opacity-40 disabled:cursor-not-allowed",
           variantStyles[variant],
           iconSizeStyles[size],
           className

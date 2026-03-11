@@ -34,16 +34,16 @@ function DatePicker({
           disabled={disabled}
           className={cn(
             "flex h-9 w-full items-center gap-2 rounded-[var(--radius-sm)] border bg-bg-card px-3 text-sm text-left transition-colors duration-150",
-            "focus-ring",
+            "focus-ring cursor-pointer",
             "disabled:cursor-not-allowed disabled:opacity-40 disabled:bg-gray-100",
             error
               ? "border-error-400"
               : "border-border-default hover:border-border-strong",
-            value ? "text-text-primary" : "text-text-muted"
+            "text-text-primary"
           )}
         >
           <Calendar className="h-4 w-4 text-text-muted shrink-0" />
-          {value ? format(value, "MMM d, yyyy") : placeholder}
+          {value ? format(value, "MMM d, yyyy") : <span className="text-text-muted">{placeholder}</span>}
         </button>
       </RadixPopover.Trigger>
       <AnimatePresence>

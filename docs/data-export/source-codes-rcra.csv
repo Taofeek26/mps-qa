@@ -1,0 +1,40 @@
+id,code,description,category
+src-G01,G01,"Dip, flush or spray rinsing (solvents to clean or prepare parts)",Production/Service
+src-G02,G02,Stripping and acid or caustic cleaning,Production/Service
+src-G03,G03,Plating and phosphating,Production/Service
+src-G04,G04,Etching (caustics or other methods to remove layers),Production/Service
+src-G05,G05,"Metal forming and treatment (pickling, heat treating, punching)",Production/Service
+src-G06,G06,"Painting and coating (manufacturing, building, or maintenance)",Production/Service
+src-G07,G07,Product and by-product processing,Production/Service
+src-G08,G08,Removal of spent process liquids or catalysts,Production/Service
+src-G09,G09,Other production or service-related processes,Production/Service
+src-G11,G11,"Discarding off-specification, out-of-date, unused chemicals",Intermittent
+src-G12,G12,Lagoon or sediment dragout and leachate collection,Intermittent
+src-G13,G13,Cleaning out process equipment,Intermittent
+src-G14,G14,"Removal of tank sludge, sediments or slag",Intermittent
+src-G15,G15,Process equipment change-out or discontinuation,Intermittent
+src-G16,G16,Oil changes and filter or battery replacement,Intermittent
+src-G17,G17,Subpart K laboratory waste clean-out,Intermittent
+src-G19,G19,Other one-time or intermittent processes,Intermittent
+src-G21,G21,"Air pollution control devices (baghouse dust, ash)",Pollution Control
+src-G22,G22,Laboratory analytical wastes,Pollution Control
+src-G23,G23,"Wastewater treatment (sludge, filter cake)",Pollution Control
+src-G24,G24,Solvent or product distillation as part of production,Pollution Control
+src-G25,G25,"Treatment, disposal, or recycling of hazardous wastes",Pollution Control
+src-G26,G26,Leachate collection (from landfill operations),Pollution Control
+src-G27,G27,Treatment or recovery of universal waste,Pollution Control
+src-G31,G31,"Accidental contamination of products, materials or containers",Spills/Releases
+src-G32,G32,"Cleanup of spill residues (infrequent, not routine)",Spills/Releases
+src-G33,G33,"Leak collection and floor sweeping (on-going, routine)",Spills/Releases
+src-G39,G39,Other cleanup of current contamination,Spills/Releases
+src-G41,G41,Closure of hazardous waste management unit under RCRA,Remediation
+src-G42,G42,Corrective action at a solid waste management unit,Remediation
+src-G43,G43,Cleanup under CERCLA (Superfund),Remediation
+src-G44,G44,Cleanup under state or voluntary program,Remediation
+src-G45,G45,Cleanup under other federal authority,Remediation
+src-G49,G49,Other cleanup of past contamination,Remediation
+src-G51,G51,Materials inherently waste-like per 40 CFR 261.2(d),Non-Routine
+src-G61,G61,Discarded commercial chemical products (P or U listed),Non-Routine
+src-G62,G62,Discarded commercial chemical products - acute (P listed),Non-Routine
+src-G76,G76,Other source not covered above,Non-Routine
+src-G77,G77,Unknown source,Non-Routine

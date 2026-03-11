@@ -1,0 +1,16 @@
+id,siteId,locationName,activeFlag
+cloc-1,site-1,Dock 10,true
+cloc-2,site-1,Trash Room,true
+cloc-3,site-1,WWT,true
+cloc-4,site-1,Drum Pad,true
+cloc-5,site-6,Waste Dock,true
+cloc-6,site-6,Chemical Storage,true
+cloc-7,site-6,Trash Compactor,true
+cloc-8,site-8,Loading Dock B,true
+cloc-9,site-8,Recycling Bay,true
+cloc-10,site-10,Paint Shop,true
+cloc-11,site-10,Yard,true
+cloc-12,site-2,Loading Dock,true
+cloc-13,site-3,Warehouse Bay,true
+cloc-14,site-4,Service Area,true
+cloc-15,site-5,Main Dock,true

@@ -18,9 +18,9 @@ interface KpiCardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: KpiCardVariant;
 }
 
-/* Icon box: background #F9FAFB, border #F3F4F6, icon #99A1AF */
+/* Icon box: green-tinted background + green icon */
 const iconBoxStyles =
-  "bg-bg-app border border-border-default text-[var(--color-icon-muted)]";
+  "bg-success-400/20 border border-success-400/30 text-success-600";
 
 const KpiCard = React.forwardRef<HTMLDivElement, KpiCardProps>(
   ({ className, title, value, subtitle, icon: Icon, trend, variant = "default", ...props }, ref) => {

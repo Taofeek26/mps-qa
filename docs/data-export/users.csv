@@ -1,0 +1,11 @@
+id,email,displayName,role,active,assignedSiteIds
+usr-1,jane.cooper@mpsgrp.com,Jane Cooper,system_admin,true,
+usr-2,michael.chen@mpsgrp.com,Michael Chen,admin,true,
+usr-3,sarah.johnson@mpsgrp.com,Sarah Johnson,admin,true,
+usr-4,david.williams@mpsgrp.com,David Williams,site_user,true,"site-1, site-2"
+usr-5,emily.martinez@mpsgrp.com,Emily Martinez,site_user,true,"site-3, site-4"
+usr-6,james.brown@mpsgrp.com,James Brown,site_user,true,"site-5, site-6"
+usr-7,k.hollins@mpsgrp.com,K. Hollins,admin,true,
+usr-8,j.hamill@mpsgrp.com,J. Hamill,site_user,true,"site-7, site-8"
+usr-9,c.king@mpsgrp.com,C. King,admin,true,
+usr-10,j.plancon@mpsgrp.com,J. Plancon,site_user,true,"site-9, site-10"

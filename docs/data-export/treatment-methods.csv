@@ -1,0 +1,10 @@
+id,treatmentMethodName,description,activeFlag
+tm-1,Landfill,Municipal solid waste landfill disposal,true
+tm-2,Recycling,Material recovery and recycling,true
+tm-3,Incineration,Thermal destruction / incineration,true
+tm-4,Fuel Blending,Fuel blending for energy recovery,true
+tm-5,Reuse,Direct reuse of materials,true
+tm-6,WWTP,Wastewater treatment plant processing,true
+tm-7,MSW Landfill,Municipal solid waste landfill,true
+tm-8,HAZ Landfill,Hazardous waste landfill (Subtitle C),true
+tm-9,WTE,Waste-to-energy conversion,true

@@ -9,16 +9,17 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { toast } from "@/components/ui/toast";
+import type { CellError } from "@/components/ui/ag-grid-wrapper";
 import { insertShipments } from "@/lib/mock-data";
 import { useAuth } from "@/lib/auth-context";
 import type { ShipmentEntryRow } from "@/lib/types";
-import type { CellError } from "@/components/ui/ag-grid-wrapper";
 import {
   NewShipmentGrid,
   createEmptyRow,
 } from "./_components/new-shipment-grid";
-import { ValidationSummary } from "./_components/validation-summary";
 import {
   EntryChoice,
   type EntryMode,
@@ -59,14 +60,14 @@ function PageHeader({
         </div>
 
         {viewMode !== "choice" && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onBack}
-            className="flex items-center gap-1.5 shrink-0 text-sm text-text-muted hover:text-primary-600 transition-colors mt-0.5 cursor-pointer"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <ArrowLeft className="h-4 w-4" />
             {BACK_TO_ENTRY_OPTIONS_LABEL}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -87,7 +88,7 @@ function StepTrack({ viewMode }: { viewMode: ViewMode }) {
     viewMode === "choice" ? 0 : viewMode === "upload" ? 1 : 2;
 
   return (
-    <div className="mt-6 flex items-center gap-3 rounded-full border border-border-default bg-bg-subtle/60 p-1.5 w-fit">
+    <div className="mt-6 flex items-center gap-3 rounded-full border border-border-default bg-bg-subtle p-1.5 w-fit">
       {steps.map((step, i) => {
         const isActive = i === activeIndex;
         const isDone = i < activeIndex;
@@ -100,14 +101,14 @@ function StepTrack({ viewMode }: { viewMode: ViewMode }) {
               isActive
                 ? "bg-primary-600 text-white shadow-sm"
                 : isDone
-                ? "bg-primary-100 text-primary-700"
+                ? "bg-success-400/20 text-success-600"
                 : "text-text-muted",
             ].join(" ")}
           >
             <span
               className={[
                 "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                isActive ? "bg-white/20" : isDone ? "bg-primary-200/80" : "bg-bg-card",
+                isActive ? "bg-white/20" : isDone ? "bg-success-400/30" : "bg-bg-card",
               ].join(" ")}
             >
               {isDone ? "✓" : i + 1}
@@ -139,7 +140,7 @@ function ImportedBanner({ count }: { count: number }) {
 /** Keyboard / paste hint strip */
 function EntryHint() {
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border-default/70 bg-bg-subtle/50 px-3 py-2">
+    <div className="flex items-center gap-2 rounded-md border border-border-default/70 bg-bg-subtle px-3 py-2">
       <span className="text-xs text-text-muted">
         <span className="font-medium text-text-default">Tip:</span> Paste from
         Excel to fill multiple cells, or use{" "}
@@ -152,35 +153,116 @@ function EntryHint() {
   );
 }
 
-/** Bottom action bar */
-function ActionBar({
+/** Action buttons (rendered inline at top) */
+
+const FIELD_LABELS: Record<string, string> = {
+  siteId: "Site",
+  vendorId: "Vendor",
+  wasteTypeId: "Waste Type",
+  shipmentDate: "Date",
+  weightValue: "Weight",
+  weightUnit: "Unit",
+  clientId: "Client",
+};
+
+function ActionButtons({
   submitting,
+  hasData,
+  cellErrors,
   onValidate,
   onSubmit,
+  onErrorClick,
 }: {
   submitting: boolean;
+  hasData: boolean;
+  cellErrors: CellError[];
   onValidate: () => void;
   onSubmit: () => void;
+  onErrorClick: (rowIndex: number, field: string) => void;
 }) {
+  const disabledMessage = "Enter shipment data in at least one row first";
+  const errorCount = cellErrors.length;
+  const errorRowCount = new Set(cellErrors.map((e) => e.rowIndex)).size;
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1 border-t border-border-default mt-2">
-      <div className="flex flex-wrap items-center gap-2 flex-1">
-        <Button
-          variant="secondary"
-          onClick={onValidate}
-          className="gap-2"
-        >
-          <ClipboardCheck className="h-4 w-4" />
-          Validate rows
-        </Button>
-        <Button onClick={onSubmit} loading={submitting} className="gap-2">
-          <CheckCircle2 className="h-4 w-4" />
-          Submit Shipments
-        </Button>
-      </div>
-      <p className="text-xs text-text-muted sm:text-right">
-        Only filled rows with no errors will be submitted.
-      </p>
+    <div className="flex items-center gap-2">
+      {/* Validate button — with error popover */}
+      <Popover>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span tabIndex={!hasData ? 0 : undefined}>
+              <PopoverTrigger asChild disabled={errorCount === 0}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={hasData ? onValidate : undefined}
+                  disabled={!hasData}
+                  className="gap-2 relative"
+                >
+                  <ClipboardCheck className="h-4 w-4" />
+                  Validate
+                  {errorCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-error-500 px-1 text-[10px] font-bold text-white">
+                      {errorCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+            </span>
+          </TooltipTrigger>
+          {!hasData && <TooltipContent>{disabledMessage}</TooltipContent>}
+        </Tooltip>
+
+        {errorCount > 0 && (
+          <PopoverContent
+            align="end"
+            className="w-80 sm:w-96 p-0"
+          >
+            {/* Header */}
+            <div className="flex items-center gap-2 border-b border-border-default px-4 py-3">
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-error-500 px-1 text-[10px] font-bold text-white">
+                {errorCount}
+              </span>
+              <p className="text-sm font-semibold text-text-primary">
+                {errorCount} {errorCount === 1 ? "error" : "errors"} in {errorRowCount} {errorRowCount === 1 ? "row" : "rows"}
+              </p>
+            </div>
+
+            {/* Error list */}
+            <div className="max-h-60 overflow-y-auto p-2">
+              {cellErrors.map((error, i) => (
+                <button
+                  key={`${error.rowIndex}-${error.field}-${i}`}
+                  type="button"
+                  onClick={() => onErrorClick(error.rowIndex, error.field)}
+                  className="flex items-center gap-2 w-full text-left text-xs text-text-secondary hover:bg-bg-hover rounded-[var(--radius-sm)] px-2 py-1.5 transition-colors cursor-pointer"
+                >
+                  <span className="font-mono text-text-muted shrink-0 w-10">
+                    R{error.rowIndex + 1}
+                  </span>
+                  <span className="font-medium text-text-primary shrink-0">
+                    {FIELD_LABELS[error.field] ?? error.field}
+                  </span>
+                  <span className="truncate text-text-muted">{error.message}</span>
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        )}
+      </Popover>
+
+      {/* Submit button */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span tabIndex={!hasData ? 0 : undefined}>
+            <Button size="sm" onClick={onSubmit} loading={submitting} disabled={!hasData} className="gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Submit Shipments
+            </Button>
+          </span>
+        </TooltipTrigger>
+        {!hasData && <TooltipContent>{disabledMessage}</TooltipContent>}
+      </Tooltip>
     </div>
   );
 }
@@ -387,6 +469,18 @@ export default function NewShipmentPage() {
 
             <NewShipmentGrid
               rowData={rowData}
+              toolbarRight={
+                <ActionButtons
+                  submitting={submitting}
+                  hasData={rowData.some(
+                    (r) => r.siteId || r.vendorId || r.wasteTypeId || r.shipmentDate || r.weightValue != null
+                  )}
+                  cellErrors={cellErrors}
+                  onValidate={handleValidate}
+                  onSubmit={handleSubmit}
+                  onErrorClick={handleErrorClick}
+                />
+              }
               onRowDataChange={(data) => {
                 setRowData(data);
                 if (importedBanner != null) setImportedBanner(null);
@@ -434,17 +528,6 @@ export default function NewShipmentPage() {
             />
 
             <EntryHint />
-
-            <ValidationSummary
-              errors={cellErrors}
-              onErrorClick={handleErrorClick}
-            />
-
-            <ActionBar
-              submitting={submitting}
-              onValidate={handleValidate}
-              onSubmit={handleSubmit}
-            />
           </div>
         )}
       </div>

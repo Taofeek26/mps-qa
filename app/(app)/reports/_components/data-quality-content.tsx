@@ -6,8 +6,6 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
   Cell,
   XAxis,
   YAxis,
@@ -580,23 +578,11 @@ export function DataQualityContent() {
                 chartClassName="h-[220px] sm:h-[260px] lg:h-[280px]"
               >
                 {profileData.length > 0 ? (
-                  <>
-                    <DonutChart
-                      data={profileData}
-                      valueFormatter={(v) => `${v.toLocaleString()} shipments`}
-                    />
-                    <div className="flex flex-wrap gap-3 mt-2 justify-center">
-                      {profileData.map((d, i) => (
-                        <div key={d.name} className="flex items-center gap-1.5 text-xs text-text-muted">
-                          <span
-                            className="inline-block w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: PROFILE_COLORS[i % PROFILE_COLORS.length] }}
-                          />
-                          {d.name} ({d.value})
-                        </div>
-                      ))}
-                    </div>
-                  </>
+                  <DonutChart
+                    data={profileData}
+                    colors={PROFILE_COLORS}
+                    valueFormatter={(v) => `${v.toLocaleString()} shipments`}
+                  />
                 ) : (
                   <div className="flex items-center justify-center h-full text-sm text-text-muted">
                     No profile data available

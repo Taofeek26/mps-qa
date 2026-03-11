@@ -4,7 +4,19 @@
    ============================================ */
 
 import * as React from "react";
-import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, Font, StyleSheet } from "@react-pdf/renderer";
+
+/* ─── Register Inter font family ─── */
+Font.register({
+  family: "Inter",
+  fonts: [
+    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hiA.woff2", fontWeight: 400 },
+    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fAZ9hiA.woff2", fontWeight: 500 },
+    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hiA.woff2", fontWeight: 600 },
+    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYAZ9hiA.woff2", fontWeight: 700 },
+    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuDyYAZ9hiA.woff2", fontWeight: 800 },
+  ],
+});
 import type { Shipment } from "@/lib/types";
 import type { ReportSection, SectionConfig } from "@/lib/report-builder-types";
 import {
@@ -37,15 +49,16 @@ const s = StyleSheet.create({
     paddingTop: 36,
     paddingBottom: 50,
     paddingHorizontal: 36,
-    fontFamily: "Helvetica",
+    fontFamily: "Inter",
+    fontWeight: 400,
     fontSize: 9,
     color: C.text,
     backgroundColor: C.white,
   },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 8 },
   logo: { width: 28, height: 28, objectFit: "contain" },
-  headerTitle: { fontSize: 16, fontFamily: "Helvetica-Bold", color: C.text },
-  headerSub: { fontSize: 7, color: C.textMuted, marginTop: 2 },
+  headerTitle: { fontSize: 16, fontFamily: "Inter", fontWeight: 700, color: C.text, letterSpacing: -0.3 },
+  headerSub: { fontSize: 7, fontWeight: 400, color: C.textMuted, marginTop: 2 },
   headerRule: { height: 2, backgroundColor: C.primary, borderRadius: 1, marginBottom: 16 },
   footer: {
     position: "absolute",
@@ -54,10 +67,12 @@ const s = StyleSheet.create({
     right: 36,
     flexDirection: "row",
     justifyContent: "space-between",
+    fontFamily: "Inter",
+    fontWeight: 400,
     fontSize: 6.5,
     color: C.textMuted,
     borderTopWidth: 0.5,
-    borderTopColor: C.border,
+    borderTopColor: C.borderStrong,
     paddingTop: 6,
   },
 });

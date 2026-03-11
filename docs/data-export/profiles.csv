@@ -1,0 +1,7 @@
+id,profileNumber,customerId,wasteTypeId,activeFlag
+prof-1,41587,cli-1,wt-5,true
+prof-2,41588,cli-1,wt-6,true
+prof-3,41589,cli-1,wt-7,true
+prof-4,41590,cli-1,wt-8,true
+prof-5,55078-A,cli-2,,true
+prof-6,FORD-ENV-01,cli-4,,true

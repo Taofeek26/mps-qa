@@ -1,0 +1,41 @@
+id,code,description,category
+ewc-08-01-11,08 01 11*,Waste paint and varnish containing organic solvents or other hazardous substances,Paint/Varnish
+ewc-08-01-12,08 01 12,Waste paint and varnish (not 08 01 11),Paint/Varnish
+ewc-08-01-13,08 01 13*,Sludges from paint or varnish containing organic solvents,Paint/Varnish
+ewc-08-01-14,08 01 14,Sludges from paint or varnish (not 08 01 13),Paint/Varnish
+ewc-08-01-17,08 01 17*,Wastes from paint or varnish removal containing organic solvents,Paint/Varnish
+ewc-07-01-01,07 01 01*,Aqueous washing liquids and mother liquors,Organic Chemical
+ewc-07-01-04,07 01 04*,"Other organic solvents, washing liquids and mother liquors",Organic Chemical
+ewc-13-01-10,13 01 10*,Mineral based non-chlorinated hydraulic oils,Oil Wastes
+ewc-13-02-05,13 02 05*,"Mineral-based non-chlorinated engine, gear and lubricating oils",Oil Wastes
+ewc-13-05-01,13 05 01*,Solids from grit chambers and oil/water separators,Oil Wastes
+ewc-13-05-02,13 05 02*,Sludges from oil/water separators,Oil Wastes
+ewc-13-05-03,13 05 03*,Interceptor sludges,Oil Wastes
+ewc-15-01-01,15 01 01,Paper and cardboard packaging,Packaging
+ewc-15-01-02,15 01 02,Plastic packaging,Packaging
+ewc-15-01-03,15 01 03,Wooden packaging,Packaging
+ewc-15-01-04,15 01 04,Metallic packaging,Packaging
+ewc-15-01-10,15 01 10*,Packaging containing residues of hazardous substances,Packaging
+ewc-15-02-02,15 02 02*,"Absorbents, filter materials, wiping cloths (contaminated)",Packaging
+ewc-16-01-03,16 01 03,End-of-life tyres,Vehicle/Equipment
+ewc-16-02-13,16 02 13*,Discarded equipment containing hazardous components,Vehicle/Equipment
+ewc-16-02-14,16 02 14,Discarded equipment (not 16 02 09 to 16 02 13),Vehicle/Equipment
+ewc-16-06-01,16 06 01*,Lead batteries,Batteries
+ewc-16-06-02,16 06 02*,Ni-Cd batteries,Batteries
+ewc-17-01-01,17 01 01,Concrete,C&D Waste
+ewc-17-01-07,17 01 07,"Mixtures of concrete, bricks, tiles and ceramics",C&D Waste
+ewc-17-02-01,17 02 01,Wood,C&D Waste
+ewc-17-04-05,17 04 05,Iron and steel,C&D Waste
+ewc-17-09-04,17 09 04,Mixed construction and demolition wastes,C&D Waste
+ewc-19-08-05,19 08 05,Sludges from treatment of urban waste water,WWT
+ewc-19-08-12,19 08 12,Sludges from biological treatment of industrial waste water,WWT
+ewc-20-01-01,20 01 01,Paper and cardboard,Municipal
+ewc-20-01-21,20 01 21*,Fluorescent tubes and other mercury-containing waste,Municipal
+ewc-20-01-33,20 01 33*,"Batteries (16 06 01*, 16 06 02*, 16 06 03*)",Municipal
+ewc-20-01-35,20 01 35*,Discarded electrical and electronic equipment (hazardous),Municipal
+ewc-20-01-36,20 01 36,Discarded electrical and electronic equipment (non-hazardous),Municipal
+ewc-20-01-39,20 01 39,Plastics,Municipal
+ewc-20-01-40,20 01 40,Metals,Municipal
+ewc-20-02-01,20 02 01,Biodegradable waste,Municipal
+ewc-20-03-01,20 03 01,Mixed municipal waste,Municipal
+ewc-20-03-07,20 03 07,Bulky waste,Municipal

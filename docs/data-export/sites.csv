@@ -1,0 +1,11 @@
+id,clientId,name,address,city,state,zipCode,region,active
+site-1,cli-1,Ashland City,500 Tennessee Waltz Parkway,Ashland City,TN,37015,Southeast,true
+site-2,cli-1,Charlotte,4302 Raleigh Street,Charlotte,NC,28213,Southeast,true
+site-3,cli-1,El Paso,"1270 Don Haskins Dr. Suite A",El Paso,TX,79936,Southwest,true
+site-4,cli-1,Johnson City,1100 E Fairview Ave,Johnson City,TN,37601,Southeast,true
+site-5,cli-1,McBee,25589 Highway 1,McBee,SC,29101,Southeast,true
+site-6,cli-2,MPS Plant 550781,1000 Industrial Blvd,Flint,MI,48503,Midwest,true
+site-7,cli-2,Lansing Assembly,401 N Verlinden Ave,Lansing,MI,48915,Midwest,true
+site-8,cli-3,Sterling Heights,38111 Van Dyke Ave,Sterling Heights,MI,48312,Midwest,true
+site-9,cli-3,Toledo Assembly,4400 Chrysler Dr,Toledo,OH,43608,Midwest,true
+site-10,cli-4,Dearborn Plant,3001 Miller Rd,Dearborn,MI,48120,Midwest,true

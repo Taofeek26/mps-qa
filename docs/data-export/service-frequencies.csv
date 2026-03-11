@@ -1,0 +1,10 @@
+id,frequencyName,sortOrder,activeFlag
+sf-1,On Call,1,true
+sf-2,1x Week,2,true
+sf-3,2x Week,3,true
+sf-4,3x Week,4,true
+sf-5,4x Week,5,true
+sf-6,5x Week,6,true
+sf-7,Once a Month,7,true
+sf-8,Every 4 Weeks,8,true
+sf-9,Other,9,true

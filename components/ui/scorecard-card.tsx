@@ -38,9 +38,9 @@ interface ScorecardCardProps extends React.HTMLAttributes<HTMLDivElement> {
   status?: ScorecardStatus;
 }
 
-/* Aligned with KpiCard: neutral icon box and muted icon color */
+/* Aligned with KpiCard: green-tinted icon box */
 const iconBoxStyles =
-  "bg-bg-app border border-border-default text-[var(--color-icon-muted)]";
+  "bg-success-400/20 border border-success-400/30 text-success-600";
 
 const statusBarStyles: Record<ScorecardStatus, string> = {
   "on-track": "bg-success-600",

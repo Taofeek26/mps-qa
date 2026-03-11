@@ -188,11 +188,11 @@ code, pre, .font-mono {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gray-300);
+  background: #059669;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gray-400);
+  background: #047857;
 }
 
 /* ============================================
@@ -396,8 +396,9 @@ code, pre, .font-mono {
   --ag-range-selection-border-color: var(--color-border-focus);
   --ag-range-selection-background-color: var(--color-primary-50);
   --ag-input-focus-border-color: var(--color-border-focus);
-  --ag-checkbox-checked-color: var(--color-button-400);
+  --ag-checkbox-checked-color: var(--color-success-500);
   --ag-checkbox-unchecked-color: var(--color-border-strong);
+  --ag-active-color: var(--color-success-500);
   --ag-cell-horizontal-padding: 12px;
   --ag-row-height: 40px;
   --ag-header-height: 40px;
@@ -415,6 +416,17 @@ code, pre, .font-mono {
   color: var(--color-text-muted);
 }
 
+.ag-theme-mps .ag-checkbox-input-wrapper.ag-checked {
+  color: var(--color-success-500) !important;
+}
+.ag-theme-mps .ag-checkbox-input-wrapper.ag-checked::after {
+  color: var(--color-success-500) !important;
+}
+.ag-theme-mps .ag-checkbox-input-wrapper input[type="checkbox"],
+.ag-theme-mps input[type="checkbox"] {
+  accent-color: var(--color-success-500) !important;
+}
+
 .ag-theme-mps .ag-cell-focus {
   border-color: var(--color-border-focus) !important;
 }
@@ -422,6 +434,20 @@ code, pre, .font-mono {
 .ag-theme-mps .ag-cell.cell-error {
   border: 1.5px solid var(--color-error-500) !important;
   background-color: var(--color-error-100);
+}
+
+/* Shipment entry grid: cursor pointer + cell-level hover instead of row hover */
+.ag-theme-mps.ag-entry-grid .ag-cell {
+  cursor: pointer;
+}
+.ag-theme-mps.ag-entry-grid .ag-column-hover {
+  background-color: transparent !important;
+}
+.ag-theme-mps.ag-entry-grid .ag-row-hover {
+  --ag-row-hover-color: transparent;
+}
+.ag-theme-mps.ag-entry-grid .ag-cell:hover {
+  background-color: var(--color-bg-hover);
 }
 
 /* Reset AG Grid popup editor chrome so custom editors control their own appearance */

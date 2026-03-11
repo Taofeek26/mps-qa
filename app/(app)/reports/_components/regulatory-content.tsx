@@ -16,7 +16,7 @@ import {
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScorecardCard } from "@/components/ui/scorecard-card";
+import { KpiCard } from "@/components/ui/kpi-card";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -332,24 +332,24 @@ export function RegulatoryContent() {
     <ReportContentLayout
       kpiCards={
         <>
-          <ScorecardCard
+          <KpiCard
             title="Total Manifests"
             value={totalManifests.toLocaleString()}
             icon={FileText}
           />
-          <ScorecardCard
+          <KpiCard
             title="Manifest Rate"
             value={`${manifestRate.toFixed(1)}%`}
             icon={CheckCircle2}
             variant={manifestRate < 90 ? "warning" : "success"}
           />
-          <ScorecardCard
+          <KpiCard
             title="Pending"
             value={pendingCount.toLocaleString()}
             icon={Clock}
             variant={pendingCount > 0 ? "warning" : "default"}
           />
-          <ScorecardCard
+          <KpiCard
             title="RCRA Regulated"
             value={rcraCount.toLocaleString()}
             icon={AlertTriangle}
@@ -490,18 +490,18 @@ export function RegulatoryContent() {
         {/* GEM Report (Ford) */}
         <PillTabsContent value="gem" className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <ScorecardCard
+            <KpiCard
               title="GEM Records"
               value={shipments.length.toLocaleString()}
               icon={FileText}
             />
-            <ScorecardCard
+            <KpiCard
               title="Total Revenue"
               value={fmt(gemTotalRevenue)}
               icon={DollarSign}
               variant="success"
             />
-            <ScorecardCard
+            <KpiCard
               title="Total MPS Cost"
               value={fmt(gemTotalMpsCost)}
               icon={Receipt}
@@ -531,18 +531,18 @@ export function RegulatoryContent() {
         {/* GMR2 Report (GM) */}
         <PillTabsContent value="gmr2" className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <ScorecardCard
+            <KpiCard
               title="GMR2 Records"
               value={shipments.length.toLocaleString()}
               icon={FileText}
             />
-            <ScorecardCard
+            <KpiCard
               title="Non-Haz Count"
               value={nonHazCount.toLocaleString()}
               icon={Package}
               variant="success"
             />
-            <ScorecardCard
+            <KpiCard
               title="Hazardous Count"
               value={hazCount.toLocaleString()}
               icon={AlertTriangle}

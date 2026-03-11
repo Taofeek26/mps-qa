@@ -17,61 +17,66 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 
-/* ─── Brand Colors ─── */
+/* ─── Brand Colors (matches .theme-brand in globals.css) ─── */
 export const C = {
-  primary: "#1863DC",
-  primaryLight: "#EBF2FC",
-  teal: "#00B38C",
-  tealLight: "#E6F7F3",
-  text: "#333333",
-  textMuted: "#757575",
-  border: "#E0E0E0",
-  bg: "#F5F5F5",
+  primary: "#0D796C",
+  primaryLight: "#F0FDFA",
+  teal: "#00BD9D",
+  tealLight: "#99F6E4",
+  text: "#0F172A",
+  textMuted: "#64748B",
+  border: "#F3F4F6",
+  borderStrong: "#E5E7EB",
+  bg: "#F3F4F6",
+  bgApp: "#F9FAFB",
   white: "#FFFFFF",
-  success: "#3F8B65",
-  warning: "#C48124",
-  error: "#B04141",
+  success: "#059669",
+  successLight: "#D1FAE5",
+  warning: "#D97706",
+  warningLight: "#FEF3C7",
+  error: "#DC2626",
+  errorLight: "#FEE2E2",
 };
 
 export const CHART_PALETTE = [
-  "#1863DC", "#00B38C", "#C48124", "#B04141",
-  "#0E3B84", "#008F70", "#E1A341", "#3F8B65",
+  "#00BD9D", "#0D796C", "#D97706", "#DC2626",
+  "#065F54", "#009B85", "#FBBF24", "#059669",
 ];
 
 /* ─── Shared Styles ─── */
 export const ps = StyleSheet.create({
   section: { marginBottom: 14 },
-  sectionTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 6, color: C.text },
+  sectionTitle: { fontSize: 11, fontFamily: "Inter", fontWeight: 700, marginBottom: 6, color: C.text },
   /* KPI */
   kpiRow: { flexDirection: "row", gap: 8 },
   kpiCard: {
     flex: 1,
     padding: 10,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: C.borderStrong,
     borderRadius: 6,
     backgroundColor: C.white,
   },
-  kpiLabel: { fontSize: 6.5, fontFamily: "Helvetica-Bold", textTransform: "uppercase", letterSpacing: 0.5, color: C.textMuted, marginBottom: 3 },
-  kpiValue: { fontSize: 18, fontFamily: "Helvetica-Bold", color: C.text },
-  kpiSub: { fontSize: 7, color: C.textMuted, marginTop: 2 },
+  kpiLabel: { fontSize: 6.5, fontFamily: "Inter", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: C.textMuted, marginBottom: 3 },
+  kpiValue: { fontSize: 18, fontFamily: "Inter", fontWeight: 800, color: C.text, marginBottom: 2, letterSpacing: -0.3 },
+  kpiSub: { fontSize: 7, fontFamily: "Inter", fontWeight: 400, color: C.textMuted, marginTop: 2 },
   /* Chart container */
   chartBox: {
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: C.borderStrong,
     borderRadius: 6,
     padding: 12,
     backgroundColor: C.white,
     marginBottom: 10,
   },
-  chartTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: C.text, marginBottom: 2 },
-  chartSub: { fontSize: 7, color: C.textMuted, marginBottom: 8 },
+  chartTitle: { fontSize: 10, fontFamily: "Inter", fontWeight: 700, color: C.text, marginBottom: 2 },
+  chartSub: { fontSize: 7, fontFamily: "Inter", fontWeight: 400, color: C.textMuted, marginBottom: 8 },
   /* Table */
   tableHeader: {
     flexDirection: "row",
     backgroundColor: C.bg,
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    borderBottomColor: C.borderStrong,
     paddingVertical: 4,
     paddingHorizontal: 6,
   },
@@ -82,23 +87,23 @@ export const ps = StyleSheet.create({
     paddingVertical: 3,
     paddingHorizontal: 6,
   },
-  th: { fontSize: 7, fontFamily: "Helvetica-Bold", color: C.textMuted },
-  td: { fontSize: 7.5, color: C.text },
+  th: { fontSize: 6.5, fontFamily: "Inter", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.3, color: C.textMuted },
+  td: { fontSize: 7.5, fontFamily: "Inter", fontWeight: 400, color: C.text },
   /* Legend */
   legendRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 8 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 4 },
   legendDot: { width: 7, height: 7, borderRadius: 2 },
-  legendLabel: { fontSize: 7, color: C.textMuted },
+  legendLabel: { fontSize: 7, fontFamily: "Inter", fontWeight: 500, color: C.textMuted },
   /* Notes */
   notesBox: {
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: C.borderStrong,
     borderRadius: 6,
     padding: 12,
     backgroundColor: C.white,
     minHeight: 40,
   },
-  notesText: { fontSize: 8.5, color: C.text, lineHeight: 1.5 },
+  notesText: { fontSize: 8.5, fontFamily: "Inter", fontWeight: 400, color: C.text, lineHeight: 1.5 },
 });
 
 /* ─── Helpers ─── */
@@ -292,20 +297,20 @@ export function PdfDonutChart({ data, title, subtitle }: { data: { name: string;
     <View style={ps.chartBox}>
       <Text style={ps.chartTitle}>{title}</Text>
       {subtitle && <Text style={ps.chartSub}>{subtitle}</Text>}
-      <View style={{ flexDirection: "row", gap: 20 }}>
-        <Svg width={180} height={180} viewBox="0 0 180 180">
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Svg width={200} height={200} viewBox="0 0 180 180">
           {arcs.map((arc, i) => <Path key={i} d={arc.path} fill={arc.color} />)}
           <Circle cx={cx} cy={cy} r={inner - 1} fill={C.white} />
           <Text x={cx} y={cy + 4} style={{ fontSize: 12, fontFamily: "Helvetica-Bold", color: C.text }} textAnchor="middle">
             {fmtNum(total)}
           </Text>
         </Svg>
-        <View style={{ flex: 1, justifyContent: "center", gap: 4 }}>
+        <View style={{ flex: 1, justifyContent: "center", gap: 6, paddingLeft: 16 }}>
           {arcs.map((arc, i) => (
-            <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: arc.color }} />
-              <Text style={{ fontSize: 7, color: C.text, flex: 1 }}>{arc.name}</Text>
-              <Text style={{ fontSize: 7, color: C.textMuted }}>{(arc.pct * 100).toFixed(1)}%</Text>
+            <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: arc.color }} />
+              <Text style={{ fontSize: 9, fontFamily: "Inter", fontWeight: 500, color: C.text }}>{arc.name}</Text>
+              <Text style={{ fontSize: 8, fontFamily: "Inter", fontWeight: 400, color: C.textMuted }}>{(arc.pct * 100).toFixed(1)}%</Text>
             </View>
           ))}
         </View>

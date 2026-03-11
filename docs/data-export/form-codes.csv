@@ -1,0 +1,40 @@
+id,code,description,category
+form-W001,W001,Lab packs (not containing acute hazardous waste),Mixed Media/Debris
+form-W002,W002,"Contaminated debris (paper, clothing, rags, wood)",Mixed Media/Debris
+form-W004,W004,Lab packs containing acute hazardous waste,Mixed Media/Debris
+form-W005,W005,Waste pharmaceuticals managed as hazardous waste,Mixed Media/Debris
+form-W006,W006,Airbag waste (modules or inflators),Mixed Media/Debris
+form-W301,W301,Contaminated soil (usually from spill cleanup),Mixed Media/Debris
+form-W309,W309,"Batteries, battery parts, cores, casings",Mixed Media/Debris
+form-W310,W310,"Filters, solid adsorbents, ion exchange resins, spent carbon",Mixed Media/Debris
+form-W320,W320,"Electrical devices (lamps, thermostats, CRTs)",Mixed Media/Debris
+form-W512,W512,"Sediment or lagoon dragout, drilling or other muds",Mixed Media/Debris
+form-W801,W801,Compressed gases,Mixed Media/Debris
+form-W101,W101,Very dilute aqueous waste (>99% water),Inorganic Liquids
+form-W103,W103,Spent concentrated acid (5% or more),Inorganic Liquids
+form-W105,W105,Acidic aqueous wastes less than 5% acid,Inorganic Liquids
+form-W107,W107,Aqueous waste containing cyanides,Inorganic Liquids
+form-W110,W110,Caustic aqueous waste without cyanides (pH >12.5),Inorganic Liquids
+form-W113,W113,Other aqueous waste or wastewaters,Inorganic Liquids
+form-W117,W117,Waste liquid mercury (metallic),Inorganic Liquids
+form-W119,W119,Other inorganic liquid,Inorganic Liquids
+form-W200,W200,Still bottoms in liquid form,Organic Liquids
+form-W202,W202,Concentrated halogenated solvent,Organic Liquids
+form-W203,W203,Concentrated non-halogenated solvent,Organic Liquids
+form-W204,W204,Concentrated mixed solvent,Organic Liquids
+form-W205,W205,Oil-water emulsion or mixture,Organic Liquids
+form-W206,W206,Waste oil managed as hazardous waste,Organic Liquids
+form-W209,W209,"Paint, ink, lacquer, or varnish (fluid)",Organic Liquids
+form-W210,W210,Reactive or polymerizable organic liquids,Organic Liquids
+form-W211,W211,Paint thinner or petroleum distillates,Organic Liquids
+form-W219,W219,Other organic liquid,Organic Liquids
+form-W303,W303,Organic sludge,Sludges
+form-W304,W304,Inorganic sludge,Sludges
+form-W307,W307,Mixed organic/inorganic sludge,Sludges
+form-W312,W312,"Ash, residue, slag",Sludges
+form-W316,W316,Other sludge,Sludges
+form-W319,W319,Other inorganic solid,Sludges
+form-W401,W401,Calcium sulfate (gypsum),Solids
+form-W403,W403,"Metal scale, filings, or scrap",Solids
+form-W405,W405,Organic solids,Solids
+form-W406,W406,Inorganic solids,Solids

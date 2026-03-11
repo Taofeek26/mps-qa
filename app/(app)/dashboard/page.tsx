@@ -15,6 +15,7 @@ import {
   Receipt,
   Scale,
   ArrowLeftRight,
+  Maximize2,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -35,7 +36,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SectionHeader } from "@/components/ui/section-header";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectTrigger,
@@ -47,7 +48,6 @@ import {
   DateRangePicker,
   type DateRangePreset,
 } from "@/components/ui/date-range-picker";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ChartContainer,
   DonutChart,
@@ -161,6 +161,37 @@ const recentShipmentColumns: ColumnDef<Shipment, unknown>[] = [
   },
 ];
 
+/* ─── Regional Chart (reused in card + dialog) ─── */
+
+function RegionalChart({ data }: { data: { state: string; revenue: number; cost: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+        <XAxis dataKey="state" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+        <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+        <Tooltip
+          {...TOOLTIP_STYLE}
+          formatter={(value, name) => {
+            const label = name === "revenue" ? "Revenue" : "Cost";
+            return [`$${Number(value).toLocaleString()}`, label];
+          }}
+        />
+        <Legend
+          wrapperStyle={{ fontSize: 11 }}
+          formatter={(value) => {
+            if (value === "revenue") return "Revenue";
+            if (value === "cost") return "Cost";
+            return value;
+          }}
+        />
+        <Bar dataKey="revenue" fill={CATEGORY_COLORS[1]} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="cost" fill={CATEGORY_COLORS[3]} radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 /* ─── Activity Feed Item ─── */
 
 function ActivityItem({ entry }: { entry: AuditLogEntry }) {
@@ -175,7 +206,7 @@ function ActivityItem({ entry }: { entry: AuditLogEntry }) {
 
   return (
     <div className="flex items-start gap-3 py-2.5">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-500">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success-400/20 text-xs font-bold text-success-600">
         {initials}
       </div>
       <div className="min-w-0 flex-1">
@@ -261,6 +292,7 @@ export default function DashboardPage() {
 
   const [selectedClientId, setSelectedClientId] = React.useState<string>("");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+  const [regionalOpen, setRegionalOpen] = React.useState(false);
 
   const siteFilter = React.useMemo(() => {
     const f: { siteIds?: string[]; clientIds?: string[] } = {};
@@ -480,21 +512,9 @@ export default function DashboardPage() {
 
   const hasData = allShipments.length > 0;
 
-  const displayName = user?.displayName?.trim() || "there";
-
   return (
     <div className="space-y-6">
-      {/* ─── Welcome ─── */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">
-          Welcome, {displayName}!
-        </h1>
-        <p className="mt-1 text-base text-text-secondary">
-          Your MPS dashboard is ready. Track shipments, monitor costs, and manage waste analytics in one place.
-        </p>
-      </div>
-
-      {/* ─── Filters (no redundant "Dashboard" title) ─── */}
+      {/* ─── Filters ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-3 pb-4">
         <DateRangePicker
           from={dateRange?.from}
@@ -526,20 +546,9 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ─── Tabs ─── */}
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* Tab: Overview                                               */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        <TabsContent value="overview">
-          <div className="space-y-6">
+      <div className="space-y-6">
             {/* ─── KPI Cards — 3×3 grid (3 columns, 2 rows of 6 cards) ─── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               <KpiCard
                 title="Total Shipments"
                 value={totalShipments.toLocaleString()}
@@ -588,7 +597,7 @@ export default function DashboardPage() {
                 {expiringVendors.length > 0 && (
                   <Link
                     href="/admin/vendors"
-                    className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-warning-300 bg-warning-50 px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-warning-100"
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-warning-400/30 bg-warning-100 px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-warning-400/20"
                   >
                     <AlertTriangle className="h-3.5 w-3.5 text-warning-600" />
                     {expiringVendors.length} vendor{expiringVendors.length > 1 ? "s" : ""} expiring within 90 days
@@ -598,7 +607,7 @@ export default function DashboardPage() {
                 {voidedShipments.length > 0 && (
                   <Link
                     href="/shipments"
-                    className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-error-200 bg-error-50 px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-error-100"
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-error-400/30 bg-error-100 px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-error-400/20"
                   >
                     <BarChart3 className="h-3.5 w-3.5 text-error-600" />
                     {voidedShipments.length} voided shipment{voidedShipments.length > 1 ? "s" : ""} — review for corrections
@@ -608,9 +617,9 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* ─── Charts: Revenue vs Cost Trend + Waste Category Revenue Donut ─── */}
+            {/* ─── Charts ─── */}
             {hasData ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <ChartContainer
                   title="Revenue vs Cost Trend"
                   subtitle="Monthly revenue and cost with margin visibility"
@@ -673,16 +682,6 @@ export default function DashboardPage() {
                   </ResponsiveContainer>
                 </ChartContainer>
 
-                <ChartContainer
-                  title="Waste Category Revenue Split"
-                  subtitle="Revenue distribution by waste category"
-                  chartClassName="h-[220px] sm:h-[260px] lg:h-[300px]"
-                >
-                  <DonutChart
-                    data={revenueByCategoryData}
-                    valueFormatter={(v) => `$${v.toLocaleString()}`}
-                  />
-                </ChartContainer>
               </div>
             ) : (
               <Card variant="subtle" className="py-0">
@@ -698,86 +697,23 @@ export default function DashboardPage() {
               </Card>
             )}
 
-            {/* ─── Recent Shipments + Recent Activity (same row height; activity scrolls inside) ─── */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-stretch">
-              <section className="lg:col-span-2 flex flex-col min-h-0">
-                <div className="flex items-center justify-between mb-3 shrink-0">
-                  <h2 className="text-base font-semibold tracking-tight text-text-primary">
-                    Recent Shipments
-                  </h2>
-                  <Link
-                    href="/shipments"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 hover:text-primary-500 transition-colors"
-                  >
-                    View All <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-                {recentShipments.data.length > 0 ? (
-                  <div className="flex-1 min-h-0 flex flex-col">
-                    <DataTable
-                      columns={recentShipmentColumns}
-                      data={recentShipments.data}
-                    />
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-border-default bg-bg-card">
-                    <EmptyState
-                      icon={<Truck className="h-8 w-8" />}
-                      title="No recent shipments"
-                      description="Shipments will appear here once they are entered."
-                      className="py-10"
-                    />
-                  </div>
-                )}
-              </section>
-
-              <section className="flex flex-col min-h-0 lg:min-h-[320px]">
-                <div className="flex items-center justify-between mb-3 shrink-0">
-                  <h2 className="text-base font-semibold tracking-tight text-text-primary">
-                    Recent Activity
-                  </h2>
-                  {canViewAuditLog && (
-                    <Link
-                      href="/admin/audit-log"
-                      className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 hover:text-primary-500 transition-colors"
-                    >
-                      View All <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  )}
-                </div>
-                {recentActivity.data.length > 0 ? (
-                  <div className="flex-1 min-h-0 flex flex-col rounded-lg border border-border-default bg-bg-card overflow-hidden">
-                    <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-border-default px-4 py-2">
-                      {recentActivity.data.map((entry) => (
-                        <ActivityItem key={entry.id} entry={entry} />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 min-h-0 rounded-lg border border-border-default bg-bg-card flex items-center justify-center">
-                    <EmptyState
-                      icon={<TrendingUp className="h-8 w-8" />}
-                      title="No recent activity"
-                      description="Activity will appear here as actions are taken."
-                      className="py-10"
-                    />
-                  </div>
-                )}
-              </section>
-            </div>
           </div>
-        </TabsContent>
 
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* Tab: Analytics                                              */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        <TabsContent value="analytics">
-          {hasData ? (
-            <div className="space-y-6">
-              <SectionHeader title="Analytics" className="mb-4" />
+          {hasData && (
+            <>
+              {/* ─── Analytics row: 3-column ─── */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <ChartContainer
+                  title="Waste Category Revenue Split"
+                  subtitle="Revenue distribution by waste category"
+                  chartClassName="h-[260px] sm:h-[300px] lg:h-[320px]"
+                >
+                  <DonutChart
+                    data={revenueByCategoryData}
+                    valueFormatter={(v) => `$${v.toLocaleString()}`}
+                  />
+                </ChartContainer>
 
-              {/* Charts Row 1: Cost Per Ton by Waste Type + Regional Performance */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ChartContainer
                   title="Cost Per Ton by Waste Type"
                   subtitle="Top 8 waste types ranked by MPS cost per ton"
@@ -821,52 +757,29 @@ export default function DashboardPage() {
                   title="Regional Performance"
                   subtitle="Revenue vs cost by state"
                   chartClassName="h-[260px] sm:h-[300px] lg:h-[320px]"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={regionalData}
-                      margin={{ top: 5, right: 10, bottom: 5, left: 10 }}
+                  action={
+                    <button
+                      onClick={() => setRegionalOpen(true)}
+                      className="flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] text-text-muted hover:bg-bg-surface hover:text-text-primary transition-colors cursor-pointer focus-ring"
+                      aria-label="Expand chart"
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="var(--color-border-default)"
-                      />
-                      <XAxis
-                        dataKey="state"
-                        tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                      />
-                      <YAxis
-                        tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
-                        tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-                      />
-                      <Tooltip
-                        {...TOOLTIP_STYLE}
-                        formatter={(value, name) => {
-                          const label = name === "revenue" ? "Revenue" : "Cost";
-                          return [`$${Number(value).toLocaleString()}`, label];
-                        }}
-                      />
-                      <Legend
-                        wrapperStyle={{ fontSize: 11 }}
-                        formatter={(value) => {
-                          if (value === "revenue") return "Revenue";
-                          if (value === "cost") return "Cost";
-                          return value;
-                        }}
-                      />
-                      <Bar
-                        dataKey="revenue"
-                        fill={CATEGORY_COLORS[1]}
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="cost"
-                        fill={CATEGORY_COLORS[3]}
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                      <Maximize2 className="h-3.5 w-3.5" />
+                    </button>
+                  }
+                >
+                  <RegionalChart data={regionalData} />
                 </ChartContainer>
+
+                <Dialog open={regionalOpen} onOpenChange={setRegionalOpen}>
+                  <DialogContent className="max-w-4xl">
+                    <DialogHeader>
+                      <DialogTitle>Regional Performance</DialogTitle>
+                    </DialogHeader>
+                    <div className="h-[500px]">
+                      <RegionalChart data={regionalData} />
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               {/* Charts Row 2: Pareto + Vendor Expirations */}
@@ -899,22 +812,76 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </div>
-            </div>
-          ) : (
-            <Card variant="subtle" className="py-0">
-              <EmptyState
-                icon={<Package className="h-10 w-10" />}
-                title="No shipments found"
-                description={
-                  dateRange?.from
-                    ? "No shipments match the selected date range and filters. Try adjusting your criteria."
-                    : "No shipment data available for the current filters."
-                }
-              />
-            </Card>
+            </>
           )}
-        </TabsContent>
-      </Tabs>
+
+          {/* ─── Recent Shipments + Recent Activity ─── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-stretch">
+            <section className="lg:col-span-2 flex flex-col min-h-0">
+              <div className="flex items-center justify-between mb-3 shrink-0">
+                <h2 className="text-base font-semibold tracking-tight text-text-primary">
+                  Recent Shipments
+                </h2>
+                <Link
+                  href="/shipments"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 hover:text-primary-500 transition-colors"
+                >
+                  View All <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              {recentShipments.data.length > 0 ? (
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <DataTable
+                    columns={recentShipmentColumns}
+                    data={recentShipments.data}
+                  />
+                </div>
+              ) : (
+                <div className="rounded-lg border border-border-default bg-bg-card">
+                  <EmptyState
+                    icon={<Truck className="h-8 w-8" />}
+                    title="No recent shipments"
+                    description="Shipments will appear here once they are entered."
+                    className="py-10"
+                  />
+                </div>
+              )}
+            </section>
+
+            <section className="flex flex-col min-h-0 lg:min-h-[320px]">
+              <div className="flex items-center justify-between mb-3 shrink-0">
+                <h2 className="text-base font-semibold tracking-tight text-text-primary">
+                  Recent Activity
+                </h2>
+                {canViewAuditLog && (
+                  <Link
+                    href="/admin/audit-log"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary-400 hover:text-primary-500 transition-colors"
+                  >
+                    View All <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                )}
+              </div>
+              {recentActivity.data.length > 0 ? (
+                <div className="flex-1 min-h-0 flex flex-col rounded-lg border border-border-default bg-bg-card overflow-hidden">
+                  <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-border-default px-4 py-2">
+                    {recentActivity.data.map((entry) => (
+                      <ActivityItem key={entry.id} entry={entry} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 min-h-0 rounded-lg border border-border-default bg-bg-card flex items-center justify-center">
+                  <EmptyState
+                    icon={<TrendingUp className="h-8 w-8" />}
+                    title="No recent activity"
+                    description="Activity will appear here as actions are taken."
+                    className="py-10"
+                  />
+                </div>
+              )}
+            </section>
+          </div>
     </div>
   );
 }
