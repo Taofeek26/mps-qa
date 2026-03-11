@@ -39,7 +39,7 @@ export function EntryChoice({ onChoose, className }: EntryChoiceProps) {
             "transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
           )}
         >
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-600 shadow-inner group-hover:bg-primary-200/80 transition-colors">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-success-400/20 border border-success-400/30 text-success-600 group-hover:bg-success-400/30 transition-colors">
             <FileUp className="h-7 w-7" strokeWidth={2} />
           </span>
           <div className="w-full text-left">
@@ -59,7 +59,7 @@ export function EntryChoice({ onChoose, className }: EntryChoiceProps) {
             "transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
           )}
         >
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-600 shadow-inner group-hover:bg-primary-200/80 transition-colors">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-success-400/20 border border-success-400/30 text-success-600 group-hover:bg-success-400/30 transition-colors">
             <PenLine className="h-7 w-7" strokeWidth={2} />
           </span>
           <div className="w-full text-left">

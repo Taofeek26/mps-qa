@@ -125,12 +125,12 @@ function DateRangePicker({
             error
               ? "border-error-400"
               : "border-border-default hover:border-border-strong",
-            from ? "text-text-primary" : "text-text-muted",
+            "text-text-primary",
             className
           )}
         >
           <Calendar className="h-4 w-4 text-text-muted shrink-0" />
-          <span className="flex-1 truncate">{formatRange()}</span>
+          <span className={cn("flex-1 truncate", !from && "text-text-muted")}>{formatRange()}</span>
           <ChevronDown className={cn("h-4 w-4 shrink-0 text-text-muted transition-transform duration-200", open && "rotate-180")} />
         </button>
       </RadixPopover.Trigger>

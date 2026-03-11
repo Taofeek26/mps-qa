@@ -75,7 +75,7 @@ export function Notifications() {
                     idx < unreadCount && "bg-primary-50/50"
                   )}
                 >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-500">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success-400/20 text-[10px] font-bold text-success-600">
                     {initials}
                   </div>
                   <div className="min-w-0 flex-1">

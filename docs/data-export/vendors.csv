@@ -1,0 +1,17 @@
+id,name,vendorType,city,state,active,vendorCode,completionStatus,riskLevel,commodities,supplierForm,dateEntered,dateReviewed,expirationDate,reviewedBy,vendorStatus
+vnd-1,Waste Connections,Disposal,Pegram,TN,true,WAST00,Complete,Level 1 - High,"Disposal, Transport",Certificate of Insurance,2024-07-01,2024-07-01,2025-06-30,K. Hollins,Active
+vnd-2,Safety Kleen,Disposal,Nashville,TN,true,SAFE00,Complete,Level 1 - High,"Disposal, Processing",Supplier Pre-Qualification,2020-01-15,2020-01-15,2025-01-15,C. King,Active
+vnd-3,Republic Services,Disposal,Phoenix,AZ,true,GROE00,Complete,Level 1 - High,Disposal,Certificate of Insurance,2024-07-01,2024-07-01,2025-06-30,K. Hollins,Active
+vnd-4,Waste Management,Disposal,Houston,TX,true,WAST103,Complete,Level 1 - High,Disposal,Certificate of Insurance,2023-12-19,2023-12-19,2025-01-01,K. Hollins,Active
+vnd-5,Domtar / New Indy,Recycler,Kingsport,TN,true,DOMT00,Complete,Level 2 - Medium,"Disposal, Processing",Supplier Pre-Qualification,2020-06-01,2020-06-01,2025-06-01,C. King,Active
+vnd-6,Heritage Environmental,Disposal,East Liverpool,OH,true,HERI05,Complete,Level 1 - High,"Disposal, Transport",Certificate of Insurance,2024-11-26,2024-11-26,2025-01-31,K. Hollins,Active
+vnd-7,Veolia,Disposal,Atlanta,GA,true,VEOL00,Complete,Level 1 - High,"Disposal, Processing",Supplier Pre-Qualification,2019-12-06,2019-12-06,2024-12-06,C. King,Active
+vnd-8,Reworld Solutions,Disposal,Voorhees,NJ,true,COVA00,Complete,Level 1 - High,"Disposal, Consultants/Professional",Supplier Pre-Qualification,2019-12-06,2019-12-06,2024-12-06,C. King,Active
+vnd-9,Pratt Industries,Recycler,Conyers,GA,true,PRAT00,Complete,Level 2 - Medium,Disposal,Supplier Commitment Policy,2023-08-14,2023-08-14,2028-08-14,J. Plancon,Active
+vnd-10,Bavarian Waste Services,Processor,Munich,MI,true,BAVA00,Complete,Level 2 - Medium,Disposal,Supplier Pre-Qualification,2019-12-06,2019-12-06,2024-12-06,C. King,Active
+vnd-11,Boyas Excavating,Disposal,Cleveland,OH,true,BOYA00,Complete,Level 1 - High,"Disposal, Processing",Certificate of Insurance,2024-07-12,2024-07-12,2025-07-08,K. Hollins,Active
+vnd-12,Direct Shred LLC,Processor,Nashville,TN,true,DIRE00,Complete,Level 1 - High,"Disposal, Transport",Certificate of Insurance,2024-11-05,2024-11-05,2025-07-01,K. Hollins,Active
+vnd-13,Metalworking Lubricants Co.,Processor,Toledo,OH,true,META00,Incomplete,Level 1 - High,Disposal,Supplier Pre-Qualification,2020-03-12,2020-03-12,2025-03-12,C. King,Temporary
+vnd-14,Millennium Recycling,Recycler,Sioux Falls,SD,true,MILL08,Complete,Level 1 - High,"Disposal, Transport",Supplier Commitment Policy,2023-10-11,2023-10-11,2028-10-11,K. Hollins,Active
+vnd-15,GIP Paving Inc.,Disposal,Troy,MI,true,GIPP00,Complete,Level 1 - High,"Disposal, Transport",Supplier Commitment Policy,2024-06-05,2024-06-05,2029-06-05,K. Hollins,Active
+vnd-16,Lonewolf Petroleum Co.,Processor,Oklahoma City,OK,true,LONE00,Complete,Level 1 - High,"Disposal, Transport",Certificate of Insurance,2024-10-11,2024-10-11,2025-02-08,K. Hollins,Active

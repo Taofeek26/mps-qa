@@ -46,7 +46,7 @@ export function SectionWrapper({
             type="button"
             onClick={onMoveUp}
             disabled={isFirst}
-            className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-card border border-border-default text-text-muted hover:text-text-primary hover:border-primary-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-subtle border border-border-strong text-text-muted hover:text-text-primary hover:border-primary-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-sm"
             title="Move up"
           >
             <ChevronUp className="h-3.5 w-3.5" />
@@ -55,7 +55,7 @@ export function SectionWrapper({
             type="button"
             onClick={onMoveDown}
             disabled={isLast}
-            className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-card border border-border-default text-text-muted hover:text-text-primary hover:border-primary-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-subtle border border-border-strong text-text-muted hover:text-text-primary hover:border-primary-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-sm"
             title="Move down"
           >
             <ChevronDown className="h-3.5 w-3.5" />
@@ -70,7 +70,7 @@ export function SectionWrapper({
           <button
             type="button"
             onClick={onRemove}
-            className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-card border border-border-default text-text-muted hover:text-error-500 hover:border-error-300 transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-subtle border border-border-strong text-text-muted hover:text-error-500 hover:border-error-300 transition-colors cursor-pointer shadow-sm"
             title="Remove section"
           >
             <X className="h-3.5 w-3.5" />

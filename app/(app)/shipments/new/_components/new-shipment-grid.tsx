@@ -27,6 +27,8 @@ interface NewShipmentGridProps {
   /** If set, only these sites are shown in the Site dropdown (for site_user role) */
   allowedSiteIds?: string[];
   className?: string;
+  /** Content rendered at the far right of the toolbar */
+  toolbarRight?: React.ReactNode;
 }
 
 export function NewShipmentGrid({
@@ -36,6 +38,7 @@ export function NewShipmentGrid({
   cellErrors,
   allowedSiteIds,
   className,
+  toolbarRight,
 }: NewShipmentGridProps) {
   const sites = React.useMemo(() => {
     const all = getSites();
@@ -196,15 +199,15 @@ export function NewShipmentGrid({
     return (
       <div
         className={cn(
-          "flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-border-default bg-bg-subtle/40",
+          "flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-border-default bg-bg-subtle",
           "min-h-0 p-8 text-center",
           className
         )}
       >
         {/* Illustration */}
         <div className="relative mb-6">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary-100/80">
-            <FileSpreadsheet className="h-10 w-10 text-primary-500" strokeWidth={1.5} />
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-success-400/20 border border-success-400/30">
+            <FileSpreadsheet className="h-10 w-10 text-success-600" strokeWidth={1.5} />
           </div>
           <div className="absolute -right-2 -bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-bg-card border border-border-default shadow-sm">
             <ClipboardPaste className="h-4 w-4 text-text-muted" />
@@ -244,6 +247,8 @@ export function NewShipmentGrid({
       defaultRow={createEmptyRow()}
       height="100%"
       className={cn("flex-1 min-h-0", className)}
+      gridClassName="ag-entry-grid"
+      toolbarRight={toolbarRight}
       showAddNRows
       showDuplicate
       showFillDown

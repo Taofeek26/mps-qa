@@ -1,0 +1,28 @@
+id,code,description,category
+tc-H010,H010,"Metals recovery (retorting, smelting, chemical)",Recovery
+tc-H011,H011,"Mercury recovery (retorting, bulb/lamp crushing)",Recovery
+tc-H015,H015,Deployment/deactivation of airbag waste + metals recovery,Recovery
+tc-H020,H020,Solvents recovery,Recovery
+tc-H039,H039,Other recovery/reclamation for reuse,Recovery
+tc-H050,H050,Energy recovery at this site; used as fuel,Recovery
+tc-H061,H061,Fuel blending prior to energy recovery at another site,Recovery
+tc-H040,H040,Incineration; thermal destruction other than fuel,Destruction/Treatment
+tc-H041,H041,Open burning/open detonation (Subpart X),Destruction/Treatment
+tc-H042,H042,Thermal desorption (organic contaminants from soil/sludge),Destruction/Treatment
+tc-H070,H070,Chemical treatment (reduction/destruction/oxidation),Destruction/Treatment
+tc-H081,H081,Biological treatment,Destruction/Treatment
+tc-H090,H090,Polymerization (LDR standard),Destruction/Treatment
+tc-H100,H100,Physical treatment only (adsorption/separation/stripping),Destruction/Treatment
+tc-H110,H110,Stabilization prior to land disposal,Destruction/Treatment
+tc-H113,H113,Stabilization to remove hazardous characteristics,Destruction/Treatment
+tc-H120,H120,"Combination of chemical, biological, physical treatment",Destruction/Treatment
+tc-H121,H121,Neutralization only,Destruction/Treatment
+tc-H122,H122,Evaporation,Destruction/Treatment
+tc-H129,H129,Other treatment (not including on-site disposal),Destruction/Treatment
+tc-H130,H130,Surface impoundment closed as landfill,Disposal
+tc-H131,H131,Land treatment or application,Disposal
+tc-H132,H132,Landfill (with prior treatment/stabilization),Disposal
+tc-H134,H134,Deepwell or underground injection,Disposal
+tc-H136,H136,Discharge to sewer/POTW,Disposal
+tc-H137,H137,Discharge to NPDES permit,Disposal
+tc-H141,H141,Transfer to another TSD for treatment/disposal,Transfer

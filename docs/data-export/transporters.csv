@@ -1,0 +1,9 @@
+id,transporterName,vendorId,activeFlag
+trn-1,Waste Connections,vnd-1,true
+trn-2,Safety Kleen,vnd-2,true
+trn-3,Republic Services,vnd-3,true
+trn-4,Waste Management,vnd-4,true
+trn-5,New Indy,vnd-5,true
+trn-6,Heritage Environmental,vnd-6,true
+trn-7,Pratt Industries,vnd-9,true
+trn-8,Millennium Recycling,vnd-14,true

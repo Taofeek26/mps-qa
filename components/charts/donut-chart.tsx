@@ -6,7 +6,6 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
-  Legend,
 } from "recharts";
 import { CATEGORY_COLORS, TOOLTIP_STYLE } from "@/components/charts";
 
@@ -36,7 +35,7 @@ export function DonutChart({
 }: DonutChartProps) {
   const palette = colors ?? data.map((d, i) => d.color ?? CATEGORY_COLORS[i % CATEGORY_COLORS.length]);
 
-  return (
+  const chart = (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
         <Pie
@@ -58,15 +57,30 @@ export function DonutChart({
           {...TOOLTIP_STYLE}
           formatter={(value) => [valueFormatter(value as number), ""]}
         />
-        {showLegend && (
-          <Legend
-            verticalAlign="bottom"
-            iconType="circle"
-            iconSize={8}
-            wrapperStyle={{ fontSize: 11 }}
-          />
-        )}
       </PieChart>
     </ResponsiveContainer>
+  );
+
+  if (!showLegend) {
+    return chart;
+  }
+
+  return (
+    <div className="flex h-full w-full items-center">
+      <div className="h-[115%] aspect-square shrink-0">
+        {chart}
+      </div>
+      <ul className="flex flex-1 flex-col gap-2 min-w-0 pl-6">
+        {data.map((d, i) => (
+          <li key={d.name} className="flex items-center gap-2.5 text-sm leading-tight text-text-primary">
+            <span
+              className="inline-block h-3 w-3 shrink-0 rounded-full"
+              style={{ backgroundColor: palette[i] }}
+            />
+            <span className="truncate">{d.name}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

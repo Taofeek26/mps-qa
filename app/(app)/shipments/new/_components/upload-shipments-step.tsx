@@ -4,6 +4,7 @@ import * as React from "react";
 import { read, utils } from "xlsx";
 import { FileUp, FileSpreadsheet, ArrowLeft, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { ShipmentEntryRow } from "@/lib/types";
 import { createEmptyRow } from "./new-shipment-grid";
 
@@ -178,14 +179,15 @@ export function UploadShipmentsStep({
           </p>
         )}
 
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onBack}
-          className="mt-8 inline-flex items-center gap-2 text-sm text-text-muted hover:text-primary-600 transition-colors cursor-pointer"
+          className="mt-8 w-fit"
         >
           <ArrowLeft className="h-4 w-4" />
           {BACK_TO_ENTRY_OPTIONS_LABEL}
-        </button>
+        </Button>
       </div>
     </div>
   );

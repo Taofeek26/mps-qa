@@ -1,0 +1,16 @@
+id,code,description
+tri-M20,M20,Other recycling
+tri-M26,M26,Reuse as an ingredient or feedstock
+tri-M50,M50,Incineration/thermal treatment
+tri-M54,M54,Incineration/insignificant fuel value
+tri-M56,M56,Fuel blending/energy recovery
+tri-M64,M64,Other landfills
+tri-M65,M65,RCRA Subtitle C landfills
+tri-M66,M66,Other land disposal
+tri-M73,M73,Land treatment
+tri-M79,M79,Other off-site management
+tri-M90,M90,Other off-site transfers
+tri-M93,M93,Transfer to recycler
+tri-M94,M94,Transfer to waste broker
+tri-M95,M95,Transfer to municipal solid waste facility
+tri-M99,M99,Other off-site transfer

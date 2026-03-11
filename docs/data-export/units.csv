@@ -1,0 +1,10 @@
+id,unitCode,unitName,unitFamily,conversionToLbFactor,conversionToKgFactor,activeFlag
+unit-1,Ton,Ton,weight,2000,907.185,true
+unit-2,DM,Drum,container,,,true
+unit-3,Lb,Pound,weight,1,0.4536,true
+unit-4,Load,Load,container,,,true
+unit-5,Each,Each,count,,,true
+unit-6,Gal,Gallon,volume,,,true
+unit-7,Tote,Tote,container,,,true
+unit-8,CYB,Cubic Yard Bin,volume,,,true
+unit-9,Pail,Pail,container,,,true

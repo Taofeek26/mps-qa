@@ -12,7 +12,7 @@ import {
   type ITooltipParams,
   createTheme,
 } from "ag-grid-community";
-import { ChevronDown, Copy, Plus, Trash2, Upload } from "lucide-react";
+import { ArrowDownToLine, ChevronDown, Copy, Plus, Trash2, Upload } from "lucide-react";
 import { read, utils } from "xlsx";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,10 @@ interface AGGridWrapperProps<TData> {
   showFillDown?: boolean;
   height?: number | string;
   className?: string;
+  /** Extra classes applied to the ag-theme-mps grid container */
+  gridClassName?: string;
+  /** Content rendered at the far right of the toolbar */
+  toolbarRight?: React.ReactNode;
 }
 
 /* ─── Component ─── */
@@ -73,6 +77,8 @@ function AGGridWrapper<TData extends Record<string, unknown>>({
   showFillDown = false,
   height = 500,
   className,
+  gridClassName,
+  toolbarRight,
 }: AGGridWrapperProps<TData>) {
   const gridRef = React.useRef<AgGridReact<TData>>(null);
   const [api, setApi] = React.useState<GridApi<TData> | null>(null);
@@ -328,6 +334,7 @@ function AGGridWrapper<TData extends Record<string, unknown>>({
     <div className={cn("space-y-3", className)}>
       {showToolbar && (
         <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 flex-1">
           <Button variant="secondary" size="sm" onClick={handleAddRow}>
             <Plus className="h-4 w-4" />
             Add Row
@@ -348,18 +355,19 @@ function AGGridWrapper<TData extends Record<string, unknown>>({
             </DropdownMenu>
           )}
           {showDuplicate && (
-            <Button variant="ghost" size="sm" onClick={handleDuplicateRows}>
+            <Button variant="secondary" size="sm" onClick={handleDuplicateRows}>
               <Copy className="h-4 w-4" />
               Duplicate selected
             </Button>
           )}
           {showFillDown && (
-            <Button variant="ghost" size="sm" onClick={handleFillDown}>
+            <Button variant="secondary" size="sm" onClick={handleFillDown}>
+              <ArrowDownToLine className="h-4 w-4" />
               Fill down
             </Button>
           )}
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
             onClick={handleRemoveSelected}
           >
@@ -386,12 +394,14 @@ function AGGridWrapper<TData extends Record<string, unknown>>({
               />
             </>
           )}
+          </div>
+          {toolbarRight}
         </div>
       )}
       <AgGridProvider modules={modules}>
         <div
           ref={gridContainerRef}
-          className="ag-theme-mps"
+          className={cn("ag-theme-mps", gridClassName)}
           style={{ height, width: "100%" }}
         >
           <AgGridReact<TData>

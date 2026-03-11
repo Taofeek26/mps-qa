@@ -2,13 +2,6 @@
 
 import * as React from "react";
 import { useAutoPageSize } from "@/lib/use-auto-page-size";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-} from "recharts";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   ShieldAlert,
@@ -33,7 +26,7 @@ import {
   PillTabsContent,
 } from "@/components/ui/pill-tabs";
 
-import { ChartContainer, CATEGORY_COLORS, TOOLTIP_STYLE } from "@/components/charts";
+import { ChartContainer, CATEGORY_COLORS, DonutChart } from "@/components/charts";
 import { getVendors } from "@/lib/mock-data";
 import { totalMpsCost, downloadCsv } from "@/lib/report-utils";
 import { cn } from "@/lib/utils";
@@ -422,34 +415,11 @@ export function VendorIntelContent() {
                 title="DBE / Diversity Spend"
                 subtitle="Cost allocation by DBE status"
               >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={dbeSpendData.data}
-                      cx="50%"
-                      cy="45%"
-                      innerRadius={55}
-                      outerRadius={95}
-                      paddingAngle={3}
-                      dataKey="value"
-                      label={({ name, percent }) =>
-                        `${name} ${((percent ?? 0) * 100).toFixed(1)}%`
-                      }
-                      labelLine={{ stroke: "var(--color-text-muted)" }}
-                      style={{ fontSize: 11 }}
-                    >
-                      <Cell fill={CATEGORY_COLORS[1]} />
-                      <Cell fill={CATEGORY_COLORS[6]} />
-                    </Pie>
-                    <Tooltip
-                      {...TOOLTIP_STYLE}
-                      formatter={(value) => [
-                        `$${Number(value).toLocaleString()}`,
-                        "",
-                      ]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <DonutChart
+                  data={dbeSpendData.data}
+                  colors={[CATEGORY_COLORS[1], CATEGORY_COLORS[6]]}
+                  valueFormatter={(v) => `$${v.toLocaleString()}`}
+                />
               </ChartContainer>
             </div>
           </PillTabsContent>

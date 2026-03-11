@@ -39,7 +39,7 @@ export function KpiConfigPopover({ sectionType, config, onConfigChange }: KpiCon
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-card border border-border-default text-text-muted hover:text-text-primary hover:border-primary-300 transition-colors"
+          className="flex items-center justify-center w-7 h-7 rounded-md bg-bg-subtle border border-border-strong text-text-muted hover:text-text-primary hover:border-primary-300 transition-colors cursor-pointer shadow-sm"
           title="Configure KPIs"
         >
           <Settings2 className="h-3.5 w-3.5" />

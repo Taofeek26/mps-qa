@@ -34,7 +34,7 @@ export function SectionGallery({ onAdd, onRemove, isSectionAdded }: SectionGalle
                     type="button"
                     onClick={() => (added ? onRemove(widget.type) : onAdd(widget.type))}
                     className={cn(
-                      "w-full flex items-start gap-2.5 rounded-[var(--radius-sm)] px-3 py-2.5 text-left transition-colors",
+                      "w-full flex items-start gap-2.5 rounded-[var(--radius-sm)] px-3 py-2.5 text-left transition-colors cursor-pointer",
                       added
                         ? "bg-button-50 border border-button-200"
                         : "bg-bg-card border border-border-default hover:border-border-strong hover:bg-bg-subtle"

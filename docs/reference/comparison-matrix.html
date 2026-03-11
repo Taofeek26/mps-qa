@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPS Waste Management Platform - Capability Comparison Matrix</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #000000;
+            --bg-container: #121212;
+            --bg-card-dark: #191919;
+            --bg-table-header: #191919;
+            --border: #333333;
+            --text-primary: #FFFFFF;
+            --text-secondary: #F8F8F8;
+            --text-muted: #9C9C9C;
+            --cat-bg: #FFFFFF;
+            --cat-text: #000000;
+            --accent: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000000;
+            padding: 32px;
+            max-width: 1920px;
+            margin: 0 auto;
+            color: var(--text-primary);
+        }
+
+        .table-container {
+            background: var(--bg-container);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .matrix-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .matrix-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .capability-matrix {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+        }
+
+        .capability-matrix thead th {
+            background: var(--bg-table-header);
+            padding: 14px 10px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+            vertical-align: bottom;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .capability-matrix thead th:first-child {
+            text-align: left;
+            padding-left: 20px;
+            min-width: 220px;
+        }
+
+        .capability-matrix thead th.platform-header {
+            padding-top: 64px;
+            min-width: 90px;
+        }
+
+        .platform-header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .platform-header-content img.platform-logo {
+            max-width: 72px;
+            max-height: 28px;
+            object-fit: contain;
+            margin-bottom: 4px;
+            filter: brightness(0) invert(1);
+        }
+
+        .capability-matrix th.mps-col .platform-header-content img.platform-logo {
+            filter: brightness(0) invert(1);
+        }
+
+        .platform-header-content .platform-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .platform-header-content .platform-type {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* MPS highlighted column */
+        .capability-matrix th.mps-col,
+        .capability-matrix td.mps-col {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .capability-matrix th.mps-col {
+            background: #212121;
+            border-left: 2px solid var(--accent);
+            border-right: 2px solid var(--accent);
+            border-top: 2px solid var(--accent);
+            z-index: 11;
+        }
+
+        .capability-matrix th.mps-col::before {
+            content: 'RECOMMENDED';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: #000000;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 4px 10px;
+            letter-spacing: 1px;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+
+        .capability-matrix td.mps-col {
+            border-left: 2px solid var(--accent);
+            border-right: 2px solid var(--accent);
+        }
+
+        /* Category rows */
+        .capability-matrix tbody tr.category-row td {
+            background: var(--cat-bg);
+            color: var(--cat-text);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 12px 20px;
+        }
+
+        .capability-matrix tbody tr.category-row td.mps-col {
+            background: var(--cat-bg);
+            border-color: var(--accent);
+        }
+
+        /* Data rows */
+        .capability-matrix tbody td {
+            padding: 12px 10px;
+            text-align: center;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            color: var(--text-secondary);
+        }
+
+        .capability-matrix tbody td:first-child {
+            text-align: left;
+            padding-left: 20px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* Capability indicators */
+        .cap-full {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: #FFFFFF;
+            color: #000000;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 3px;
+        }
+
+        .cap-partial {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: #333333;
+            color: #FFFFFF;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 3px;
+        }
+
+        .cap-none {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: #232323;
+            color: #9C9C9C;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 3px;
+        }
+
+        .cap-exclusive {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: #FFFFFF;
+            color: #000000;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 3px;
+        }
+
+        /* Exclusive row highlight */
+        .capability-matrix tbody tr.exclusive-row td {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .capability-matrix tbody tr.exclusive-row td:first-child {
+            position: relative;
+        }
+
+        .capability-matrix tbody tr.exclusive-row td:first-child::before {
+            content: '\2605';
+            color: #FFFFFF;
+            margin-right: 6px;
+        }
+
+        /* Last row bottom border for MPS col */
+        .capability-matrix tbody tr:last-child td.mps-col {
+            border-bottom: 2px solid var(--accent);
+        }
+
+        /* Legend */
+        .matrix-legend {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .legend-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .legend-items {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-item span:last-child {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="table-container">
+        <div class="matrix-title">Waste Management Platform - Capability Comparison Matrix</div>
+        <div class="matrix-subtitle">MPS custom-built platform versus 8 competing solutions across 37 capability criteria</div>
+
+        <table class="capability-matrix">
+            <thead>
+                <tr>
+                    <th>Capability</th>
+                    <th class="platform-header mps-col">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://www.mpsgrp.com/wp-content/uploads/2024/02/mps-group-logo.png" alt="MPS">
+                            <span class="platform-name">MPS</span>
+                            <span class="platform-type">Custom Platform</span>
+                        </div>
+                    </th>
+                    <th class="platform-header">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://wastelinq.com/hs-fs/hubfs/WL-Logo-Tagline-Color-RGB-v1-1.png?width=200" alt="WasteLinq">
+                            <span class="platform-name">WasteLinq</span>
+                            <span class="platform-type">Hazardous Waste</span>
+                        </div>
+                    </th>
+                    <th class="platform-header">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://www.amcsgroup.com/static/assets/img/amcs-logo.svg" alt="AMCS">
+                            <span class="platform-name">AMCS</span>
+                            <span class="platform-type">Enterprise ERP</span>
+                        </div>
+                    </th>
+                    <th class="platform-header">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://www.rubicon.com/wp-content/uploads/2021/05/logo-brand.svg" alt="Rubicon">
+                            <span class="platform-name">Rubicon</span>
+                            <span class="platform-type">Marketplace</span>
+                        </div>
+                    </th>
+                    <th class="platform-header">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://cdn.prod.website-files.com/64a711ad4800f51470aab34c/6818791bdb96a62c0e8301a1_64a71d5a9edfe3959ede8398_logo-dark.svg.svg" alt="CurbWaste">
+                            <span class="platform-name">CurbWaste</span>
+                            <span class="platform-type">Hauler Ops</span>
+                        </div>
+                    </th>
+                    <th class="platform-header">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://servicecore.com/wp-content/uploads/2023/12/ServiceCore-Logo-Header.webp" alt="ServiceCore">
+                            <span class="platform-name">ServiceCore</span>
+                            <span class="platform-type">Field Service</span>
+                        </div>
+                    </th>
+                    <th class="platform-header">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://routeware.com/wp-content/uploads/2025/03/asset_logo-for-dark-bg.svg" alt="Routeware">
+                            <span class="platform-name">Routeware</span>
+                            <span class="platform-type">Collection Tech</span>
+                        </div>
+                    </th>
+                    <th class="platform-header">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://wastelogics.com/src/assets/img/logo-mob.svg" alt="Waste Logics">
+                            <span class="platform-name">Waste Logics</span>
+                            <span class="platform-type">UK ERP</span>
+                        </div>
+                    </th>
+                    <th class="platform-header">
+                        <div class="platform-header-content">
+                            <img class="platform-logo" src="https://wastehero.io/wp-content/smush-webp/2024/06/Component-4.png.webp" alt="WasteHero">
+                            <span class="platform-name">WasteHero</span>
+                            <span class="platform-type">Municipal</span>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- ========== CATEGORY 1: Data Collection & Entry (5 rows) ========== -->
+                <tr class="category-row">
+                    <td colspan="10">Data Collection &amp; Entry</td>
+                </tr>
+                <tr>
+                    <td>Web-based data entry</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Bulk / batch upload</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Mobile data entry</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Template-based input</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Data validation</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Automated alerts &amp; notifications</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+
+                <!-- ========== CATEGORY 2: Waste Tracking & Operations (7 rows) ========== -->
+                <tr class="category-row">
+                    <td colspan="10">Waste Tracking &amp; Operations</td>
+                </tr>
+                <tr>
+                    <td>Waste shipment tracking</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Manifest management</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Waste type categorization</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Volume / weight tracking</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Vendor management</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Route optimization</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Dispatch &amp; scheduling</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Invoicing &amp; billing</td>
+                    <td class="mps-col"><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Customer / client portal</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+
+                <!-- ========== CATEGORY 3: Compliance & Regulatory (5 rows) ========== -->
+                <tr class="category-row">
+                    <td colspan="10">Compliance &amp; Regulatory</td>
+                </tr>
+                <tr>
+                    <td>Hazardous waste compliance (RCRA/EPA)</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Electronic manifest (e-Manifest)</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Regulatory reporting</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Audit trail / chain of custody</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Documentation management</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+
+                <!-- ========== CATEGORY 4: Analytics & Reporting (5 rows) ========== -->
+                <tr class="category-row">
+                    <td colspan="10">Analytics &amp; Reporting</td>
+                </tr>
+                <tr>
+                    <td>Built-in dashboards</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr class="exclusive-row">
+                    <td>Power BI integration</td>
+                    <td class="mps-col"><span class="cap-exclusive">&#9733;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Custom report builder</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Data export (Excel/CSV)</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Real-time data views</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Branded report export (PDF)</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Scheduled / automated reports</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Accounting system integration</td>
+                    <td class="mps-col"><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+
+                <!-- ========== CATEGORY 5: Integration & Technical (5 rows) ========== -->
+                <tr class="category-row">
+                    <td colspan="10">Integration &amp; Technical</td>
+                </tr>
+                <tr class="exclusive-row">
+                    <td>Microsoft-native stack (Azure)</td>
+                    <td class="mps-col"><span class="cap-exclusive">&#9733;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>API access</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Data encryption</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>SSO / authentication</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Cloud-hosted (SaaS)</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>AI / ML capabilities</td>
+                    <td class="mps-col"><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>IoT / sensor integration</td>
+                    <td class="mps-col"><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+
+                <!-- ========== CATEGORY 6: Scalability & Access (5 rows) ========== -->
+                <tr class="category-row">
+                    <td colspan="10">Scalability &amp; Access</td>
+                </tr>
+                <tr>
+                    <td>Multi-site support</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Role-based access control</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>100+ concurrent users</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Multi-client / account views</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                </tr>
+                <tr>
+                    <td>Hierarchical data views</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+
+                <!-- ========== CATEGORY 7: Sustainability & ESG (5 rows) ========== -->
+                <tr class="category-row">
+                    <td colspan="10">Sustainability &amp; ESG</td>
+                </tr>
+                <tr>
+                    <td>Waste diversion analytics</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>ESG reporting</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Carbon footprint tracking</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+                <tr>
+                    <td>Circular economy metrics</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Sustainability dashboards</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+
+                <!-- ========== CATEGORY 8: Support & Commercial (4 rows) ========== -->
+                <tr class="category-row">
+                    <td colspan="10">Support &amp; Commercial</td>
+                </tr>
+                <tr class="exclusive-row">
+                    <td>Dedicated retainer support model</td>
+                    <td class="mps-col"><span class="cap-exclusive">&#9733;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Pricing transparency</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Implementation timeline</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-none">&mdash;</span></td>
+                </tr>
+                <tr>
+                    <td>Training &amp; onboarding</td>
+                    <td class="mps-col"><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                    <td><span class="cap-full">&check;</span></td>
+                    <td><span class="cap-partial">&#9680;</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Legend -->
+        <div class="matrix-legend">
+            <div class="legend-title">Legend</div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="cap-full">&check;</span>
+                    <span>Full Support</span>
+                </div>
+                <div class="legend-item">
+                    <span class="cap-partial">&#9680;</span>
+                    <span>Partial / Limited</span>
+                </div>
+                <div class="legend-item">
+                    <span class="cap-none">&mdash;</span>
+                    <span>Not Available</span>
+                </div>
+                <div class="legend-item">
+                    <span class="cap-exclusive">&#9733;</span>
+                    <span>MPS Exclusive</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

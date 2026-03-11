@@ -97,7 +97,7 @@ function UsersContent() {
             .slice(0, 2)
             .toUpperCase();
           return (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-[11px] font-bold text-primary-500">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-success-400/20 text-[11px] font-bold text-success-600">
               {initials}
             </div>
           );

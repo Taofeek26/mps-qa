@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { type CustomCellEditorProps } from "ag-grid-react";
-import { Check, Search } from "lucide-react";
+import { Check, Plus, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SelectOption } from "./cell-renderers";
 
@@ -16,9 +16,21 @@ import type { SelectOption } from "./cell-renderers";
  * type to filter (when search visible).
  */
 function SelectCellEditor(
-  props: CustomCellEditorProps & { options: SelectOption[] }
+  props: CustomCellEditorProps & {
+    options: SelectOption[];
+    allowCreate?: boolean;
+    onCreateOption?: (label: string) => SelectOption;
+  }
 ) {
-  const { value, onValueChange, options, stopEditing, column } = props;
+  const {
+    value,
+    onValueChange,
+    options,
+    stopEditing,
+    column,
+    allowCreate = true,
+    onCreateOption,
+  } = props;
   const [search, setSearch] = React.useState("");
   const [highlighted, setHighlighted] = React.useState(() => {
     const idx = options.findIndex((o) => o.value === value);
@@ -35,6 +47,27 @@ function SelectCellEditor(
   }, [options, search]);
 
   const showSearch = options.length > 5;
+
+  /* Show "Create" option when search has text that doesn't exactly match */
+  const trimmedSearch = search.trim();
+  const hasExactMatch = trimmedSearch
+    ? options.some(
+        (o) => o.label.toLowerCase() === trimmedSearch.toLowerCase()
+      )
+    : true;
+  const showCreate = allowCreate && trimmedSearch && !hasExactMatch;
+
+  function handleCreate() {
+    if (!trimmedSearch) return;
+    if (onCreateOption) {
+      const newOpt = onCreateOption(trimmedSearch);
+      onValueChange(newOpt.value);
+    } else {
+      // Default: use the search text as both value and label
+      onValueChange(trimmedSearch);
+    }
+    stopEditing();
+  }
 
   /* Focus search input (or the list container) on mount */
   React.useEffect(() => {
@@ -72,6 +105,8 @@ function SelectCellEditor(
         if (highlighted >= 0 && highlighted < filtered.length) {
           onValueChange(filtered[highlighted].value);
           stopEditing();
+        } else if (showCreate) {
+          handleCreate();
         }
         break;
       case "Escape":
@@ -181,10 +216,30 @@ function SelectCellEditor(
         })}
 
         {/* No results */}
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !showCreate && (
           <div className="py-3 text-center text-sm text-text-muted">
             No results found
           </div>
+        )}
+
+        {/* Create new option */}
+        {showCreate && (
+          <button
+            type="button"
+            role="option"
+            aria-selected={false}
+            onClick={handleCreate}
+            className={cn(
+              "relative flex w-full cursor-pointer select-none items-center gap-2 rounded-[var(--radius-sm)] py-2 pl-3 pr-2 text-sm outline-none transition-colors",
+              "text-primary-600 hover:bg-primary-50",
+              filtered.length === 0 && "mt-0"
+            )}
+          >
+            <Plus className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              Create <span className="font-medium">&ldquo;{trimmedSearch}&rdquo;</span>
+            </span>
+          </button>
         )}
       </div>
     </div>

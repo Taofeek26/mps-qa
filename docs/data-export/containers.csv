@@ -1,0 +1,18 @@
+id,containerName,containerFamily,nominalCapacityValue,activeFlag
+cnt-1,2yd Front Load,Front Load,,true
+cnt-2,30CY Roll Off,Roll Off,30,true
+cnt-3,35CY Self Contained Compactor,Compactor,35,true
+cnt-4,42CY Compactor,Compactor,42,true
+cnt-5,55gal Drum,Drum,55,true
+cnt-6,275gal Tote,Tote,275,true
+cnt-7,330 Gal Tote,Tote,330,true
+cnt-8,Box Truck,Vehicle,,true
+cnt-9,Trailer,Vehicle,,true
+cnt-10,Vac Truck,Vehicle,,true
+cnt-11,Tanker,Vehicle,,true
+cnt-12,Portable tanks,Tank,,true
+cnt-13,Dump truck,Vehicle,,true
+cnt-14,"Metal drums, barrels, kegs",Drum,,true
+cnt-15,"Fiberboard or plastic drums, barrels, kegs",Drum,,true
+cnt-16,"Metal boxes, cartons, cases (including roll-offs)",Box,,true
+cnt-17,Other,Other,,true

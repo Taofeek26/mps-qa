@@ -1,0 +1,8 @@
+id,reportName,reportType,exportTemplateCode,activeFlag
+rpt-1,Waste Trends,analytics,,true
+rpt-2,Cost Analysis,analytics,,true
+rpt-3,Green House Gas Emission Report,analytics,,true
+rpt-4,Light Load Report,analytics,,true
+rpt-5,Biennial Hazardous Waste Report,regulatory,BIENNIAL,true
+rpt-6,GEM Report (Ford),compliance,GEM,true
+rpt-7,GMR2 Report (GM),compliance,GMR2,true
