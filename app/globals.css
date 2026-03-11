@@ -188,11 +188,11 @@ code, pre, .font-mono {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-success-500);
+  background: #059669;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-success-600);
+  background: #047857;
 }
 
 /* ============================================
