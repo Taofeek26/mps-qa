@@ -248,7 +248,7 @@ function ContainersContent() {
   const safePage = Math.min(page, totalPages);
   const paginatedData = React.useMemo(
     () => filtered.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [filtered, safePage]
+    [filtered, safePage, pageSize]
   );
 
   function pushPage(newPage: number) {

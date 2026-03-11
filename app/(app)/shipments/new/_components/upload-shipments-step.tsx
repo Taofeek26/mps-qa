@@ -118,11 +118,11 @@ export function UploadShipmentsStep({
   return (
     <div
       className={cn(
-        "w-full rounded-xl border border-border-default bg-bg-card shadow-sm p-8 sm:p-10",
+        "flex w-full min-h-[calc(100vh-280px)] flex-col rounded-xl border border-border-default bg-bg-card shadow-sm p-8 sm:p-10",
         className
       )}
     >
-      <div className="w-full">
+      <div className="flex w-full flex-1 flex-col">
         <div className="flex items-center gap-2.5 text-text-secondary mb-1">
           <FileSpreadsheet className="h-5 w-5 text-primary-500" />
           <span className="text-sm font-medium">Excel (.xlsx, .xls) or CSV</span>
@@ -134,7 +134,7 @@ export function UploadShipmentsStep({
         <button
           type="button"
           onClick={downloadDemoFile}
-          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-border-default bg-bg-card px-3 py-2 text-sm font-medium text-text-secondary shadow-sm hover:bg-bg-subtle hover:text-text-primary transition-colors"
+          className="mb-6 inline-flex w-fit items-center gap-2 rounded-lg border border-border-default bg-bg-card px-3 py-2 text-sm font-medium text-text-secondary shadow-sm hover:bg-bg-subtle hover:text-text-primary transition-colors cursor-pointer"
         >
           <Download className="h-4 w-4" />
           Download sample file (CSV)
@@ -146,7 +146,7 @@ export function UploadShipmentsStep({
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
           className={cn(
-            "rounded-xl border-2 border-dashed p-12 text-center cursor-pointer transition-all duration-200",
+            "flex flex-1 flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center cursor-pointer transition-all duration-200",
             dragging
               ? "border-primary-400 bg-primary-50/50 ring-2 ring-primary-200"
               : "border-border-default bg-bg-subtle/50 hover:border-primary-300 hover:bg-primary-50/30",
@@ -181,7 +181,7 @@ export function UploadShipmentsStep({
         <button
           type="button"
           onClick={onBack}
-          className="mt-8 inline-flex items-center gap-2 text-sm text-text-muted hover:text-primary-600 transition-colors"
+          className="mt-8 inline-flex items-center gap-2 text-sm text-text-muted hover:text-primary-600 transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
           {BACK_TO_ENTRY_OPTIONS_LABEL}

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { type ColDef } from "ag-grid-community";
+import { Plus, ClipboardPaste, FileSpreadsheet } from "lucide-react";
 import { AGGridWrapper, type CellError } from "@/components/ui/ag-grid-wrapper";
 import {
   SelectCellRenderer,
@@ -13,6 +14,8 @@ import { SelectCellEditor } from "@/components/ag-grid/select-cell-editor";
 import { DateCellEditor } from "@/components/ag-grid/date-cell-editor";
 import { getSites, getClients, getVendors, getWasteTypes } from "@/lib/mock-data";
 import type { ShipmentEntryRow } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 /* ─── Grid Component ─── */
 
@@ -184,6 +187,53 @@ export function NewShipmentGrid({
     [siteOptions, clientOptions, vendorOptions, wasteTypeOptions]
   );
 
+  function handleAddRows(count: number) {
+    const newRows = Array.from({ length: count }, () => createEmptyRow());
+    onRowDataChange([...rowData, ...newRows]);
+  }
+
+  if (rowData.length === 0) {
+    return (
+      <div
+        className={cn(
+          "flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-border-default bg-bg-subtle/40",
+          "min-h-0 p-8 text-center",
+          className
+        )}
+      >
+        {/* Illustration */}
+        <div className="relative mb-6">
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary-100/80">
+            <FileSpreadsheet className="h-10 w-10 text-primary-500" strokeWidth={1.5} />
+          </div>
+          <div className="absolute -right-2 -bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-bg-card border border-border-default shadow-sm">
+            <ClipboardPaste className="h-4 w-4 text-text-muted" />
+          </div>
+        </div>
+
+        <h3 className="text-base font-semibold text-text-primary mb-1">
+          No shipment rows yet
+        </h3>
+        <p className="text-sm text-text-muted max-w-sm mb-6 leading-relaxed">
+          Add rows to start entering data. You can also paste directly from Excel once the grid is open.
+        </p>
+
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button onClick={() => handleAddRows(1)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add row
+          </Button>
+          <Button variant="secondary" onClick={() => handleAddRows(10)}>
+            Add 10 rows
+          </Button>
+          <Button variant="secondary" onClick={() => handleAddRows(25)}>
+            Add 25 rows
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AGGridWrapper<ShipmentEntryRow>
       columnDefs={columnDefs}
@@ -192,11 +242,11 @@ export function NewShipmentGrid({
       onImport={onImport}
       cellErrors={cellErrors}
       defaultRow={createEmptyRow()}
-      height="min(calc(100vh - 320px), 560px)"
+      height="100%"
+      className={cn("flex-1 min-h-0", className)}
       showAddNRows
       showDuplicate
       showFillDown
-      className={className}
     />
   );
 }

@@ -62,7 +62,7 @@ function PageHeader({
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center gap-1.5 shrink-0 text-sm text-text-muted hover:text-primary-600 transition-colors mt-0.5"
+            className="flex items-center gap-1.5 shrink-0 text-sm text-text-muted hover:text-primary-600 transition-colors mt-0.5 cursor-pointer"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             {BACK_TO_ENTRY_OPTIONS_LABEL}
@@ -196,9 +196,7 @@ export default function NewShipmentPage() {
     user?.role === "site_user" ? user?.assignedSiteIds : undefined;
 
   const [viewMode, setViewMode] = React.useState<ViewMode>("choice");
-  const [rowData, setRowData] = React.useState<ShipmentEntryRow[]>(() =>
-    generateRows(5)
-  );
+  const [rowData, setRowData] = React.useState<ShipmentEntryRow[]>([]);
   const [cellErrors, setCellErrors] = React.useState<CellError[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [importedBanner, setImportedBanner] = React.useState<number | null>(
@@ -335,7 +333,7 @@ export default function NewShipmentPage() {
       return;
     }
     setViewMode("manual");
-    setRowData(generateRows(5));
+    setRowData([]);
     setImportedBanner(null);
   }
 
@@ -362,7 +360,7 @@ export default function NewShipmentPage() {
   const showManualView = viewMode === "manual";
 
   return (
-    <div className="max-w-screen-xl mx-auto">
+    <div className="w-full">
       {/* Page header with breadcrumb + step track */}
       <PageHeader viewMode={viewMode} onBack={handleBack} />
 
@@ -382,7 +380,7 @@ export default function NewShipmentPage() {
 
         {/* ── Manual grid screen ── */}
         {showManualView && (
-          <div className="space-y-3">
+          <div className="flex flex-col space-y-3 h-[calc(100vh-280px)] min-h-[400px]">
             {importedBanner != null && (
               <ImportedBanner count={importedBanner} />
             )}
