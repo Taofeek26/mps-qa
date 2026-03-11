@@ -3,8 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS, type NavItem } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -28,6 +29,7 @@ function filterItems(items: NavItem[], userRole?: string): NavItem[] {
 
 export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const navRef = React.useRef<HTMLElement>(null);
   const itemRefs = React.useRef<Map<string, HTMLAnchorElement>>(new Map());
@@ -36,9 +38,29 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
     height: number;
   } | null>(null);
   const hasMounted = React.useRef(false);
+  const [expandedItems, setExpandedItems] = React.useState<Set<string>>(new Set());
+
+  function toggleExpanded(href: string) {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(href)) next.delete(href);
+      else next.add(href);
+      return next;
+    });
+  }
+
+  const currentTab = searchParams.get("tab");
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
+    // Child items with query params (e.g. "/reports?tab=waste-trends")
+    if (href.includes("?")) {
+      const [path, query] = href.split("?");
+      if (pathname !== path) return false;
+      const params = new URLSearchParams(query);
+      const tab = params.get("tab");
+      return tab === currentTab;
+    }
     if (href === "/reports")
       return (
         pathname === "/reports" ||
@@ -47,6 +69,28 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
       );
     return pathname.startsWith(href);
   }
+
+  // Auto-expand/collapse parent items based on active child
+  React.useEffect(() => {
+    setExpandedItems((prev) => {
+      const next = new Set<string>();
+      for (const group of NAV_GROUPS) {
+        for (const item of group.items) {
+          if (item.children) {
+            const isParentActive = isActive(item.href);
+            const hasActiveChild = item.children.some((child) => isActive(child.href));
+            if (isParentActive || hasActiveChild) {
+              next.add(item.href);
+            }
+          }
+        }
+      }
+      // Only update if changed
+      if (next.size === prev.size && [...next].every((h) => prev.has(h))) return prev;
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, currentTab]);
 
   const filteredGroups = NAV_GROUPS.map((group) => ({
     ...group,
@@ -89,6 +133,13 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
     const timeout = setTimeout(measureIndicator, 10);
     return () => clearTimeout(timeout);
   }, [measureIndicator, collapsed]);
+
+  // Re-measure after expand/collapse animation finishes
+  React.useEffect(() => {
+    const timeout = setTimeout(measureIndicator, 250);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandedItems]);
 
   // After first measurement, enable transitions
   React.useEffect(() => {
@@ -180,15 +231,28 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
               </p>
             )}
             <div className="space-y-0.5">
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.href}
-                  item={item}
-                  active={isActive(item.href)}
-                  collapsed={collapsed}
-                  registerRef={registerRef}
-                />
-              ))}
+              {group.items.map((item) =>
+                item.children ? (
+                  <NavParent
+                    key={item.href}
+                    item={item}
+                    active={isActive(item.href) || item.children.some((c) => isActive(c.href))}
+                    collapsed={collapsed}
+                    expanded={expandedItems.has(item.href)}
+                    onToggle={() => toggleExpanded(item.href)}
+                    registerRef={registerRef}
+                    isChildActive={isActive}
+                  />
+                ) : (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    active={isActive(item.href)}
+                    collapsed={collapsed}
+                    registerRef={registerRef}
+                  />
+                )
+              )}
             </div>
           </div>
         ))}
@@ -262,4 +326,110 @@ function NavLink({
   }
 
   return link;
+}
+
+/* ─── Expandable parent nav item ─── */
+
+function NavParent({
+  item,
+  active,
+  collapsed,
+  expanded,
+  onToggle,
+  registerRef,
+  isChildActive,
+}: {
+  item: NavItem;
+  active: boolean;
+  collapsed: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+  registerRef: (href: string, el: HTMLAnchorElement | null) => void;
+  isChildActive: (href: string) => boolean;
+}) {
+  const Icon = item.icon;
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            ref={(el) => registerRef(item.href, el)}
+            href={item.href}
+            className={cn(
+              "relative z-[1] flex items-center justify-center rounded-md transition-colors duration-150 ease-out text-sm h-10 w-full",
+              active
+                ? "text-primary-600 font-semibold"
+                : "text-text-secondary font-medium hover:text-text-primary hover:bg-black/4"
+            )}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent side="right" sideOffset={8}>
+          {item.label}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        ref={(el) => {
+          if (el) registerRef(item.href, el as unknown as HTMLAnchorElement);
+          else registerRef(item.href, null);
+        }}
+        onClick={onToggle}
+        className={cn(
+          "relative z-[1] flex items-center gap-3 rounded-md transition-colors duration-150 ease-out text-sm w-full px-2 h-10 cursor-pointer",
+          active
+            ? "text-primary-600 font-semibold"
+            : "text-text-secondary font-medium hover:text-text-primary hover:bg-black/4"
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="flex-1 text-left">{item.label}</span>
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
+            expanded && "rotate-180"
+          )}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {expanded && item.children && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="ml-4 pl-3 border-l border-border-default space-y-0.5 mt-0.5 pb-0.5">
+              {item.children.map((child) => {
+                const ChildIcon = child.icon;
+                const childActive = isChildActive(child.href);
+                return (
+                  <Link
+                    key={child.href}
+                    href={child.href}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-md px-2 h-8 text-[13px] transition-colors duration-150 ease-out",
+                      childActive
+                        ? "text-primary-600 font-semibold bg-primary-50"
+                        : "text-text-secondary font-medium hover:text-text-primary hover:bg-black/4"
+                    )}
+                  >
+                    <ChildIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span>{child.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }

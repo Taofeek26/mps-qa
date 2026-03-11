@@ -105,13 +105,7 @@ export function ReportList({ userId }: ReportListProps) {
 
   return (
     <div className={cn("flex flex-col gap-6", isEmpty && "min-h-[calc(100dvh-10rem)]")}>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Report Builder</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Create, save, and manage your reports. Build with demo data and export or share.
-          </p>
-        </div>
+      <div className="flex items-center justify-end gap-4">
         <Link href="/reports/builder/new">
           <Button>
             <Plus className="h-4 w-4" />

@@ -6,7 +6,6 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { DataTable, type DataTablePagination } from "@/components/ui/data-table";
-import { PageHeader } from "@/components/ui/page-header";
 import { FilterBar } from "@/components/ui/filter-bar";
 
 /* ─── Types ─── */
@@ -225,8 +224,6 @@ function AuditLogTable({
 }: AuditLogTableProps) {
   return (
     <div className={cn("space-y-4", className)}>
-      <PageHeader title="Audit Log" subtitle="Activity history for all changes" />
-
       {filterSlots && (
         <FilterBar onReset={onResetFilters}>{filterSlots}</FilterBar>
       )}
