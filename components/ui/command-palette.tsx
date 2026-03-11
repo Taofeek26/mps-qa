@@ -4,10 +4,23 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { Drawer } from "vaul";
+import { Dialog as RadixDialog } from "radix-ui";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = React.useState(false);
+  React.useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    setIsMobile(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 /* ─── Searchable items ─── */
 
@@ -102,6 +115,47 @@ export function CommandPalette() {
     return groups;
   }, [allItems]);
 
+  const isMobile = useIsMobile();
+
+  const commandContent = (
+    <Command className="flex flex-1 flex-col overflow-hidden" loop>
+      <div className="flex items-center gap-2 border-b border-border-default px-4">
+        <Search className="h-4 w-4 shrink-0 text-text-muted" />
+        <Command.Input
+          placeholder="Search pages, reports..."
+          className="flex-1 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
+        />
+      </div>
+      <Command.List className="flex-1 overflow-y-auto p-2">
+        <Command.Empty className="py-8 text-center text-sm text-text-muted">
+          No results found.
+        </Command.Empty>
+        {Array.from(grouped.entries()).map(([group, items]) => (
+          <Command.Group
+            key={group}
+            heading={group}
+            className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-text-muted"
+          >
+            {items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Command.Item
+                  key={item.id}
+                  value={`${item.label} ${item.keywords?.join(" ") ?? ""}`}
+                  onSelect={() => handleSelect(item.href)}
+                  className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-2 py-2 text-sm text-text-secondary transition-colors data-[selected=true]:bg-primary-50 data-[selected=true]:text-primary-500"
+                >
+                  {Icon && <Icon className="h-4 w-4 shrink-0 text-text-muted" />}
+                  <span>{item.label}</span>
+                </Command.Item>
+              );
+            })}
+          </Command.Group>
+        ))}
+      </Command.List>
+    </Command>
+  );
+
   return (
     <>
       {/* Trigger button */}
@@ -116,64 +170,48 @@ export function CommandPalette() {
         </kbd>
       </button>
 
-      {/* Command palette as bottom sheet */}
-      <Drawer.Root open={open} onOpenChange={setOpen}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]" />
-          <Drawer.Content
-            className={cn(
-              "fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col",
-              "w-full",
-              "rounded-t-[var(--radius-lg)] border border-b-0 border-border-default bg-bg-card shadow-xl",
-              "focus:outline-none"
-            )}
-          >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="h-1.5 w-10 rounded-full bg-text-muted/30" />
-            </div>
-
-            <Drawer.Title className="sr-only">Search</Drawer.Title>
-
-            <Command className="flex flex-1 flex-col overflow-hidden" loop>
-              <div className="flex items-center gap-2 border-b border-border-default px-4">
-                <Search className="h-4 w-4 shrink-0 text-text-muted" />
-                <Command.Input
-                  placeholder="Search pages, reports..."
-                  className="flex-1 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
-                />
+      {isMobile ? (
+        /* Mobile: bottom sheet */
+        <Drawer.Root open={open} onOpenChange={setOpen}>
+          <Drawer.Portal>
+            <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]" />
+            <Drawer.Content
+              className={cn(
+                "fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col",
+                "w-full",
+                "rounded-t-[var(--radius-lg)] border border-b-0 border-border-default bg-bg-card shadow-xl",
+                "focus:outline-none"
+              )}
+            >
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="h-1.5 w-10 rounded-full bg-text-muted/30" />
               </div>
-              <Command.List className="flex-1 overflow-y-auto p-2">
-                <Command.Empty className="py-8 text-center text-sm text-text-muted">
-                  No results found.
-                </Command.Empty>
-                {Array.from(grouped.entries()).map(([group, items]) => (
-                  <Command.Group
-                    key={group}
-                    heading={group}
-                    className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-text-muted"
-                  >
-                    {items.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Command.Item
-                          key={item.id}
-                          value={`${item.label} ${item.keywords?.join(" ") ?? ""}`}
-                          onSelect={() => handleSelect(item.href)}
-                          className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-2 py-2 text-sm text-text-secondary transition-colors data-[selected=true]:bg-primary-50 data-[selected=true]:text-primary-500"
-                        >
-                          {Icon && <Icon className="h-4 w-4 shrink-0 text-text-muted" />}
-                          <span>{item.label}</span>
-                        </Command.Item>
-                      );
-                    })}
-                  </Command.Group>
-                ))}
-              </Command.List>
-            </Command>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
+              <Drawer.Title className="sr-only">Search</Drawer.Title>
+              {commandContent}
+            </Drawer.Content>
+          </Drawer.Portal>
+        </Drawer.Root>
+      ) : (
+        /* Desktop: centered dialog */
+        <RadixDialog.Root open={open} onOpenChange={setOpen}>
+          <RadixDialog.Portal>
+            <RadixDialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+            <RadixDialog.Content
+              className={cn(
+                "fixed left-1/2 top-[20%] z-50 -translate-x-1/2",
+                "flex max-h-[min(480px,70dvh)] w-[min(90vw,36rem)] lg:w-[min(50vw,42rem)] 2xl:w-[min(40vw,48rem)] flex-col",
+                "rounded-[var(--radius-lg)] border border-border-default bg-bg-card shadow-xl",
+                "focus:outline-none",
+                "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+                "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]"
+              )}
+            >
+              <RadixDialog.Title className="sr-only">Search</RadixDialog.Title>
+              {commandContent}
+            </RadixDialog.Content>
+          </RadixDialog.Portal>
+        </RadixDialog.Root>
+      )}
     </>
   );
 }
