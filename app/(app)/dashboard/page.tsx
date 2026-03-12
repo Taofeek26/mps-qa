@@ -548,7 +548,7 @@ export default function DashboardPage() {
 
       <div className="space-y-6">
             {/* ─── KPI Cards — 3×3 grid (3 columns, 2 rows of 6 cards) ─── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="kpi-grid grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               <KpiCard
                 title="Total Shipments"
                 value={totalShipments.toLocaleString()}

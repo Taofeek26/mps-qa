@@ -234,6 +234,8 @@ export function EmissionsContent() {
       exportDisabled={!hasData}
       onExportPdf={handleExportPdf}
       isPdfExporting={isPdfExporting}
+      onResetFilters={resetFilters}
+      hasFilters={hasFilters}
     >
       {hasData ? (
         <PillTabs defaultValue="overview">

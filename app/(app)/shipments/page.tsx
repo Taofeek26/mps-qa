@@ -165,7 +165,7 @@ function ShipmentsContent() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="secondary" size="sm">
                     <Columns3 className="h-4 w-4" />
-                    Columns
+                    <span className="hidden sm:inline">Columns</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="max-h-[min(70vh,400px)] overflow-y-auto w-56">
@@ -196,11 +196,11 @@ function ShipmentsContent() {
                 size="sm"
                 onClick={() => setExportOpen(true)}
               >
-                <Download className="h-4 w-4" /> Export
+                <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
               </Button>
               <Link href="/shipments/new">
                 <Button size="sm">
-                  <Plus className="h-4 w-4" /> New Shipment
+                  <Plus className="h-4 w-4" /> <span className="hidden sm:inline">New Shipment</span>
                 </Button>
               </Link>
             </>

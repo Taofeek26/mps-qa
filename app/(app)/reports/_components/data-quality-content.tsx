@@ -505,6 +505,8 @@ export function DataQualityContent() {
       exportDisabled={!hasData}
       onExportPdf={handleExportPdf}
       isPdfExporting={isPdfExporting}
+      onResetFilters={resetFilters}
+      hasFilters={hasFilters}
     >
       {hasData ? (
         <PillTabs defaultValue="breakdown">
