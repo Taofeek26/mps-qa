@@ -195,6 +195,21 @@ code, pre, .font-mono {
   background: #047857;
 }
 
+/* KPI grid: last odd child spans full width on 2-col mobile layout */
+@media (max-width: 639px) {
+  .kpi-grid > *:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Hide horizontal scrollbar visually on mobile (content still scrollable) */
+@media (max-width: 639px) {
+  *::-webkit-scrollbar:horizontal {
+    height: 0;
+    display: none;
+  }
+}
+
 /* ============================================
    THEME: WARM (Notion / Stripe inspired)
    Activate by wrapping content in .theme-warm

@@ -51,10 +51,10 @@ function PageHeader({
     <div className="mb-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-text-primary tracking-tight">
+          <h1 className="text-lg sm:text-xl font-semibold text-text-primary tracking-tight">
             New Shipment Entry
           </h1>
-          <p className="mt-0.5 text-sm text-text-muted">
+          <p className="mt-0.5 text-xs sm:text-sm text-text-muted">
             Add one or more waste shipments to the system.
           </p>
         </div>
@@ -66,7 +66,7 @@ function PageHeader({
             onClick={onBack}
           >
             <ArrowLeft className="h-4 w-4" />
-            {BACK_TO_ENTRY_OPTIONS_LABEL}
+            <span className="hidden sm:inline">{BACK_TO_ENTRY_OPTIONS_LABEL}</span>
           </Button>
         )}
       </div>
@@ -88,7 +88,7 @@ function StepTrack({ viewMode }: { viewMode: ViewMode }) {
     viewMode === "choice" ? 0 : viewMode === "upload" ? 1 : 2;
 
   return (
-    <div className="mt-6 flex items-center gap-3 rounded-full border border-border-default bg-bg-subtle p-1.5 w-fit">
+    <div className="mt-4 sm:mt-6 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-3 rounded-full border border-border-default bg-bg-subtle p-1 sm:p-1.5 w-full sm:w-fit max-w-full overflow-x-auto">
       {steps.map((step, i) => {
         const isActive = i === activeIndex;
         const isDone = i < activeIndex;
@@ -97,7 +97,7 @@ function StepTrack({ viewMode }: { viewMode: ViewMode }) {
           <div
             key={step.key}
             className={[
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
+              "flex items-center gap-1.5 sm:gap-2 rounded-full px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap",
               isActive
                 ? "bg-primary-600 text-white shadow-sm"
                 : isDone
@@ -107,11 +107,11 @@ function StepTrack({ viewMode }: { viewMode: ViewMode }) {
           >
             <span
               className={[
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                "flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full text-[10px] sm:text-xs font-bold",
                 isActive ? "bg-white/20" : isDone ? "bg-success-400/30" : "bg-bg-card",
               ].join(" ")}
             >
-              {isDone ? "✓" : i + 1}
+              {isDone ? "\u2713" : i + 1}
             </span>
             {step.label}
           </div>

@@ -358,6 +358,8 @@ export function RegulatoryContent() {
       }
       onExportPdf={handleExportPdf}
       isPdfExporting={isPdfExporting}
+      onResetFilters={resetFilters}
+      hasFilters={hasFilters}
       filters={
         <>
           <DateRangePicker

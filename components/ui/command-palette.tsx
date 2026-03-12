@@ -6,10 +6,20 @@ import { Command } from "cmdk";
 import { Drawer } from "vaul";
 import { Dialog as RadixDialog } from "radix-ui";
 import { motion, AnimatePresence } from "motion/react";
-import { Search } from "lucide-react";
+import {
+  Search,
+  Truck,
+  Briefcase,
+  Building2,
+  Package,
+  Users,
+  ArrowRight,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NAV_GROUPS } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { buildAllSearchItems, COLOR_CLASSES, type SearchItem, type SearchItemColor } from "@/lib/search-items";
+import { NAV_GROUPS } from "@/lib/navigation";
 
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = React.useState(false);
@@ -23,72 +33,103 @@ function useIsMobile(breakpoint = 768) {
   return isMobile;
 }
 
-/* ─── Searchable items ─── */
+/* ─── Category config for sidebar ─── */
 
-interface SearchItem {
-  id: string;
-  label: string;
-  group: string;
-  href: string;
-  icon?: React.ElementType;
-  keywords?: string[];
-}
-
-function buildSearchItems(userRole: string | undefined): SearchItem[] {
-  const items: SearchItem[] = [];
-  for (const group of NAV_GROUPS) {
-    for (const item of group.items) {
-      if (item.roles && userRole && !item.roles.includes(userRole)) continue;
-      items.push({
-        id: item.href,
-        label: item.label,
-        group: group.label,
-        href: item.href,
-        icon: item.icon,
-        keywords: [item.label.toLowerCase()],
-      });
-    }
-  }
-  return items;
-}
-
-/* ─── Report tab items ─── */
-
-const REPORT_TABS: SearchItem[] = [
-  { id: "report-waste-trends", label: "Waste Trends", group: "Reports", href: "/reports?tab=waste-trends", keywords: ["waste", "trends", "volume"] },
-  { id: "report-cost-analysis", label: "Cost Analysis", group: "Reports", href: "/reports?tab=cost-analysis", keywords: ["cost", "revenue", "margin", "financial"] },
-  { id: "report-light-load", label: "Light Load", group: "Reports", href: "/reports?tab=light-load", keywords: ["light", "load", "underweight"] },
-  { id: "report-regulatory", label: "Regulatory", group: "Reports", href: "/reports?tab=regulatory", keywords: ["regulatory", "compliance", "rcra"] },
-  { id: "report-operations", label: "Operations", group: "Reports", href: "/reports?tab=operations", keywords: ["operations", "vendors", "sites"] },
-  { id: "report-data-quality", label: "Data Quality", group: "Reports", href: "/reports?tab=data-quality", keywords: ["data", "quality", "errors"] },
-  { id: "report-vendor-intel", label: "Vendor Intel", group: "Reports", href: "/reports?tab=vendor-intel", keywords: ["vendor", "intel", "performance"] },
-  { id: "report-logistics", label: "Logistics", group: "Reports", href: "/reports?tab=logistics", keywords: ["logistics", "transport", "miles"] },
-  { id: "report-emissions", label: "Emissions", group: "Reports", href: "/reports?tab=emissions", keywords: ["emissions", "ghg", "sustainability", "carbon"] },
+const DATA_CATEGORIES: { group: string; icon: LucideIcon; color: SearchItemColor }[] = [
+  { group: "Shipments", icon: Truck, color: "primary" },
+  { group: "Clients", icon: Briefcase, color: "success" },
+  { group: "Sites", icon: Briefcase, color: "success" },
+  { group: "Vendors", icon: Building2, color: "warning" },
+  { group: "Waste Types", icon: Package, color: "info" },
+  { group: "Users", icon: Users, color: "primary" },
 ];
+
+/* ─── Item renderers ─── */
+
+function PageItem({ item, onSelect }: { item: SearchItem; onSelect: () => void }) {
+  const Icon = item.icon;
+  return (
+    <Command.Item
+      value={`${item.label} ${item.description ?? ""} ${item.keywords?.join(" ") ?? ""}`}
+      onSelect={onSelect}
+      className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-2 py-2 text-sm text-text-secondary transition-colors data-[selected=true]:bg-primary-50 data-[selected=true]:text-primary-500"
+    >
+      {Icon && <Icon className="h-4 w-4 shrink-0 text-text-muted" />}
+      <span className="truncate">{item.label}</span>
+      {item.description && (
+        <span className="ml-auto truncate text-xs text-text-muted">{item.description}</span>
+      )}
+    </Command.Item>
+  );
+}
+
+function DataItem({ item, onSelect }: { item: SearchItem; onSelect: () => void }) {
+  const Icon = item.icon;
+  const colors = item.color ? COLOR_CLASSES[item.color] : COLOR_CLASSES.primary;
+
+  return (
+    <Command.Item
+      value={`${item.label} ${item.description ?? ""} ${item.keywords?.join(" ") ?? ""}`}
+      onSelect={onSelect}
+      className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] border border-border-default px-3 py-2.5 transition-colors data-[selected=true]:border-primary-200 data-[selected=true]:bg-primary-50"
+    >
+      <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border", colors.bg, colors.border, colors.text)}>
+        {Icon && <Icon className="h-4 w-4" />}
+      </div>
+      <div className="flex flex-col min-w-0 flex-1">
+        <span className="truncate text-sm font-medium text-text-primary">{item.label}</span>
+        {item.description && (
+          <span className="truncate text-xs text-text-muted">{item.description}</span>
+        )}
+      </div>
+    </Command.Item>
+  );
+}
+
+/* ─── Group heading ─── */
+
+const GROUP_HEADING_CLASS = "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-text-muted";
 
 /* ─── Component ─── */
 
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
+  const [activeCategory, setActiveCategory] = React.useState<string | null>(null);
   const router = useRouter();
   const { user } = useAuth();
 
-  const navItems = React.useMemo(
-    () => buildSearchItems(user?.role),
+  const allItems = React.useMemo(
+    () => buildAllSearchItems(user?.role),
     [user?.role]
   );
 
-  const allItems = React.useMemo(
-    () => [...navItems, ...REPORT_TABS],
-    [navItems]
-  );
+  // Quick links: main nav pages only (not admin, not reports tabs)
+  const quickLinks = React.useMemo(() => {
+    const mainGroup = NAV_GROUPS[0];
+    if (!mainGroup) return [];
+    return mainGroup.items.slice(0, 4).map((item) => ({
+      label: item.label,
+      href: item.href,
+      icon: item.icon,
+    }));
+  }, []);
+
+  // Category counts
+  const categoryCounts = React.useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of allItems) {
+      if (item.type === "data") {
+        counts.set(item.group, (counts.get(item.group) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [allItems]);
 
   const isMac = React.useMemo(
     () => typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent),
     []
   );
 
-  // Keyboard shortcut: Ctrl/Cmd + K
   React.useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -100,30 +141,134 @@ export function CommandPalette() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // Reset category filter when closing
+  React.useEffect(() => {
+    if (!open) setActiveCategory(null);
+  }, [open]);
+
   function handleSelect(href: string) {
     setOpen(false);
     router.push(href);
   }
 
-  // Group items
+  // Filter items by active category
+  const filteredItems = React.useMemo(() => {
+    if (!activeCategory) return allItems;
+    return allItems.filter((item) => item.group === activeCategory);
+  }, [allItems, activeCategory]);
+
+  // Group filtered items
   const grouped = React.useMemo(() => {
     const groups = new Map<string, SearchItem[]>();
-    for (const item of allItems) {
+    for (const item of filteredItems) {
       const existing = groups.get(item.group) ?? [];
       existing.push(item);
       groups.set(item.group, existing);
     }
     return groups;
-  }, [allItems]);
+  }, [filteredItems]);
 
   const isMobile = useIsMobile();
 
-  const commandContent = (
+  /* ─── Desktop content: two-panel ─── */
+  const desktopContent = (
+    <Command className="flex flex-1 flex-col overflow-hidden" loop>
+      {/* Search input */}
+      <div className="flex items-center gap-2 border-b border-border-default px-4">
+        <Search className="h-4 w-4 shrink-0 text-text-muted" />
+        <Command.Input
+          placeholder="Search shipments, vendors, pages..."
+          className="flex-1 bg-transparent py-3.5 text-sm text-text-primary outline-none placeholder:text-text-muted"
+          onValueChange={() => {
+            // Clear category filter when user starts typing
+            if (activeCategory) setActiveCategory(null);
+          }}
+        />
+        <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border-default bg-bg-surface px-1.5 font-mono text-[10px] font-medium text-text-muted">
+          esc
+        </kbd>
+      </div>
+
+      {/* Two-panel body */}
+      <div className="flex flex-1 min-h-0">
+        {/* Left sidebar */}
+        <div className="w-48 shrink-0 border-r border-border-default overflow-y-auto p-2 space-y-4">
+          {/* Quick links */}
+          <div>
+            <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-text-muted">Quick Links</p>
+            {quickLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <button
+                  key={link.href}
+                  onClick={() => handleSelect(link.href)}
+                  className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-surface hover:text-text-primary cursor-pointer"
+                >
+                  {Icon && <Icon className="h-3.5 w-3.5 text-text-muted" />}
+                  <span>{link.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Data categories */}
+          <div>
+            <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-text-muted">Categories</p>
+            {DATA_CATEGORIES.filter((cat) => categoryCounts.has(cat.group)).map((cat) => {
+              const Icon = cat.icon;
+              const count = categoryCounts.get(cat.group) ?? 0;
+              const isActive = activeCategory === cat.group;
+              const colors = COLOR_CLASSES[cat.color];
+              return (
+                <button
+                  key={cat.group}
+                  onClick={() => setActiveCategory(isActive ? null : cat.group)}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-2 py-1.5 text-sm transition-colors cursor-pointer",
+                    isActive ? "bg-primary-50 text-primary-500 font-medium" : "text-text-secondary hover:bg-bg-surface hover:text-text-primary"
+                  )}
+                >
+                  <div className={cn("flex h-5 w-5 items-center justify-center rounded", colors.bg, colors.text)}>
+                    <Icon className="h-3 w-3" />
+                  </div>
+                  <span className="flex-1 text-left">{cat.group}</span>
+                  <span className="text-xs text-text-muted">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right results panel */}
+        <Command.List className="flex-1 overflow-y-auto p-3">
+          <Command.Empty className="py-12 text-center text-sm text-text-muted">
+            No results found.
+          </Command.Empty>
+          {Array.from(grouped.entries()).map(([group, items]) => (
+            <Command.Group key={group} heading={group} className={GROUP_HEADING_CLASS}>
+              <div className={items[0]?.type === "data" ? "grid grid-cols-2 gap-1.5" : "space-y-0.5"}>
+                {items.map((item) =>
+                  item.type === "data" ? (
+                    <DataItem key={item.id} item={item} onSelect={() => handleSelect(item.href)} />
+                  ) : (
+                    <PageItem key={item.id} item={item} onSelect={() => handleSelect(item.href)} />
+                  )
+                )}
+              </div>
+            </Command.Group>
+          ))}
+        </Command.List>
+      </div>
+    </Command>
+  );
+
+  /* ─── Mobile content: single column with cards ─── */
+  const mobileContent = (
     <Command className="flex flex-1 flex-col overflow-hidden" loop>
       <div className="flex items-center gap-2 border-b border-border-default px-4">
         <Search className="h-4 w-4 shrink-0 text-text-muted" />
         <Command.Input
-          placeholder="Search pages, reports..."
+          placeholder="Search..."
           className="flex-1 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
         />
       </div>
@@ -132,25 +277,16 @@ export function CommandPalette() {
           No results found.
         </Command.Empty>
         {Array.from(grouped.entries()).map(([group, items]) => (
-          <Command.Group
-            key={group}
-            heading={group}
-            className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-text-muted"
-          >
-            {items.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Command.Item
-                  key={item.id}
-                  value={`${item.label} ${item.keywords?.join(" ") ?? ""}`}
-                  onSelect={() => handleSelect(item.href)}
-                  className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-2 py-2 text-sm text-text-secondary transition-colors data-[selected=true]:bg-primary-50 data-[selected=true]:text-primary-500"
-                >
-                  {Icon && <Icon className="h-4 w-4 shrink-0 text-text-muted" />}
-                  <span>{item.label}</span>
-                </Command.Item>
-              );
-            })}
+          <Command.Group key={group} heading={group} className={GROUP_HEADING_CLASS}>
+            <div className="space-y-1">
+              {items.map((item) =>
+                item.type === "data" ? (
+                  <DataItem key={item.id} item={item} onSelect={() => handleSelect(item.href)} />
+                ) : (
+                  <PageItem key={item.id} item={item} onSelect={() => handleSelect(item.href)} />
+                )
+              )}
+            </div>
           </Command.Group>
         ))}
       </Command.List>
@@ -167,12 +303,11 @@ export function CommandPalette() {
         <Search className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Search...</span>
         <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border-default bg-bg-card px-1.5 font-mono text-[10px] font-medium text-text-muted">
-          {isMac ? "⌘" : "Ctrl+"}K
+          {isMac ? "\u2318" : "Ctrl+"}K
         </kbd>
       </button>
 
       {isMobile ? (
-        /* Mobile: bottom sheet */
         <Drawer.Root open={open} onOpenChange={setOpen}>
           <Drawer.Portal>
             <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]" />
@@ -188,12 +323,11 @@ export function CommandPalette() {
                 <div className="h-1.5 w-10 rounded-full bg-text-muted/30" />
               </div>
               <Drawer.Title className="sr-only">Search</Drawer.Title>
-              {commandContent}
+              {mobileContent}
             </Drawer.Content>
           </Drawer.Portal>
         </Drawer.Root>
       ) : (
-        /* Desktop: centered dialog with motion enter/exit */
         <RadixDialog.Root open={open} onOpenChange={setOpen}>
           <AnimatePresence>
             {open && (
@@ -219,14 +353,14 @@ export function CommandPalette() {
                       mass: 0.8,
                     }}
                     className={cn(
-                      "fixed left-1/2 top-[20%] z-50 -translate-x-1/2",
-                      "flex max-h-[min(480px,70dvh)] w-[min(90vw,36rem)] lg:w-[min(50vw,42rem)] 2xl:w-[min(40vw,48rem)] flex-col",
+                      "fixed left-1/2 top-[12%] z-50 -translate-x-1/2",
+                      "flex max-h-[min(600px,80dvh)] w-[min(95vw,56rem)] flex-col",
                       "rounded-[var(--radius-lg)] border border-border-default bg-bg-card shadow-xl",
                       "focus:outline-none"
                     )}
                   >
                     <RadixDialog.Title className="sr-only">Search</RadixDialog.Title>
-                    {commandContent}
+                    {desktopContent}
                   </motion.div>
                 </RadixDialog.Content>
               </RadixDialog.Portal>

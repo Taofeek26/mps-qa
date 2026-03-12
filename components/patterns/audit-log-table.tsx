@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { DataTable, type DataTablePagination } from "@/components/ui/data-table";
 import { FilterBar } from "@/components/ui/filter-bar";
+import { MobileBackButton } from "@/components/ui/mobile-back-button";
 
 /* ─── Types ─── */
 
@@ -224,6 +225,8 @@ function AuditLogTable({
 }: AuditLogTableProps) {
   return (
     <div className={cn("space-y-4", className)}>
+      <MobileBackButton />
+
       {filterSlots && (
         <FilterBar onReset={onResetFilters}>{filterSlots}</FilterBar>
       )}

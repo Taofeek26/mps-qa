@@ -28,15 +28,15 @@ const KpiCard = React.forwardRef<HTMLDivElement, KpiCardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-[var(--radius-lg)] border border-border-default bg-bg-card p-5 transition-colors duration-150 hover:border-border-strong",
+          "rounded-[var(--radius-lg)] border border-border-default bg-bg-card p-3.5 sm:p-5 transition-colors duration-150 hover:border-border-strong",
           className
         )}
         {...props}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-text-muted truncate">{title}</p>
-            <p className="mt-1.5 text-[26px] font-extrabold text-text-primary leading-tight tracking-tight">
+            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-text-muted truncate">{title}</p>
+            <p className="mt-1 sm:mt-1.5 text-[20px] sm:text-[26px] font-extrabold text-text-primary leading-tight tracking-tight">
               {value}
             </p>
             {trend && (

@@ -28,6 +28,7 @@ import { getAllShipments } from "@/lib/mock-data";
 import { exportReportPdf } from "./pdf-export";
 import { cn } from "@/lib/utils";
 import { RenameReportDialog } from "./rename-report-dialog";
+import { MobileBackButton } from "@/components/ui/mobile-back-button";
 
 interface ReportListProps {
   userId: string;
@@ -105,11 +106,13 @@ export function ReportList({ userId }: ReportListProps) {
 
   return (
     <div className={cn("flex flex-col gap-6", isEmpty && "min-h-[calc(100dvh-10rem)]")}>
+      <MobileBackButton label="More" href="/more" />
+
       <div className="flex items-center justify-end gap-4">
         <Link href="/reports/builder/new">
           <Button>
             <Plus className="h-4 w-4" />
-            Create new report
+            <span className="hidden sm:inline">Create new report</span>
           </Button>
         </Link>
       </div>

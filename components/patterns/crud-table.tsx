@@ -25,6 +25,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { IconButton } from "@/components/ui/button";
+import { PullToSearch } from "@/components/ui/pull-to-search";
+import { MobileBackButton } from "@/components/ui/mobile-back-button";
 
 /* ─── Types ─── */
 
@@ -199,12 +201,23 @@ function CrudTable<TData>({
 
   return (
     <div className={cn("space-y-4", className)}>
+      <MobileBackButton />
+
+      {/* Mobile: pull-to-reveal search */}
+      {onSearchChange && (
+        <PullToSearch
+          value={searchValue ?? ""}
+          onChange={onSearchChange}
+          placeholder={searchPlaceholder}
+        />
+      )}
+
       {/* Filters + Actions */}
       {(onSearchChange || filterSlots || formContent || onCreateNew) && (
         <div className="flex flex-wrap items-end gap-4">
           <FilterBar onReset={onResetFilters} className="flex-1 min-w-0">
             {onSearchChange && (
-              <div className="w-full sm:w-64">
+              <div className="hidden sm:block w-full sm:w-64">
                 <TextInput
                   variant="search"
                   value={searchValue}
@@ -218,7 +231,7 @@ function CrudTable<TData>({
           {(formContent || onCreateNew) && (
             <Button size="sm" className="shrink-0" onClick={handleCreate}>
               <Plus className="h-4 w-4" />
-              Add {entityName}
+              <span className="hidden sm:inline">Add {entityName}</span>
             </Button>
           )}
         </div>
