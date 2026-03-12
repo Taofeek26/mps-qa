@@ -7,52 +7,12 @@ import { Command } from "cmdk";
 import { Search, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { buildBreadcrumbs, NAV_GROUPS } from "@/lib/navigation";
+import { buildBreadcrumbs } from "@/lib/navigation";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { Notifications } from "./notifications";
 import { UserMenu } from "./user-menu";
 import { useAuth } from "@/lib/auth-context";
-
-/* ─── Search items ─── */
-
-interface SearchItem {
-  id: string;
-  label: string;
-  group: string;
-  href: string;
-  icon?: React.ElementType;
-  keywords?: string[];
-}
-
-function buildSearchItems(userRole: string | undefined): SearchItem[] {
-  const items: SearchItem[] = [];
-  for (const group of NAV_GROUPS) {
-    for (const item of group.items) {
-      if (item.roles && userRole && !item.roles.includes(userRole)) continue;
-      items.push({
-        id: item.href,
-        label: item.label,
-        group: group.label,
-        href: item.href,
-        icon: item.icon,
-        keywords: [item.label.toLowerCase()],
-      });
-    }
-  }
-  return items;
-}
-
-const REPORT_TABS: SearchItem[] = [
-  { id: "report-waste-trends", label: "Waste Trends", group: "Reports", href: "/reports?tab=waste-trends", keywords: ["waste", "trends", "volume"] },
-  { id: "report-cost-analysis", label: "Cost Analysis", group: "Reports", href: "/reports?tab=cost-analysis", keywords: ["cost", "revenue", "margin"] },
-  { id: "report-light-load", label: "Light Load", group: "Reports", href: "/reports?tab=light-load", keywords: ["light", "load", "underweight"] },
-  { id: "report-regulatory", label: "Regulatory", group: "Reports", href: "/reports?tab=regulatory", keywords: ["regulatory", "compliance", "rcra"] },
-  { id: "report-operations", label: "Operations", group: "Reports", href: "/reports?tab=operations", keywords: ["operations", "vendors", "sites"] },
-  { id: "report-data-quality", label: "Data Quality", group: "Reports", href: "/reports?tab=data-quality", keywords: ["data", "quality", "errors"] },
-  { id: "report-vendor-intel", label: "Vendor Intel", group: "Reports", href: "/reports?tab=vendor-intel", keywords: ["vendor", "intel", "performance"] },
-  { id: "report-logistics", label: "Logistics", group: "Reports", href: "/reports?tab=logistics", keywords: ["logistics", "transport", "miles"] },
-  { id: "report-emissions", label: "Emissions", group: "Reports", href: "/reports?tab=emissions", keywords: ["emissions", "ghg", "sustainability"] },
-];
+import { buildAllSearchItems, COLOR_CLASSES, type SearchItem } from "@/lib/search-items";
 
 /* ─── Mobile Topbar ─── */
 
@@ -66,8 +26,7 @@ function MobileTopbar() {
   const [resultsVisible, setResultsVisible] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const navItems = React.useMemo(() => buildSearchItems(user?.role), [user?.role]);
-  const allItems = React.useMemo(() => [...navItems, ...REPORT_TABS], [navItems]);
+  const allItems = React.useMemo(() => buildAllSearchItems(user?.role), [user?.role]);
 
   const grouped = React.useMemo(() => {
     const groups = new Map<string, SearchItem[]>();
@@ -135,7 +94,7 @@ function MobileTopbar() {
           {searchActive ? (
             <Command.Input
               ref={inputRef}
-              placeholder="Search pages, reports..."
+              placeholder="Search shipments, vendors, pages..."
               className="flex-1 min-w-0 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
             />
           ) : (
@@ -210,15 +169,43 @@ function MobileTopbar() {
             >
               {items.map((item) => {
                 const Icon = item.icon;
+
+                if (item.type === "data") {
+                  const colors = item.color ? COLOR_CLASSES[item.color] : COLOR_CLASSES.primary;
+                  return (
+                    <Command.Item
+                      key={item.id}
+                      value={`${item.label} ${item.description ?? ""} ${item.keywords?.join(" ") ?? ""}`}
+                      onSelect={() => handleSelect(item.href)}
+                      className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] border border-border-default px-3 py-2.5 transition-colors data-[selected=true]:border-primary-200 data-[selected=true]:bg-primary-50"
+                    >
+                      <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border", colors.bg, colors.border, colors.text)}>
+                        {Icon && <Icon className="h-4 w-4" />}
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="truncate text-sm font-medium text-text-primary">{item.label}</span>
+                        {item.description && (
+                          <span className="truncate text-xs text-text-muted">{item.description}</span>
+                        )}
+                      </div>
+                    </Command.Item>
+                  );
+                }
+
                 return (
                   <Command.Item
                     key={item.id}
-                    value={`${item.label} ${item.keywords?.join(" ") ?? ""}`}
+                    value={`${item.label} ${item.description ?? ""} ${item.keywords?.join(" ") ?? ""}`}
                     onSelect={() => handleSelect(item.href)}
                     className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-sm)] px-2 py-2.5 text-sm text-text-secondary transition-colors data-[selected=true]:bg-primary-50 data-[selected=true]:text-primary-500"
                   >
                     {Icon && <Icon className="h-4 w-4 shrink-0 text-text-muted" />}
-                    <span>{item.label}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate">{item.label}</span>
+                      {item.description && (
+                        <span className="truncate text-xs text-text-muted">{item.description}</span>
+                      )}
+                    </div>
                   </Command.Item>
                 );
               })}
