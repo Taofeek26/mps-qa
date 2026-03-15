@@ -1,12 +1,28 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
-import { FileDown, Loader2, ArrowLeft, Save } from "lucide-react";
+import { FileDown, Loader2, ArrowLeft, Save, SlidersHorizontal, ChevronDown } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { cn } from "@/lib/utils";
 import type { Client, Site } from "@/lib/types";
+
+const STATE_NAMES: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi",
+  MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire",
+  NJ: "New Jersey", NM: "New Mexico", NY: "New York", NC: "North Carolina",
+  ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania",
+  RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota", TN: "Tennessee",
+  TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington",
+  WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+};
 
 const PRESETS = [
   { label: "Last 6 months", range: { from: new Date(Date.now() - 180 * 86400000), to: new Date() } },
@@ -31,6 +47,22 @@ interface ReportToolbarProps {
   onSave?: () => void;
   isSaving?: boolean;
   showBack?: boolean;
+  /* Extended filters */
+  transporterName?: string;
+  onTransporterChange?: (val: string) => void;
+  transporterOptions?: string[];
+  containerType?: string;
+  onContainerTypeChange?: (val: string) => void;
+  containerTypeOptions?: string[];
+  receivingState?: string;
+  onReceivingStateChange?: (val: string) => void;
+  receivingStateOptions?: string[];
+  wasteCategory?: string;
+  onWasteCategoryChange?: (val: string) => void;
+  wasteCategoryOptions?: string[];
+  serviceFrequency?: string;
+  onServiceFrequencyChange?: (val: string) => void;
+  serviceFrequencyOptions?: string[];
 }
 
 export function ReportToolbar({
@@ -50,7 +82,26 @@ export function ReportToolbar({
   onSave,
   isSaving = false,
   showBack = false,
+  transporterName = "",
+  onTransporterChange,
+  transporterOptions = [],
+  containerType = "",
+  onContainerTypeChange,
+  containerTypeOptions = [],
+  receivingState = "",
+  onReceivingStateChange,
+  receivingStateOptions = [],
+  wasteCategory = "",
+  onWasteCategoryChange,
+  wasteCategoryOptions = [],
+  serviceFrequency = "",
+  onServiceFrequencyChange,
+  serviceFrequencyOptions = [],
 }: ReportToolbarProps) {
+  const [moreOpen, setMoreOpen] = React.useState(false);
+  const hasMoreFilters = transporterOptions.length > 0 || containerTypeOptions.length > 0 ||
+    receivingStateOptions.length > 0 || wasteCategoryOptions.length > 0 || serviceFrequencyOptions.length > 0;
+
   return (
     <div className="border-b border-border-default py-3">
       {/* Row 1: Back + Title */}
@@ -72,7 +123,7 @@ export function ReportToolbar({
         />
       </div>
 
-      {/* Row 2: Filters + Save + Export */}
+      {/* Row 2: Primary filters + Save + Export */}
       <div className="flex flex-wrap items-center gap-2.5">
         <DateRangePicker
           from={dateRange?.from}
@@ -102,6 +153,18 @@ export function ReportToolbar({
           placeholder="All Sites"
           className="w-[180px]"
         />
+        {hasMoreFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMoreOpen((p) => !p)}
+            className="text-text-muted"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            More Filters
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", moreOpen && "rotate-180")} />
+          </Button>
+        )}
         <div className="ml-auto flex items-center gap-2">
           {onSave && (
             <Button variant="secondary" onClick={onSave} disabled={isSaving}>
@@ -119,6 +182,72 @@ export function ReportToolbar({
           </Button>
         </div>
       </div>
+
+      {/* Row 3: Extended filters (collapsible) */}
+      {hasMoreFilters && moreOpen && (
+        <div className="flex flex-wrap items-center gap-2.5 mt-2.5 pt-2.5 border-t border-border-default">
+          {transporterOptions.length > 0 && onTransporterChange && (
+            <SearchableSelect
+              options={[
+                { value: "all", label: "All Transporters" },
+                ...transporterOptions.map((t) => ({ value: t, label: t })),
+              ]}
+              value={transporterName || "all"}
+              onChange={onTransporterChange}
+              placeholder="All Transporters"
+              className="w-[180px]"
+            />
+          )}
+          {containerTypeOptions.length > 0 && onContainerTypeChange && (
+            <SearchableSelect
+              options={[
+                { value: "all", label: "All Containers" },
+                ...containerTypeOptions.map((c) => ({ value: c, label: c })),
+              ]}
+              value={containerType || "all"}
+              onChange={onContainerTypeChange}
+              placeholder="All Containers"
+              className="w-[180px]"
+            />
+          )}
+          {receivingStateOptions.length > 0 && onReceivingStateChange && (
+            <SearchableSelect
+              options={[
+                { value: "all", label: "All States" },
+                ...receivingStateOptions.map((s) => ({ value: s, label: STATE_NAMES[s] ?? s })),
+              ]}
+              value={receivingState || "all"}
+              onChange={onReceivingStateChange}
+              placeholder="All States"
+              className="w-[180px]"
+            />
+          )}
+          {wasteCategoryOptions.length > 0 && onWasteCategoryChange && (
+            <SearchableSelect
+              options={[
+                { value: "all", label: "All Categories" },
+                ...wasteCategoryOptions.map((w) => ({ value: w, label: w })),
+              ]}
+              value={wasteCategory || "all"}
+              onChange={onWasteCategoryChange}
+              placeholder="All Categories"
+              className="w-[180px]"
+            />
+          )}
+          {serviceFrequencyOptions.length > 0 && onServiceFrequencyChange && (
+            <SearchableSelect
+              options={[
+                { value: "all", label: "All Frequencies" },
+                ...serviceFrequencyOptions.map((f) => ({ value: f, label: f })),
+              ]}
+              value={serviceFrequency || "all"}
+              onChange={onServiceFrequencyChange}
+              placeholder="All Frequencies"
+              className="w-[180px]"
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -20,8 +20,11 @@ import { type ColumnDef } from "@tanstack/react-table";
 import {
   Activity,
   Building2,
+  MapPin,
   RotateCcw,
+  Target,
   Trophy,
+  Truck,
   TrendingUp,
 } from "lucide-react";
 
@@ -39,7 +42,12 @@ import {
   PillTabsTrigger,
   PillTabsContent,
 } from "@/components/ui/pill-tabs";
-import { ChartContainer, CATEGORY_COLORS, TOOLTIP_STYLE } from "@/components/charts";
+import {
+  ChartContainer,
+  CATEGORY_COLORS,
+  TOOLTIP_STYLE,
+  DonutChart,
+} from "@/components/charts";
 import {
   getMonthKey,
   formatMonthLabel,
@@ -49,6 +57,12 @@ import {
 } from "@/lib/report-utils";
 import { cn } from "@/lib/utils";
 import type { Shipment } from "@/lib/types";
+import {
+  getFacilityCapacities,
+  getCollectionEvents,
+  CLIENT_INDUSTRY_CODES,
+} from "@/lib/mock-kpi-data";
+import { getClients } from "@/lib/mock-data";
 
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
@@ -183,6 +197,14 @@ interface TransporterRow {
   rating: number;
 }
 
+/* ─── Industry Code row type ─── */
+
+interface IndustryCodeRow {
+  clientName: string;
+  naics: string;
+  description: string;
+}
+
 /* ─── Rank badge helpers ─── */
 
 const rankBadgeVariant = (rank: number) => {
@@ -214,6 +236,12 @@ export function OperationsContent() {
     hasFilters,
     resetFilters,
     shipments,
+    transporterName,
+    setTransporterName,
+    transporterOptions,
+    serviceFrequency,
+    setServiceFrequency,
+    serviceFrequencyOptions,
   } = useReportFilters();
 
   const tableRef = React.useRef<HTMLDivElement>(null);
@@ -221,6 +249,7 @@ export function OperationsContent() {
 
   const [leaderboardPage, setLeaderboardPage] = React.useState(1);
   const [transporterPage, setTransporterPage] = React.useState(1);
+  const [industryCodePage, setIndustryCodePage] = React.useState(1);
 
   const hasData = shipments.length > 0;
 
@@ -263,6 +292,53 @@ export function OperationsContent() {
       }
     });
 
+    // Avg Miles/Shipment
+    const milesShipments = shipments.filter(
+      (s) => s.milesFromFacility != null && s.milesFromFacility > 0
+    );
+    const avgMiles =
+      milesShipments.length > 0
+        ? Math.round(
+            milesShipments.reduce((sum, s) => sum + (s.milesFromFacility ?? 0), 0) /
+              milesShipments.length
+          )
+        : 0;
+
+    // Target vs Actual %
+    const targetShipments = shipments.filter(
+      (s) =>
+        s.standardizedVolumeLbs != null &&
+        s.standardizedVolumeLbs > 0 &&
+        s.targetLoadWeight != null &&
+        s.targetLoadWeight > 0
+    );
+    const targetVsActual =
+      targetShipments.length > 0
+        ? Math.round(
+            (targetShipments.reduce(
+              (sum, s) =>
+                sum +
+                ((s.standardizedVolumeLbs ?? 0) / (s.targetLoadWeight ?? 1)) * 100,
+              0
+            ) /
+              targetShipments.length) *
+              10
+          ) / 10
+        : 0;
+
+    // Tons Per Route (unique site+date combo)
+    const routeSet = new Set<string>();
+    let totalTons = 0;
+    shipments.forEach((s) => {
+      const key = `${s.siteId}__${s.shipmentDate}`;
+      routeSet.add(key);
+      totalTons += s.weightValue / 2000;
+    });
+    const tonsPerRoute =
+      routeSet.size > 0
+        ? Math.round((totalTons / routeSet.size) * 10) / 10
+        : 0;
+
     return {
       activeSites: activeSiteIds.size,
       avgVolumePerSite:
@@ -272,8 +348,85 @@ export function OperationsContent() {
       topSite,
       topMargin: Math.round(topMargin * 10) / 10,
       totalTransporters: transporterIds.size,
+      avgMiles,
+      targetVsActual,
+      tonsPerRoute,
     };
   }, [shipments]);
+
+  /* ─── Facility Utilization Data ─── */
+
+  const facilityUtilization = React.useMemo(() => {
+    const capacities = getFacilityCapacities();
+    return capacities
+      .map((f) => ({
+        name: f.facilityName,
+        utilization:
+          f.monthlyCapacityTons > 0
+            ? Math.round(
+                (f.monthlyProcessedTons / f.monthlyCapacityTons) * 100 * 10
+              ) / 10
+            : 0,
+        processed: Math.round(f.monthlyProcessedTons),
+        capacity: Math.round(f.monthlyCapacityTons),
+      }))
+      .sort((a, b) => b.utilization - a.utilization);
+  }, []);
+
+  /* ─── Jobs/Stops per Day (monthly trend) ─── */
+
+  const jobsPerDayTrend = React.useMemo(() => {
+    const events = getCollectionEvents();
+    const completed = events.filter((e) => e.status === "completed");
+    const byMonth = new Map<string, number>();
+    completed.forEach((e) => {
+      if (e.actualDate) {
+        const mk = e.actualDate.slice(0, 7);
+        byMonth.set(mk, (byMonth.get(mk) ?? 0) + 1);
+      }
+    });
+    return Array.from(byMonth.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({
+        month: formatMonthLabel(month),
+        completedJobs: count,
+      }));
+  }, []);
+
+  /* ─── Volume by Job Type (service frequency) ─── */
+
+  const volumeByJobType = React.useMemo(() => {
+    const byFreq = new Map<string, number>();
+    shipments.forEach((s) => {
+      const freq = s.serviceFrequency ?? "Other";
+      const category =
+        freq === "On Call"
+          ? "On Call"
+          : freq.includes("Week") || freq.includes("Month") || freq.includes("Bi")
+          ? "Scheduled"
+          : "Other";
+      byFreq.set(category, (byFreq.get(category) ?? 0) + s.weightValue);
+    });
+    return Array.from(byFreq.entries())
+      .map(([name, value]) => ({ name, value: Math.round(value) }))
+      .sort((a, b) => b.value - a.value);
+  }, [shipments]);
+
+  /* ─── Client Industry Codes ─── */
+
+  const industryCodeData = React.useMemo(() => {
+    const allClients = getClients();
+    return allClients
+      .map((c) => {
+        const code = CLIENT_INDUSTRY_CODES[c.id];
+        return {
+          clientName: c.name,
+          naics: code?.naics ?? "N/A",
+          description: code?.description ?? "Not classified",
+        };
+      })
+      .sort((a, b) => a.clientName.localeCompare(b.clientName));
+  }, []);
 
   /* ─── Site Leaderboard ─── */
 
@@ -587,7 +740,7 @@ export function OperationsContent() {
         cell: ({ row }) => <Sparkline data={row.original.sparkData} />,
       },
     ],
-    [leaderboardPage]
+    [leaderboardPage, pageSize]
   );
 
   /* ─── Transporter Table Columns ─── */
@@ -635,11 +788,40 @@ export function OperationsContent() {
     []
   );
 
+  /* ─── Industry Code Table Columns ─── */
+
+  const industryCodeColumns: ColumnDef<IndustryCodeRow, unknown>[] = React.useMemo(
+    () => [
+      {
+        accessorKey: "clientName",
+        header: "Client",
+        cell: ({ getValue }) => (
+          <span className="font-medium">{getValue() as string}</span>
+        ),
+      },
+      {
+        accessorKey: "naics",
+        header: "NAICS Code",
+        meta: { align: "center" },
+        cell: ({ getValue }) => (
+          <Badge variant="neutral">{getValue() as string}</Badge>
+        ),
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ getValue }) => getValue() as string,
+      },
+    ],
+    []
+  );
+
   /* ─── Reset pagination on filter change ─── */
 
   React.useEffect(() => {
     setLeaderboardPage(1);
     setTransporterPage(1);
+    setIndustryCodePage(1);
   }, [shipments]);
 
   return (
@@ -659,17 +841,17 @@ export function OperationsContent() {
             icon={Activity}
           />
           <KpiCard
-            title="Top Site (by Margin)"
-            value={kpis.topSite}
-            subtitle={`${kpis.topMargin}% margin`}
-            icon={Trophy}
-            variant="success"
+            title="Avg Miles/Shipment"
+            value={`${kpis.avgMiles} mi`}
+            subtitle={`${shipments.filter((s) => s.milesFromFacility != null).length} shipments with data`}
+            icon={MapPin}
           />
           <KpiCard
-            title="Total Transporters Used"
-            value={kpis.totalTransporters}
-            subtitle="Unique carriers"
-            icon={TrendingUp}
+            title="Target vs Actual"
+            value={`${kpis.targetVsActual}%`}
+            subtitle="Avg load utilization"
+            icon={Target}
+            variant={kpis.targetVsActual >= 90 ? "success" : kpis.targetVsActual >= 75 ? "warning" : "error"}
           />
         </>
       }
@@ -711,6 +893,30 @@ export function OperationsContent() {
           )}
         </>
       }
+      moreFilters={
+        <>
+          <SearchableSelect
+            options={[
+              { value: "all", label: "All Transporters" },
+              ...transporterOptions.map((t) => ({ value: t, label: t })),
+            ]}
+            value={transporterName || "all"}
+            onChange={setTransporterName}
+            placeholder="All Transporters"
+            className="w-full sm:w-[200px]"
+          />
+          <SearchableSelect
+            options={[
+              { value: "all", label: "All Frequencies" },
+              ...serviceFrequencyOptions.map((f) => ({ value: f, label: f })),
+            ]}
+            value={serviceFrequency || "all"}
+            onChange={setServiceFrequency}
+            placeholder="All Frequencies"
+            className="w-full sm:w-[200px]"
+          />
+        </>
+      }
       onExport={handleExport}
       exportDisabled={!hasData}
       onExportPdf={handleExportPdf}
@@ -725,6 +931,7 @@ export function OperationsContent() {
             <PillTabsTrigger value="composition">Waste Composition</PillTabsTrigger>
             <PillTabsTrigger value="transporters" count={transporterData.length}>Transporters</PillTabsTrigger>
             <PillTabsTrigger value="site-trends">Site Trends</PillTabsTrigger>
+            <PillTabsTrigger value="operational-metrics">Operational Metrics</PillTabsTrigger>
           </PillTabsList>
 
           {/* Site Leaderboard */}
@@ -764,8 +971,27 @@ export function OperationsContent() {
                     data={treemapData}
                     dataKey="size"
                     nameKey="name"
-                    stroke="var(--color-bg-surface)"
-                    content={<TreemapContent x={0} y={0} width={0} height={0} />}
+                    stroke="var(--color-border-default)"
+                    isAnimationActive={false}
+                    content={({ x, y, width, height, name, index }: { x: number; y: number; width: number; height: number; name: string; index: number }) => {
+                      if (width < 2 || height < 2) return <g />;
+                      const showBoth = width > 45 && height > 32;
+                      const showName = width > 30 && height > 18;
+                      const val = treemapData[index]?.size ?? 0;
+                      return (
+                        <g>
+                          <rect x={x} y={y} width={width} height={height} rx={4} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} stroke="var(--color-bg-card)" strokeWidth={2} />
+                          {showBoth ? (
+                            <>
+                              <text x={x + width / 2} y={y + height / 2 - 7} textAnchor="middle" fill="#fff" fontSize={Math.min(12, width / 6)} style={{ fontWeight: 400, fontFamily: "Inter, system-ui, sans-serif", letterSpacing: "0.03em", textRendering: "geometricPrecision" }}>{name}</text>
+                              <text x={x + width / 2} y={y + height / 2 + 10} textAnchor="middle" fill="rgba(255,255,255,0.8)" fontSize={Math.min(10, width / 7)} style={{ fontWeight: 400, fontFamily: "Inter, system-ui, sans-serif", letterSpacing: "0.03em", textRendering: "geometricPrecision" }}>{(val / 1000).toFixed(1)}k lbs</text>
+                            </>
+                          ) : showName ? (
+                            <text x={x + width / 2} y={y + height / 2 + 1} textAnchor="middle" dominantBaseline="central" fill="#fff" fontSize={Math.min(10, width / 5)} style={{ fontWeight: 400, fontFamily: "Inter, system-ui, sans-serif", letterSpacing: "0.03em", textRendering: "geometricPrecision" }}>{name}</text>
+                          ) : null}
+                        </g>
+                      );
+                    }}
                   />
                 </ResponsiveContainer>
               </ChartContainer>
@@ -780,7 +1006,7 @@ export function OperationsContent() {
                     data={hazDivergingData}
                     layout="vertical"
                     stackOffset="sign"
-                    margin={{ top: 5, right: 40, bottom: 5, left: 100 }}
+                    margin={{ top: 5, right: 5, bottom: 5, left: 0 }}
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
@@ -906,6 +1132,171 @@ export function OperationsContent() {
                   </div>
                 );
               })}
+            </div>
+          </PillTabsContent>
+
+          {/* Operational Metrics Tab */}
+          <PillTabsContent value="operational-metrics" className="space-y-4">
+            {/* Workday Utilization — inline metric */}
+            <div className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-border-default bg-bg-card px-4 py-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)]" style={{ backgroundColor: "color-mix(in srgb, var(--color-success-400) 20%, transparent)" }}>
+                <Activity className="h-5 w-5" style={{ color: "var(--color-success-600)" }} />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Workday Utilization</p>
+                <p className="text-lg font-extrabold text-text-primary">91.2%</p>
+              </div>
+              <p className="ml-auto text-xs text-text-muted">Avg productive time across all sites</p>
+            </div>
+
+            {/* Charts row: Facility Utilization + Jobs/Stops trend */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Receiving Facility Utilization % */}
+              <ChartContainer
+                title="Receiving Facility Utilization"
+                subtitle="Monthly processed vs capacity (%)"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={facilityUtilization}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--color-border-default)"
+                      horizontal={false}
+                    />
+                    <XAxis
+                      type="number"
+                      domain={[0, 100]}
+                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                      tickFormatter={(v) => `${v}%`}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
+                      width={115}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      {...TOOLTIP_STYLE}
+                      formatter={(value, _name, entry) => {
+                        const payload = entry?.payload as
+                          | { processed: number; capacity: number }
+                          | undefined;
+                        return [
+                          `${value}% (${payload?.processed?.toLocaleString() ?? 0} / ${payload?.capacity?.toLocaleString() ?? 0} tons)`,
+                          "Utilization",
+                        ];
+                      }}
+                    />
+                    <Bar dataKey="utilization" radius={[0, 4, 4, 0]}>
+                      {facilityUtilization.map((entry, idx) => (
+                        <Cell
+                          key={idx}
+                          fill={
+                            entry.utilization >= 90
+                              ? "var(--color-error-400)"
+                              : entry.utilization >= 70
+                              ? "var(--color-warning-400)"
+                              : "var(--color-success-400)"
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+
+              {/* Jobs/Stops per Day — Monthly Trend */}
+              <ChartContainer
+                title="Completed Jobs per Month"
+                subtitle="Collection events with status completed"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={jobsPerDayTrend}
+                    margin={{ top: 5, right: 5, bottom: 5, left: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--color-border-default)"
+                    />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                      width={30}
+                    />
+                    <Tooltip
+                      {...TOOLTIP_STYLE}
+                      formatter={(value) => [
+                        `${Number(value).toLocaleString()} jobs`,
+                        "Completed",
+                      ]}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="completedJobs"
+                      stroke={CATEGORY_COLORS[1]}
+                      fill={CATEGORY_COLORS[1]}
+                      fillOpacity={0.15}
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+
+            {/* Second row: Volume by Job Type donut + Industry Codes table */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Volume by Job Type */}
+              <ChartContainer
+                title="Volume by Job Type"
+                subtitle="Shipment volume by service frequency category"
+              >
+                <DonutChart
+                  data={volumeByJobType}
+                  valueFormatter={(v) => `${(v / 1000).toFixed(1)}k lbs`}
+                />
+              </ChartContainer>
+
+              {/* Client Industry Codes */}
+              <Card className="p-4">
+                <div className="mb-3">
+                  <h3 className="text-[15px] font-bold text-text-primary">
+                    Client Industry Codes
+                  </h3>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    NAICS classification by client
+                  </p>
+                </div>
+                <DataTable
+                  columns={industryCodeColumns}
+                  data={industryCodeData.slice(
+                    (industryCodePage - 1) * pageSize,
+                    industryCodePage * pageSize
+                  )}
+                  pagination={{
+                    page: industryCodePage,
+                    pageSize: pageSize,
+                    total: industryCodeData.length,
+                  }}
+                  onPaginationChange={setIndustryCodePage}
+                  emptyState={
+                    <div className="flex items-center justify-center h-full text-sm text-text-muted">
+                      No industry code data
+                    </div>
+                  }
+                />
+              </Card>
             </div>
           </PillTabsContent>
         </PillTabs>

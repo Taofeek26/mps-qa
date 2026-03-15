@@ -4,8 +4,8 @@ import * as React from "react";
 import { useAutoPageSize } from "@/lib/use-auto-page-size";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
@@ -235,13 +235,19 @@ export function WasteTrendsContent() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <ChartContainer title="Monthly Volume Trend" subtitle="Tonnage over time" chartClassName="h-[220px] sm:h-[260px] lg:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthlyVolume} margin={{ top: 5, right: 40, bottom: 5, left: 0 }}>
+                  <AreaChart data={monthlyVolume} margin={{ top: 5, right: 40, bottom: 5, left: 0 }}>
+                    <defs>
+                      <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--color-primary-400)" stopOpacity={0.25} />
+                        <stop offset="100%" stopColor="var(--color-primary-400)" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
-                    <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} tickFormatter={(v) => fmtTons(v)} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} tickFormatter={(v) => fmtTons(v)} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
                     <Tooltip {...TOOLTIP_STYLE} formatter={(value) => [`${Number(value).toLocaleString()} tons`, "Tons"]} />
-                    <Line type="monotone" dataKey="tons" name="Tons" stroke={CHART_COLORS.primary} fill={CHART_COLORS.primary} strokeWidth={2} dot={{ r: 3, fill: CHART_COLORS.primary }} activeDot={{ r: 5 }} />
-                  </LineChart>
+                    <Area type="monotone" dataKey="tons" name="Tons" stroke={CHART_COLORS.primary} fill="url(#volumeGradient)" strokeWidth={2} dot={{ r: 3, fill: CHART_COLORS.primary, stroke: "var(--color-bg-card)", strokeWidth: 2 }} activeDot={{ r: 5 }} />
+                  </AreaChart>
                 </ResponsiveContainer>
               </ChartContainer>
 
@@ -264,12 +270,33 @@ export function WasteTrendsContent() {
           {/* Treatment Distribution + Waste Type Breakdown */}
           <PillTabsContent value="distribution" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <ChartContainer title="Waste Type Distribution" subtitle="Volume by waste stream (tons)" chartClassName="h-[220px] sm:h-[260px] lg:h-[300px] overflow-y-auto">
-                <ProgressList
-                  items={wasteTypeData.map((s) => ({ label: s.name, value: s.tons, displayValue: `${s.tons.toLocaleString()} tons \u00b7 ${s.count} shipments`, color: "var(--color-primary-400)" }))}
-                  maxItems={10}
-                  className="px-1 py-2"
-                />
+              <ChartContainer title="Waste Type Distribution" subtitle="Volume by waste stream (tons)" chartClassName="h-[220px] sm:h-[260px] lg:h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={wasteTypeData.slice(0, 10)}
+                    margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
+                      interval={0}
+                      angle={-35}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                      tickFormatter={(v) => `${v.toLocaleString()}t`}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
+                    />
+                    <Tooltip {...TOOLTIP_STYLE} formatter={(value) => [`${Number(value).toLocaleString()} tons`, "Volume"]} />
+                    <Bar dataKey="tons" name="Volume (tons)" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </ChartContainer>
 
               <ChartContainer title="Treatment Method Distribution" subtitle="Landfill vs Recycling vs Incineration vs Fuel Blending" chartClassName="h-[220px] sm:h-[260px] lg:h-[300px]">

@@ -53,36 +53,53 @@ import { useTabPdfExport } from "./use-tab-pdf-export";
 function QualityGauge({ score }: { score: number }) {
   const color =
     score >= 90
-      ? "text-success-600"
+      ? "var(--color-success-500)"
       : score >= 70
-        ? "text-warning-500"
-        : "text-error-600";
-  const ringColor =
-    score >= 90
-      ? "border-success-500"
-      : score >= 70
-        ? "border-warning-500"
-        : "border-error-500";
+        ? "var(--color-warning-500)"
+        : "var(--color-error-500)";
+
+  const size = 64;
+  const strokeWidth = 5;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = (score / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div
-        className={cn(
-          "relative flex items-center justify-center w-32 h-32 rounded-full border-8 border-bg-subtle"
-        )}
-      >
-        <div
-          className={cn(
-            "absolute inset-0 rounded-full border-8 border-t-transparent border-r-transparent",
-            ringColor
-          )}
-          style={{ transform: `rotate(${(score / 100) * 360}deg)` }}
+    <div className="shrink-0">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {/* Background track */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="var(--color-bg-subtle)"
+          strokeWidth={strokeWidth}
         />
-        <div className="text-center">
-          <p className={cn("text-3xl font-bold", color)}>{score}%</p>
-          <p className="text-[10px] text-text-muted">Quality</p>
-        </div>
-      </div>
+        {/* Progress arc */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={`${progress} ${circumference - progress}`}
+          strokeDashoffset={circumference / 4}
+          strokeLinecap="round"
+          style={{ transition: "stroke-dasharray 0.6s ease" }}
+        />
+        {/* Score text */}
+        <text
+          x={size / 2}
+          y={size / 2 + 1}
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{ fontSize: 14, fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", fill: color }}
+        >
+          {score}%
+        </text>
+      </svg>
     </div>
   );
 }
@@ -258,11 +275,11 @@ export function DataQualityContent() {
   }, [shipments]);
 
   const lagBarColors = [
-    CATEGORY_COLORS[1],
-    CATEGORY_COLORS[1],
-    CATEGORY_COLORS[2],
-    CATEGORY_COLORS[2],
-    CATEGORY_COLORS[3],
+    "var(--color-success-400)",
+    "var(--color-success-400)",
+    "var(--color-warning-400)",
+    "var(--color-error-400)",
+    "var(--color-error-600)",
   ];
 
   /* ── Duplicate manifests ── */
@@ -331,9 +348,9 @@ export function DataQualityContent() {
   }, [shipments]);
 
   function fillColor(pct: number): string {
-    if (pct >= 80) return CATEGORY_COLORS[1];
-    if (pct >= 60) return CATEGORY_COLORS[2];
-    return CATEGORY_COLORS[3];
+    if (pct >= 80) return "var(--color-success-400)";
+    if (pct >= 60) return "var(--color-warning-400)";
+    return "var(--color-error-400)";
   }
 
   /* ── Duplicate manifest table columns ── */
@@ -441,13 +458,6 @@ export function DataQualityContent() {
             variant={overallScore >= 90 ? "success" : overallScore >= 70 ? "warning" : "error"}
           />
           <KpiCard
-            title="Fields Complete"
-            value={fieldsComplete.toLocaleString()}
-            subtitle="Passed validation"
-            icon={CheckCircle2}
-            variant="success"
-          />
-          <KpiCard
             title="Fields Missing"
             value={fieldsMissing.toLocaleString()}
             subtitle="Needs attention"
@@ -520,54 +530,59 @@ export function DataQualityContent() {
 
           {/* ── Tab 1: Quality Breakdown ── */}
           <PillTabsContent value="breakdown" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Quality Gauge */}
-              <Card className="flex items-center justify-center py-8">
-                <QualityGauge score={overallScore} />
+              <Card>
+                {/* Header with inline gauge */}
+                <div className="flex items-center gap-3 border-b border-border-default pb-3">
+                  <QualityGauge score={overallScore} />
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">Data Quality Breakdown</p>
+                    <p className="text-xs text-text-muted mt-0.5">{fieldsComplete.toLocaleString()} fields passed · {fieldsMissing.toLocaleString()} issues across {total.toLocaleString()} shipments</p>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-border-default">
+                        <th className="pb-2 pr-3 text-left font-semibold text-text-muted text-xs uppercase tracking-wider">Check</th>
+                        <th className="pb-2 px-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">Issues</th>
+                        <th className="pb-2 px-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">Total</th>
+                        <th className="pb-2 px-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">Rate</th>
+                        <th className="pb-2 px-3 text-left font-semibold text-text-muted text-xs uppercase tracking-wider">Coverage</th>
+                        <th className="pb-2 pl-3 text-left font-semibold text-text-muted text-xs uppercase tracking-wider">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {metrics.map((m) => {
+                        const pct = total > 0 ? Math.round((m.count / m.total) * 100) : 0;
+                        const variant = getVariantForPct(pct);
+                        const coveragePct = 100 - pct;
+                        return (
+                          <tr key={m.label} className="border-b border-border-default last:border-0 hover:bg-surface-secondary/50 transition-colors">
+                            <td className="py-2.5 pr-3 font-medium text-text-primary">{m.label}</td>
+                            <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">{m.count.toLocaleString()}</td>
+                            <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-muted">{m.total.toLocaleString()}</td>
+                            <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">{pct}%</td>
+                            <td className="py-2.5 px-3 w-32">
+                              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--color-bg-subtle)" }}>
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{
+                                    width: `${coveragePct}%`,
+                                    backgroundColor: variant === "success" ? "var(--color-success-400)" : variant === "warning" ? "var(--color-warning-400)" : "var(--color-error-400)",
+                                  }}
+                                />
+                              </div>
+                            </td>
+                            <td className="py-2.5 pl-3">
+                              <Badge variant={variant}>{getVariantLabel(variant)}</Badge>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </Card>
-
-              {/* Breakdown Metric Cards */}
-              <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {metrics.map((m) => {
-                  const pct = total > 0 ? Math.round((m.count / m.total) * 100) : 0;
-                  const variant = getVariantForPct(pct);
-                  const Icon = m.icon;
-                  return (
-                    <Card key={m.label}>
-                      <div className="flex items-start gap-3 p-4">
-                        <div
-                          className={cn(
-                            "flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)]",
-                            variant === "success"
-                              ? "bg-success-100 text-success-600"
-                              : variant === "warning"
-                                ? "bg-warning-100 text-warning-600"
-                                : "bg-error-100 text-error-600"
-                          )}
-                        >
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-text-primary">{m.label}</p>
-                          <p className="text-2xl font-bold text-text-primary mt-1">
-                            {m.count}{" "}
-                            <span className="text-sm font-normal text-text-muted">
-                              / {m.total}
-                            </span>
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-xs text-text-muted">
-                              {pct}% of shipments
-                            </p>
-                            <Badge variant={variant}>{getVariantLabel(variant)}</Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
           </PillTabsContent>
 
           {/* ── Tab 2: Coverage ── */}
@@ -599,15 +614,20 @@ export function DataQualityContent() {
                 chartClassName="h-[220px] sm:h-[260px] lg:h-[280px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={lagHistogram}>
+                  <BarChart data={lagHistogram} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 12, fill: "var(--color-text-muted)" }}
+                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 12, fill: "var(--color-text-muted)" }}
+                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                       allowDecimals={false}
+                      width={30}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
                     />
                     <Tooltip
                       {...TOOLTIP_STYLE}
@@ -666,7 +686,7 @@ export function DataQualityContent() {
                   <BarChart
                     data={fillRateData}
                     layout="vertical"
-                    margin={{ left: 20, right: 30 }}
+                    margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
@@ -676,14 +696,18 @@ export function DataQualityContent() {
                     <XAxis
                       type="number"
                       domain={[0, 120]}
-                      tick={{ fontSize: 12, fill: "var(--color-text-muted)" }}
+                      tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                       tickFormatter={(v) => `${v}%`}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
                     />
                     <YAxis
                       type="category"
                       dataKey="name"
-                      tick={{ fontSize: 12, fill: "var(--color-text-muted)" }}
-                      width={120}
+                      tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
+                      width={100}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
                     />
                     <Tooltip
                       {...TOOLTIP_STYLE}

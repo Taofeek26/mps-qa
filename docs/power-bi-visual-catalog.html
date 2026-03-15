@@ -1,0 +1,2799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPS Group — Power BI Visual Catalog | 57 Visual Types</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <!-- Chart.js Datalabels Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+  <!-- D3 v7 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <!-- TopoJSON Client -->
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+
+  <!-- Leaflet 1.9 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --mps-primary: #00BD9D;
+      --mps-primary-dark: #0D796C;
+      --mps-primary-darker: #065F54;
+      --mps-primary-medium: #009B85;
+      --mps-primary-light: #2DD4BF;
+      --mps-primary-lighter: #5EEAD4;
+      --mps-primary-lightest: #99F6E4;
+      --mps-primary-50: #F0FDFA;
+      --mps-text: #0F172A;
+      --mps-text-secondary: #475569;
+      --mps-text-muted: #64748B;
+      --mps-bg: #F9FAFB;
+      --mps-card: #FFFFFF;
+      --mps-subtle: #F3F4F6;
+      --mps-border: #E2E8F0;
+      --mps-success: #059669;
+      --mps-success-light: #34D399;
+      --mps-warning: #D97706;
+      --mps-warning-light: #FBBF24;
+      --mps-error: #DC2626;
+      --mps-error-light: #F87171;
+      --mps-gray-900: #0F172A;
+      --mps-gray-800: #1E293B;
+      --mps-gray-700: #334155;
+      --mps-gray-600: #475569;
+      --mps-gray-500: #64748B;
+      --mps-gray-400: #94A3B8;
+      --mps-gray-300: #CBD5E1;
+      --mps-gray-200: #E2E8F0;
+      --mps-gray-100: #F1F5F9;
+
+      /* Category badge colors */
+      --cat-1: #00BD9D;
+      --cat-2: #0D796C;
+      --cat-3: #009B85;
+      --cat-4: #2DD4BF;
+      --cat-5: #065F54;
+      --cat-6: #475569;
+      --cat-7: #D97706;
+      --cat-8: #94A3B8;
+      --cat-9: #DC2626;
+      --cat-10: #059669;
+      --cat-11: #334155;
+      --cat-12: #00BD9D;
+    }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--mps-bg);
+      color: var(--mps-text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== HEADER ===== */
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 16px 40px;
+      background: var(--mps-card);
+      border-bottom: 1px solid var(--mps-border);
+      position: relative;
+    }
+
+    .site-header__brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: absolute;
+      left: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .site-header__icon {
+      height: 36px;
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    .site-header__brand-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--mps-text);
+      letter-spacing: -0.01em;
+    }
+
+    .site-header__center {
+      text-align: center;
+    }
+
+    .site-header__title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--mps-text);
+      letter-spacing: -0.02em;
+    }
+
+    .site-header__subtitle {
+      font-size: 12px;
+      color: var(--mps-text-muted);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    /* ===== CATEGORY NAV ===== */
+    .category-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--mps-card);
+      border-bottom: 1px solid var(--mps-border);
+      padding: 12px 40px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .category-nav::-webkit-scrollbar { display: none; }
+
+    .category-nav__inner {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .category-nav__pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #FFFFFF;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      cursor: pointer;
+      border: none;
+      line-height: 1.4;
+    }
+
+    .category-nav__pill:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .category-nav__pill:active {
+      transform: translateY(0);
+    }
+
+    /* ===== CATALOG GRID ===== */
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+      gap: 20px;
+      padding: 24px 40px;
+    }
+
+    /* ===== SECTION HEADER ===== */
+    .section-header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      padding-bottom: 8px;
+    }
+
+    .section-header:first-child { margin-top: 0; }
+
+    .section-header__bar {
+      width: 4px;
+      height: 28px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .section-header__text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--mps-text);
+      letter-spacing: -0.01em;
+    }
+
+    .section-header__count {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--mps-text-muted);
+      margin-left: 4px;
+    }
+
+    /* ===== VISUAL CARD ===== */
+    .visual-card {
+      background: var(--mps-card);
+      border: 1px solid var(--mps-border);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .visual-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .visual-card__header {
+      margin-bottom: 16px;
+    }
+
+    .visual-card__badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      color: #FFFFFF;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+
+    /* Category-4 has dark text because light bg */
+    .visual-card__badge--cat-4 {
+      color: var(--mps-gray-900);
+    }
+
+    .visual-card__title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--mps-text);
+      margin-bottom: 4px;
+      letter-spacing: -0.01em;
+    }
+
+    .visual-card__desc {
+      font-size: 12px;
+      color: var(--mps-text-muted);
+      line-height: 1.5;
+      font-weight: 400;
+    }
+
+    .visual-card__body {
+      min-height: 280px;
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .visual-card__body canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .visual-card__body > div {
+      width: 100%;
+      height: 100%;
+      min-height: 280px;
+    }
+
+    /* Placeholder shimmer for cards not yet rendered */
+    .visual-card__body--pending {
+      background: linear-gradient(110deg, var(--mps-subtle) 8%, #F9FAFB 18%, var(--mps-subtle) 33%);
+      background-size: 200% 100%;
+      border-radius: 6px;
+      animation: shimmer 1.5s linear infinite;
+    }
+
+    @keyframes shimmer {
+      to { background-position: -200% 0; }
+    }
+
+    /* ===== FOOTER ===== */
+    .site-footer {
+      text-align: center;
+      padding: 24px 40px;
+      border-top: 1px solid var(--mps-border);
+      background: var(--mps-card);
+      color: var(--mps-text-muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .site-footer span {
+      margin: 0 8px;
+      color: var(--mps-gray-300);
+    }
+
+    /* ===== CHART HELPERS ===== */
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 280px;
+    }
+
+    .chart-canvas-wrap canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* D3 / SVG containers */
+    .d3-container {
+      width: 100%;
+      height: 280px;
+      overflow: hidden;
+    }
+
+    .d3-container svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Map containers */
+    .map-container {
+      width: 100%;
+      height: 280px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    /* HTML visual containers */
+    .html-container {
+      width: 100%;
+      min-height: 280px;
+    }
+
+    /* SVG container for gauge etc */
+    .svg-container {
+      width: 100%;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ===== TABLE VISUALS ===== */
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .mini-table th {
+      background: var(--mps-subtle);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--mps-text-secondary);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      border-bottom: 2px solid var(--mps-border);
+    }
+
+    .mini-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--mps-gray-100);
+      color: var(--mps-text);
+    }
+
+    .mini-table tr:hover td {
+      background: var(--mps-primary-50);
+    }
+
+    /* ===== KPI VISUAL HELPERS ===== */
+    .kpi-big-number {
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--mps-text);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--mps-text-muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .kpi-delta--up { color: var(--mps-success); }
+    .kpi-delta--down { color: var(--mps-error); }
+
+    /* ===== SLICER HELPERS ===== */
+    .slicer-button {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid var(--mps-border);
+      background: var(--mps-card);
+      color: var(--mps-text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .slicer-button:hover { border-color: var(--mps-primary); }
+
+    .slicer-button--active {
+      background: var(--mps-primary);
+      border-color: var(--mps-primary);
+      color: #FFFFFF;
+    }
+
+    .slicer-list-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--mps-gray-100);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    .slicer-list-item:hover { background: var(--mps-primary-50); }
+
+    .slicer-list-item--selected {
+      background: var(--mps-primary-50);
+      color: var(--mps-primary-dark);
+      font-weight: 600;
+    }
+
+    /* ===== TOOLTIP (D3) ===== */
+    .d3-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: var(--mps-gray-900);
+      color: #FFFFFF;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .catalog-grid {
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        padding: 20px 24px;
+      }
+      .site-header { padding: 14px 24px; }
+      .category-nav { padding: 10px 24px; }
+      .site-header__brand { left: 24px; }
+    }
+
+    @media (max-width: 768px) {
+      .catalog-grid {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 16px;
+      }
+      .site-header {
+        flex-direction: column;
+        padding: 14px 16px;
+        gap: 8px;
+      }
+      .site-header__brand {
+        position: static;
+        transform: none;
+      }
+      .category-nav { padding: 10px 16px; }
+      .section-header__text { font-size: 16px; }
+    }
+
+    /* ===== PRINT ===== */
+    @media print {
+      .category-nav { position: static; }
+      .visual-card { break-inside: avoid; page-break-inside: avoid; }
+      .visual-card:hover { box-shadow: none; transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header">
+    <div class="site-header__brand">
+      <img src="../public/logo.png" alt="MPS Group" class="site-header__icon">
+    </div>
+    <div class="site-header__center">
+      <h1 class="site-header__title">Power BI Visual Catalog</h1>
+      <p class="site-header__subtitle">57 Visual Types &nbsp;|&nbsp; MPS Waste Management Platform &nbsp;|&nbsp; March 2026</p>
+    </div>
+  </header>
+
+  <!-- ===== CATEGORY NAV ===== -->
+  <nav class="category-nav" aria-label="Visual categories">
+    <div class="category-nav__inner">
+      <a href="#cat-1" class="category-nav__pill" style="background:var(--cat-1)">Categorical Comparison</a>
+      <a href="#cat-2" class="category-nav__pill" style="background:var(--cat-2)">Time-Based Trends</a>
+      <a href="#cat-3" class="category-nav__pill" style="background:var(--cat-3)">Part-to-Whole</a>
+      <a href="#cat-4" class="category-nav__pill" style="background:var(--cat-4);color:var(--mps-gray-900)">Distribution &amp; Relationships</a>
+      <a href="#cat-5" class="category-nav__pill" style="background:var(--cat-5)">Sequential Processes</a>
+      <a href="#cat-6" class="category-nav__pill" style="background:var(--cat-6)">Geographic / Maps</a>
+      <a href="#cat-7" class="category-nav__pill" style="background:var(--cat-7)">Key Metrics &amp; Progress</a>
+      <a href="#cat-8" class="category-nav__pill" style="background:var(--cat-8)">Detailed Data</a>
+      <a href="#cat-9" class="category-nav__pill" style="background:var(--cat-9)">AI-Powered</a>
+      <a href="#cat-10" class="category-nav__pill" style="background:var(--cat-10)">Slicers &amp; Filtering</a>
+      <a href="#cat-11" class="category-nav__pill" style="background:var(--cat-11)">Specialized</a>
+      <a href="#cat-12" class="category-nav__pill" style="background:var(--cat-12)">Marketplace</a>
+    </div>
+  </nav>
+
+  <!-- ===== CATALOG GRID ===== -->
+  <main class="catalog-grid">
+
+    <!-- ============================================================ -->
+    <!-- CAT 1 — CATEGORICAL COMPARISON (6 visuals)                   -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-1">
+      <div class="section-header__bar" style="background:var(--cat-1)"></div>
+      <h2 class="section-header__text">Categorical Comparison<span class="section-header__count">6 visuals</span></h2>
+    </div>
+
+    <!-- 01 — Bar Chart (Horizontal) -->
+    <article class="visual-card" id="visual-01">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-1)">Categorical Comparison</div>
+        <h3 class="visual-card__title">Bar Chart (Horizontal)</h3>
+        <p class="visual-card__desc">Horizontal bars comparing values across categories</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-01"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 02 — Column Chart (Vertical) -->
+    <article class="visual-card" id="visual-02">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-1)">Categorical Comparison</div>
+        <h3 class="visual-card__title">Column Chart (Vertical)</h3>
+        <p class="visual-card__desc">Vertical bars comparing values</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-02"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 03 — Stacked Bar/Column -->
+    <article class="visual-card" id="visual-03">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-1)">Categorical Comparison</div>
+        <h3 class="visual-card__title">Stacked Bar/Column</h3>
+        <p class="visual-card__desc">Bars divided into segments showing composition</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-03"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 04 — 100% Stacked Bar/Column -->
+    <article class="visual-card" id="visual-04">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-1)">Categorical Comparison</div>
+        <h3 class="visual-card__title">100% Stacked Bar/Column</h3>
+        <p class="visual-card__desc">Each bar = 100%, showing proportions</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-04"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 05 — Clustered Bar/Column -->
+    <article class="visual-card" id="visual-05">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-1)">Categorical Comparison</div>
+        <h3 class="visual-card__title">Clustered Bar/Column</h3>
+        <p class="visual-card__desc">Side-by-side bars for direct comparison</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-05"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 06 — Combo Chart -->
+    <article class="visual-card" id="visual-06">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-1)">Categorical Comparison</div>
+        <h3 class="visual-card__title">Combo Chart</h3>
+        <p class="visual-card__desc">Column + Line on same visual, dual Y-axes</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-06"></canvas></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 2 — TIME-BASED TRENDS (4 visuals)                       -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-2">
+      <div class="section-header__bar" style="background:var(--cat-2)"></div>
+      <h2 class="section-header__text">Time-Based Trends<span class="section-header__count">4 visuals</span></h2>
+    </div>
+
+    <!-- 07 — Line Chart -->
+    <article class="visual-card" id="visual-07">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-2)">Time-Based Trends</div>
+        <h3 class="visual-card__title">Line Chart</h3>
+        <p class="visual-card__desc">Connected data points showing trends</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-07"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 08 — Area Chart -->
+    <article class="visual-card" id="visual-08">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-2)">Time-Based Trends</div>
+        <h3 class="visual-card__title">Area Chart</h3>
+        <p class="visual-card__desc">Line chart with filled area below</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-08"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 09 — Stacked Area Chart -->
+    <article class="visual-card" id="visual-09">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-2)">Time-Based Trends</div>
+        <h3 class="visual-card__title">Stacked Area Chart</h3>
+        <p class="visual-card__desc">Multiple filled areas stacked</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-09"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 10 — Ribbon Chart -->
+    <article class="visual-card" id="visual-10">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-2)">Time-Based Trends</div>
+        <h3 class="visual-card__title">Ribbon Chart</h3>
+        <p class="visual-card__desc">Shows rank changes over time with flowing ribbons</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-10"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 3 — PART-TO-WHOLE (4 visuals)                           -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-3">
+      <div class="section-header__bar" style="background:var(--cat-3)"></div>
+      <h2 class="section-header__text">Part-to-Whole<span class="section-header__count">4 visuals</span></h2>
+    </div>
+
+    <!-- 11 — Pie Chart -->
+    <article class="visual-card" id="visual-11">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-3)">Part-to-Whole</div>
+        <h3 class="visual-card__title">Pie Chart</h3>
+        <p class="visual-card__desc">Circular chart divided into slices</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-11"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 12 — Donut Chart -->
+    <article class="visual-card" id="visual-12">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-3)">Part-to-Whole</div>
+        <h3 class="visual-card__title">Donut Chart</h3>
+        <p class="visual-card__desc">Pie chart with hollow center</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-12"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 13 — Treemap -->
+    <article class="visual-card" id="visual-13">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-3)">Part-to-Whole</div>
+        <h3 class="visual-card__title">Treemap</h3>
+        <p class="visual-card__desc">Nested rectangles sized by value</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-13"></div>
+      </div>
+    </article>
+
+    <!-- 14 — Sunburst -->
+    <article class="visual-card" id="visual-14">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-3)">Part-to-Whole</div>
+        <h3 class="visual-card__title">Sunburst</h3>
+        <p class="visual-card__desc">Multi-level concentric ring chart</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-14"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 4 — DISTRIBUTION & RELATIONSHIPS (4 visuals)             -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-4">
+      <div class="section-header__bar" style="background:var(--cat-4)"></div>
+      <h2 class="section-header__text">Distribution &amp; Relationships<span class="section-header__count">4 visuals</span></h2>
+    </div>
+
+    <!-- 15 — Scatter Chart -->
+    <article class="visual-card" id="visual-15">
+      <div class="visual-card__header">
+        <div class="visual-card__badge visual-card__badge--cat-4" style="background:var(--cat-4)">Distribution &amp; Relationships</div>
+        <h3 class="visual-card__title">Scatter Chart</h3>
+        <p class="visual-card__desc">X/Y data points showing relationships</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-15"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 16 — Bubble Chart -->
+    <article class="visual-card" id="visual-16">
+      <div class="visual-card__header">
+        <div class="visual-card__badge visual-card__badge--cat-4" style="background:var(--cat-4)">Distribution &amp; Relationships</div>
+        <h3 class="visual-card__title">Bubble Chart</h3>
+        <p class="visual-card__desc">Scatter + circle size as 3rd dimension</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-16"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 17 — Dot Plot -->
+    <article class="visual-card" id="visual-17">
+      <div class="visual-card__header">
+        <div class="visual-card__badge visual-card__badge--cat-4" style="background:var(--cat-4)">Distribution &amp; Relationships</div>
+        <h3 class="visual-card__title">Dot Plot</h3>
+        <p class="visual-card__desc">Compare multiple measures by magnitude</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-17"></div>
+      </div>
+    </article>
+
+    <!-- 18 — High-Density Scatter -->
+    <article class="visual-card" id="visual-18">
+      <div class="visual-card__header">
+        <div class="visual-card__badge visual-card__badge--cat-4" style="background:var(--cat-4)">Distribution &amp; Relationships</div>
+        <h3 class="visual-card__title">High-Density Scatter</h3>
+        <p class="visual-card__desc">Optimized scatter for large datasets</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-18"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 5 — SEQUENTIAL PROCESSES (2 visuals)                     -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-5">
+      <div class="section-header__bar" style="background:var(--cat-5)"></div>
+      <h2 class="section-header__text">Sequential Processes<span class="section-header__count">2 visuals</span></h2>
+    </div>
+
+    <!-- 19 — Funnel Chart -->
+    <article class="visual-card" id="visual-19">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-5)">Sequential Processes</div>
+        <h3 class="visual-card__title">Funnel Chart</h3>
+        <p class="visual-card__desc">Progressively decreasing stages</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-19"></div>
+      </div>
+    </article>
+
+    <!-- 20 — Waterfall Chart -->
+    <article class="visual-card" id="visual-20">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-5)">Sequential Processes</div>
+        <h3 class="visual-card__title">Waterfall Chart</h3>
+        <p class="visual-card__desc">Running total with positive/negative contributions</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-20"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 6 — GEOGRAPHIC / MAPS (4 visuals)                       -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-6">
+      <div class="section-header__bar" style="background:var(--cat-6)"></div>
+      <h2 class="section-header__text">Geographic / Maps<span class="section-header__count">4 visuals</span></h2>
+    </div>
+
+    <!-- 21 — Filled Map (Choropleth) -->
+    <article class="visual-card" id="visual-21">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-6)">Geographic / Maps</div>
+        <h3 class="visual-card__title">Filled Map (Choropleth)</h3>
+        <p class="visual-card__desc">Regions colored by data intensity</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-21"></div>
+      </div>
+    </article>
+
+    <!-- 22 — Azure Maps -->
+    <article class="visual-card" id="visual-22">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-6)">Geographic / Maps</div>
+        <h3 class="visual-card__title">Azure Maps</h3>
+        <p class="visual-card__desc">Modern mapping with bubble layers</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="map-container" id="map-22"></div>
+      </div>
+    </article>
+
+    <!-- 23 — Shape Map -->
+    <article class="visual-card" id="visual-23">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-6)">Geographic / Maps</div>
+        <h3 class="visual-card__title">Shape Map</h3>
+        <p class="visual-card__desc">Custom geographic boundaries</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-23"></div>
+      </div>
+    </article>
+
+    <!-- 24 — ArcGIS Maps -->
+    <article class="visual-card" id="visual-24">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-6)">Geographic / Maps</div>
+        <h3 class="visual-card__title">ArcGIS Maps</h3>
+        <p class="visual-card__desc">Advanced mapping with routes</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="map-container" id="map-24"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 7 — KEY METRICS & PROGRESS (4 visuals)                   -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-7">
+      <div class="section-header__bar" style="background:var(--cat-7)"></div>
+      <h2 class="section-header__text">Key Metrics &amp; Progress<span class="section-header__count">4 visuals</span></h2>
+    </div>
+
+    <!-- 25 — Card -->
+    <article class="visual-card" id="visual-25">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-7)">Key Metrics &amp; Progress</div>
+        <h3 class="visual-card__title">Card</h3>
+        <p class="visual-card__desc">Single prominent number</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-25"></div>
+      </div>
+    </article>
+
+    <!-- 26 — Multi-row Card -->
+    <article class="visual-card" id="visual-26">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-7)">Key Metrics &amp; Progress</div>
+        <h3 class="visual-card__title">Multi-row Card</h3>
+        <p class="visual-card__desc">Multiple metrics in card layout</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-26"></div>
+      </div>
+    </article>
+
+    <!-- 27 — KPI Visual -->
+    <article class="visual-card" id="visual-27">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-7)">Key Metrics &amp; Progress</div>
+        <h3 class="visual-card__title">KPI Visual</h3>
+        <p class="visual-card__desc">Current value + target + trend indicator</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-27"></div>
+      </div>
+    </article>
+
+    <!-- 28 — Gauge Chart -->
+    <article class="visual-card" id="visual-28">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-7)">Key Metrics &amp; Progress</div>
+        <h3 class="visual-card__title">Gauge Chart</h3>
+        <p class="visual-card__desc">Radial dial with needle</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="svg-container" id="svg-28"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 8 — DETAILED DATA (2 visuals)                           -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-8">
+      <div class="section-header__bar" style="background:var(--cat-8)"></div>
+      <h2 class="section-header__text">Detailed Data<span class="section-header__count">2 visuals</span></h2>
+    </div>
+
+    <!-- 29 — Table -->
+    <article class="visual-card" id="visual-29">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-8)">Detailed Data</div>
+        <h3 class="visual-card__title">Table</h3>
+        <p class="visual-card__desc">Rows and columns of data</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-29"></div>
+      </div>
+    </article>
+
+    <!-- 30 — Matrix -->
+    <article class="visual-card" id="visual-30">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-8)">Detailed Data</div>
+        <h3 class="visual-card__title">Matrix</h3>
+        <p class="visual-card__desc">Multi-dimensional grid with hierarchies</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-30"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 9 — AI-POWERED (5 visuals)                               -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-9">
+      <div class="section-header__bar" style="background:var(--cat-9)"></div>
+      <h2 class="section-header__text">AI-Powered<span class="section-header__count">5 visuals</span></h2>
+    </div>
+
+    <!-- 31 — Decomposition Tree -->
+    <article class="visual-card" id="visual-31">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-9)">AI-Powered</div>
+        <h3 class="visual-card__title">Decomposition Tree</h3>
+        <p class="visual-card__desc">Interactive drill-down across dimensions</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-31"></div>
+      </div>
+    </article>
+
+    <!-- 32 — Key Influencers -->
+    <article class="visual-card" id="visual-32">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-9)">AI-Powered</div>
+        <h3 class="visual-card__title">Key Influencers</h3>
+        <p class="visual-card__desc">AI identifies factors influencing a metric</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-32"></div>
+      </div>
+    </article>
+
+    <!-- 33 — Anomaly Detection -->
+    <article class="visual-card" id="visual-33">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-9)">AI-Powered</div>
+        <h3 class="visual-card__title">Anomaly Detection</h3>
+        <p class="visual-card__desc">Auto-identifies unusual spikes/dips</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-33"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 34 — Smart Narrative -->
+    <article class="visual-card" id="visual-34">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-9)">AI-Powered</div>
+        <h3 class="visual-card__title">Smart Narrative</h3>
+        <p class="visual-card__desc">AI-generated text summaries</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-34"></div>
+      </div>
+    </article>
+
+    <!-- 35 — Q&A Visual -->
+    <article class="visual-card" id="visual-35">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-9)">AI-Powered</div>
+        <h3 class="visual-card__title">Q&amp;A Visual</h3>
+        <p class="visual-card__desc">Natural language query interface</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-35"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 10 — SLICERS & FILTERING (4 visuals)                     -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-10">
+      <div class="section-header__bar" style="background:var(--cat-10)"></div>
+      <h2 class="section-header__text">Slicers &amp; Filtering<span class="section-header__count">4 visuals</span></h2>
+    </div>
+
+    <!-- 36 — Button Slicer -->
+    <article class="visual-card" id="visual-36">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-10)">Slicers &amp; Filtering</div>
+        <h3 class="visual-card__title">Button Slicer</h3>
+        <p class="visual-card__desc">Clickable buttons for filtering</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-36"></div>
+      </div>
+    </article>
+
+    <!-- 37 — List Slicer -->
+    <article class="visual-card" id="visual-37">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-10)">Slicers &amp; Filtering</div>
+        <h3 class="visual-card__title">List Slicer</h3>
+        <p class="visual-card__desc">Dropdown or scrollable list</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-37"></div>
+      </div>
+    </article>
+
+    <!-- 38 — Input Slicer -->
+    <article class="visual-card" id="visual-38">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-10)">Slicers &amp; Filtering</div>
+        <h3 class="visual-card__title">Input Slicer</h3>
+        <p class="visual-card__desc">Type values or ranges directly</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-38"></div>
+      </div>
+    </article>
+
+    <!-- 39 — Date Range Slicer -->
+    <article class="visual-card" id="visual-39">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-10)">Slicers &amp; Filtering</div>
+        <h3 class="visual-card__title">Date Range Slicer</h3>
+        <p class="visual-card__desc">Calendar picker for date periods</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-39"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 11 — SPECIALIZED (7 visuals)                             -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-11">
+      <div class="section-header__bar" style="background:var(--cat-11)"></div>
+      <h2 class="section-header__text">Specialized<span class="section-header__count">7 visuals</span></h2>
+    </div>
+
+    <!-- 40 — Image Visual -->
+    <article class="visual-card" id="visual-40">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-11)">Specialized</div>
+        <h3 class="visual-card__title">Image Visual</h3>
+        <p class="visual-card__desc">Static or data-driven images</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-40"></div>
+      </div>
+    </article>
+
+    <!-- 41 — Paginated Report Visual -->
+    <article class="visual-card" id="visual-41">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-11)">Specialized</div>
+        <h3 class="visual-card__title">Paginated Report Visual</h3>
+        <p class="visual-card__desc">Pixel-perfect paginated report</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-41"></div>
+      </div>
+    </article>
+
+    <!-- 42 — R Visual -->
+    <article class="visual-card" id="visual-42">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-11)">Specialized</div>
+        <h3 class="visual-card__title">R Visual</h3>
+        <p class="visual-card__desc">Custom visualization using R scripts</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-42"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 43 — Python Visual -->
+    <article class="visual-card" id="visual-43">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-11)">Specialized</div>
+        <h3 class="visual-card__title">Python Visual</h3>
+        <p class="visual-card__desc">Custom visualization using Python</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-43"></div>
+      </div>
+    </article>
+
+    <!-- 44 — Power Apps Visual -->
+    <article class="visual-card" id="visual-44">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-11)">Specialized</div>
+        <h3 class="visual-card__title">Power Apps Visual</h3>
+        <p class="visual-card__desc">Embedded Power Apps within reports</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-44"></div>
+      </div>
+    </article>
+
+    <!-- 45 — Text Box / Shapes -->
+    <article class="visual-card" id="visual-45">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-11)">Specialized</div>
+        <h3 class="visual-card__title">Text Box / Shapes</h3>
+        <p class="visual-card__desc">Annotations, titles, descriptions</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-45"></div>
+      </div>
+    </article>
+
+    <!-- 46 — Buttons / Navigators -->
+    <article class="visual-card" id="visual-46">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-11)">Specialized</div>
+        <h3 class="visual-card__title">Buttons / Navigators</h3>
+        <p class="visual-card__desc">Interactive navigation and bookmarks</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-46"></div>
+      </div>
+    </article>
+
+    <!-- ============================================================ -->
+    <!-- CAT 12 — MARKETPLACE (11 visuals)                            -->
+    <!-- ============================================================ -->
+    <div class="section-header" id="cat-12">
+      <div class="section-header__bar" style="background:var(--cat-12)"></div>
+      <h2 class="section-header__text">Marketplace<span class="section-header__count">11 visuals</span></h2>
+    </div>
+
+    <!-- 47 — Bullet Chart -->
+    <article class="visual-card" id="visual-47">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Bullet Chart</h3>
+        <p class="visual-card__desc">Compact bar with target marker</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-47"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 48 — Tornado Chart -->
+    <article class="visual-card" id="visual-48">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Tornado Chart</h3>
+        <p class="visual-card__desc">Back-to-back horizontal bars</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-48"></div>
+      </div>
+    </article>
+
+    <!-- 49 — Chord Diagram -->
+    <article class="visual-card" id="visual-49">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Chord Diagram</h3>
+        <p class="visual-card__desc">Circular flow showing interrelationships</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-49"></div>
+      </div>
+    </article>
+
+    <!-- 50 — Radar Chart -->
+    <article class="visual-card" id="visual-50">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Radar Chart</h3>
+        <p class="visual-card__desc">Multi-axis spider/web chart</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-50"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 51 — Histogram -->
+    <article class="visual-card" id="visual-51">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Histogram</h3>
+        <p class="visual-card__desc">Distribution frequency bars</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="chart-canvas-wrap"><canvas id="chart-51"></canvas></div>
+      </div>
+    </article>
+
+    <!-- 52 — Stream Graph -->
+    <article class="visual-card" id="visual-52">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Stream Graph</h3>
+        <p class="visual-card__desc">Stacked flowing organic shapes</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-52"></div>
+      </div>
+    </article>
+
+    <!-- 53 — Hexbin Scatter -->
+    <article class="visual-card" id="visual-53">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Hexbin Scatter</h3>
+        <p class="visual-card__desc">Scatter with hexagonal density bins</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-53"></div>
+      </div>
+    </article>
+
+    <!-- 54 — Calendar Chart -->
+    <article class="visual-card" id="visual-54">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Calendar Chart</h3>
+        <p class="visual-card__desc">Values across calendar grid</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-54"></div>
+      </div>
+    </article>
+
+    <!-- 55 — Chiclet Slicer -->
+    <article class="visual-card" id="visual-55">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Chiclet Slicer</h3>
+        <p class="visual-card__desc">Image-based filter buttons</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="html-container" id="html-55"></div>
+      </div>
+    </article>
+
+    <!-- 56 — Synoptic Panel -->
+    <article class="visual-card" id="visual-56">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Synoptic Panel</h3>
+        <p class="visual-card__desc">Custom images with data-bound regions</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-56"></div>
+      </div>
+    </article>
+
+    <!-- 57 — Aster Plot -->
+    <article class="visual-card" id="visual-57">
+      <div class="visual-card__header">
+        <div class="visual-card__badge" style="background:var(--cat-12)">Marketplace</div>
+        <h3 class="visual-card__title">Aster Plot</h3>
+        <p class="visual-card__desc">Donut variant with depth + width encoding</p>
+      </div>
+      <div class="visual-card__body">
+        <div class="d3-container" id="d3-57"></div>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <img src="../public/logo.png" alt="MPS Group" style="height:22px;width:auto;vertical-align:middle;margin-right:8px"><span>|</span>Power BI Visual Catalog<span>|</span>57 Visual Types<span>|</span>March 2026
+  </footer>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script>
+    // MPS Color Palette
+    const MPS = {
+      primary: '#00BD9D', primaryDark: '#0D796C', primaryDarker: '#065F54',
+      primaryMedium: '#009B85', primaryLight: '#2DD4BF', primaryLighter: '#5EEAD4',
+      primaryLightest: '#99F6E4', primary50: '#F0FDFA',
+      text: '#0F172A', textSecondary: '#475569', textMuted: '#64748B',
+      success: '#059669', successLight: '#34D399',
+      warning: '#D97706', warningLight: '#FBBF24',
+      error: '#DC2626', errorLight: '#F87171',
+      gray900: '#0F172A', gray700: '#334155', gray500: '#64748B',
+      gray400: '#94A3B8', gray300: '#CBD5E1', gray200: '#E2E8F0',
+      colors: ['#00BD9D','#0D796C','#009B85','#2DD4BF','#5EEAD4','#065F54',
+               '#475569','#94A3B8','#D97706','#059669','#DC2626','#CBD5E1']
+    };
+
+    // Shared data
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const CLIENTS = ['AO Smith','General Motors','Stellantis','Ford'];
+    const SITES = ['Ashland City','Charlotte','El Paso','Johnson City','McBee','Lansing','Sterling Heights','Toledo','Dearborn'];
+    const VENDORS = ['Clean Harbors','Safety Kleen','Republic Services','Waste Mgmt','Heritage Env.','Veolia','Reworld','Pratt Industries'];
+    const WASTE_TYPES = ['Used Oil','Paint Waste','Coolant','Cardboard/OCC','Filter Cake','MEK','Sludge','Mixed Metal','Empty Drums'];
+    const CATEGORIES = ['Hazardous','Non-Hazardous','Recycling','Universal','Medical'];
+
+    // Chart.js global defaults
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = '#64748B';
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.pointStyleWidth = 8;
+    Chart.defaults.plugins.legend.labels.boxHeight = 8;
+    Chart.defaults.responsive = true;
+    Chart.defaults.maintainAspectRatio = false;
+
+    // Helper
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function randArr(n, min, max) { return Array.from({length:n}, () => rand(min, max)); }
+
+    // === CHART RENDERING FUNCTIONS ===
+
+    // 01 — Bar Chart (Horizontal)
+    function renderChart01() {
+      new Chart(document.getElementById('chart-01'), {
+        type: 'bar',
+        data: {
+          labels: VENDORS,
+          datasets: [{
+            label: 'Waste Volume (tons)',
+            data: randArr(VENDORS.length, 200, 1200),
+            backgroundColor: MPS.colors[0] + 'D9',
+            borderRadius: 4
+          }]
+        },
+        options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#F1F5F9' } } } }
+      });
+    }
+
+    // 02 — Column Chart (Vertical)
+    function renderChart02() {
+      new Chart(document.getElementById('chart-02'), {
+        type: 'bar',
+        data: {
+          labels: MONTHS,
+          datasets: [{
+            label: 'Shipment Count',
+            data: randArr(12, 40, 120),
+            backgroundColor: MPS.primaryDark,
+            borderRadius: 4
+          }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } } }
+      });
+    }
+
+    // 03 — Stacked Bar
+    function renderChart03() {
+      const cats = CATEGORIES.slice(0, 4);
+      new Chart(document.getElementById('chart-03'), {
+        type: 'bar',
+        data: {
+          labels: SITES.slice(0, 6),
+          datasets: cats.map((c, i) => ({
+            label: c,
+            data: randArr(6, 30, 200),
+            backgroundColor: MPS.colors[i],
+            borderRadius: 2
+          }))
+        },
+        options: { scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: '#F1F5F9' } } } }
+      });
+    }
+
+    // 04 — 100% Stacked
+    function renderChart04() {
+      const methods = ['Incineration', 'Landfill', 'Recycling', 'Treatment'];
+      const raw = methods.map(() => randArr(CLIENTS.length, 10, 100));
+      const totals = CLIENTS.map((_, ci) => raw.reduce((s, r) => s + r[ci], 0));
+      const pcts = raw.map(row => row.map((v, ci) => Math.round(v / totals[ci] * 100)));
+      new Chart(document.getElementById('chart-04'), {
+        type: 'bar',
+        data: {
+          labels: CLIENTS,
+          datasets: methods.map((m, i) => ({
+            label: m,
+            data: pcts[i],
+            backgroundColor: MPS.colors[i]
+          }))
+        },
+        options: {
+          scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#F1F5F9' } } },
+          plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } } }
+        }
+      });
+    }
+
+    // 05 — Clustered Bar
+    function renderChart05() {
+      new Chart(document.getElementById('chart-05'), {
+        type: 'bar',
+        data: {
+          labels: ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'],
+          datasets: [
+            { label: 'MPS Revenue', data: randArr(4, 800, 1400), backgroundColor: MPS.primary, borderRadius: 4 },
+            { label: 'Customer Cost', data: randArr(4, 900, 1600), backgroundColor: MPS.gray400, borderRadius: 4 }
+          ]
+        },
+        options: { scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v + 'K' }, grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } } }
+      });
+    }
+
+    // 06 — Combo Chart
+    function renderChart06() {
+      new Chart(document.getElementById('chart-06'), {
+        type: 'bar',
+        data: {
+          labels: MONTHS,
+          datasets: [
+            { type: 'bar', label: 'Volume (tons)', data: randArr(12, 300, 900), backgroundColor: MPS.primary + 'CC', borderRadius: 4, yAxisID: 'y' },
+            { type: 'line', label: 'Cost/Ton ($)', data: randArr(12, 280, 420), borderColor: MPS.warning, backgroundColor: MPS.warning, pointRadius: 4, tension: 0.3, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          scales: {
+            y: { position: 'left', beginAtZero: true, grid: { color: '#F1F5F9' }, title: { display: true, text: 'Volume (tons)' } },
+            y1: { position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: '$/Ton' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // 07 — Line Chart
+    function renderChart07() {
+      new Chart(document.getElementById('chart-07'), {
+        type: 'line',
+        data: {
+          labels: MONTHS,
+          datasets: CLIENTS.map((c, i) => ({
+            label: c,
+            data: randArr(12, 100, 600),
+            borderColor: MPS.colors[i],
+            backgroundColor: MPS.colors[i],
+            tension: 0.3,
+            pointRadius: 3,
+            borderWidth: 2
+          }))
+        },
+        options: { scales: { y: { beginAtZero: true, grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } } }
+      });
+    }
+
+    // 08 — Area Chart
+    function renderChart08() {
+      let cum = 0;
+      const data = MONTHS.map(() => { cum += rand(40, 80); return cum; });
+      new Chart(document.getElementById('chart-08'), {
+        type: 'line',
+        data: {
+          labels: MONTHS,
+          datasets: [{
+            label: 'Cumulative Shipments',
+            data: data,
+            fill: true,
+            backgroundColor: MPS.primary + '33',
+            borderColor: MPS.primary,
+            tension: 0.3,
+            pointRadius: 3
+          }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } } }
+      });
+    }
+
+    // 09 — Stacked Area
+    function renderChart09() {
+      const cats = CATEGORIES.slice(0, 4);
+      new Chart(document.getElementById('chart-09'), {
+        type: 'line',
+        data: {
+          labels: MONTHS,
+          datasets: cats.map((c, i) => ({
+            label: c,
+            data: randArr(12, 50, 200),
+            fill: true,
+            backgroundColor: MPS.colors[i] + '66',
+            borderColor: MPS.colors[i],
+            tension: 0.3,
+            pointRadius: 0
+          }))
+        },
+        options: { scales: { y: { stacked: true, grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } } }
+      });
+    }
+
+    // 10 — Ribbon Chart (D3)
+    function renderD3_10() {
+      const container = document.getElementById('d3-10');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const margin = { top: 30, right: 20, bottom: 30, left: 20 };
+      const iw = w - margin.left - margin.right, ih = h - margin.top - margin.bottom;
+      const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+      const quarters = ['Q1','Q2','Q3','Q4'];
+      const vendors = VENDORS.slice(0, 5);
+      const ranks = vendors.map(() => quarters.map(() => 0));
+      quarters.forEach((_, qi) => {
+        const order = d3.shuffle(d3.range(vendors.length));
+        order.forEach((vi, pos) => { ranks[vi][qi] = pos + 1; });
+      });
+      const x = d3.scalePoint().domain(quarters).range([0, iw]);
+      const y = d3.scaleLinear().domain([1, vendors.length]).range([0, ih]);
+      const area = d3.area().x((d, i) => x(quarters[i])).y0(d => y(d) - 10).y1(d => y(d) + 10).curve(d3.curveMonotoneX);
+      vendors.forEach((v, vi) => {
+        g.append('path').datum(ranks[vi]).attr('d', area).attr('fill', MPS.colors[vi]).attr('opacity', 0.7);
+        ranks[vi].forEach((r, qi) => {
+          g.append('text').attr('x', x(quarters[qi])).attr('y', y(r)).attr('text-anchor', 'middle').attr('dy', '0.35em').attr('font-size', 10).attr('font-weight', 600).attr('fill', '#fff').text(vi + 1);
+        });
+      });
+      quarters.forEach(q => {
+        g.append('text').attr('x', x(q)).attr('y', -10).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 600).attr('fill', MPS.textMuted).text(q);
+      });
+    }
+
+    // 11 — Pie Chart
+    function renderChart11() {
+      new Chart(document.getElementById('chart-11'), {
+        type: 'pie',
+        data: {
+          labels: CATEGORIES,
+          datasets: [{ data: randArr(CATEGORIES.length, 100, 500), backgroundColor: MPS.colors.slice(0, CATEGORIES.length) }]
+        },
+        options: { plugins: { legend: { position: 'right' } } }
+      });
+    }
+
+    // 12 — Donut Chart
+    function renderChart12() {
+      const labels = ['Incineration', 'Landfill', 'Recycling', 'Treatment', 'Recovery'];
+      const data = randArr(labels.length, 100, 400);
+      const total = data.reduce((a, b) => a + b, 0);
+      new Chart(document.getElementById('chart-12'), {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{ data: data, backgroundColor: MPS.colors.slice(0, labels.length), cutout: '60%' }]
+        },
+        options: {
+          plugins: {
+            legend: { position: 'right' },
+            tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + ' (' + Math.round(ctx.raw / total * 100) + '%)' } }
+          }
+        },
+        plugins: [{
+          id: 'centerText',
+          afterDraw(chart) {
+            const { ctx, chartArea: { left, right, top, bottom } } = chart;
+            const cx = (left + right) / 2, cy = (top + bottom) / 2;
+            ctx.save();
+            ctx.font = '700 22px Inter, sans-serif';
+            ctx.fillStyle = MPS.text;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(total.toLocaleString(), cx, cy - 8);
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.fillStyle = MPS.textMuted;
+            ctx.fillText('Total', cx, cy + 12);
+            ctx.restore();
+          }
+        }]
+      });
+    }
+
+    // 13 — Treemap (D3)
+    function renderD3_13() {
+      const container = document.getElementById('d3-13');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const hierarchy = {
+        name: 'root',
+        children: CATEGORIES.slice(0, 4).map((cat, ci) => ({
+          name: cat,
+          children: WASTE_TYPES.slice(ci * 2, ci * 2 + 3).map(wt => ({ name: wt, value: rand(50, 300) }))
+        }))
+      };
+      const root = d3.treemap().size([w, h]).padding(2).round(true)(d3.hierarchy(hierarchy).sum(d => d.value).sort((a, b) => b.value - a.value));
+      const color = d3.scaleOrdinal().domain(CATEGORIES).range(MPS.colors);
+      const leaf = svg.selectAll('g').data(root.leaves()).join('g').attr('transform', d => `translate(${d.x0},${d.y0})`);
+      leaf.append('rect').attr('width', d => d.x1 - d.x0).attr('height', d => d.y1 - d.y0).attr('fill', d => color(d.parent.data.name)).attr('rx', 3).attr('opacity', 0.85);
+      leaf.append('text').attr('x', 4).attr('y', 14).attr('font-size', 10).attr('font-weight', 600).attr('fill', '#fff').text(d => (d.x1 - d.x0 > 50) ? d.data.name : '');
+      leaf.append('text').attr('x', 4).attr('y', 26).attr('font-size', 9).attr('fill', 'rgba(255,255,255,0.8)').text(d => (d.x1 - d.x0 > 50) ? d.data.value + 't' : '');
+    }
+
+    // 14 — Sunburst (D3)
+    function renderD3_14() {
+      const container = document.getElementById('d3-14');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const radius = Math.min(w, h) / 2;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h).append('g').attr('transform', `translate(${w / 2},${h / 2})`);
+      const data = {
+        name: 'MPS',
+        children: CLIENTS.map((cl, ci) => ({
+          name: cl,
+          children: SITES.slice(ci * 2, ci * 2 + 2).map(s => ({
+            name: s,
+            children: CATEGORIES.slice(0, 3).map(cat => ({ name: cat, value: rand(20, 100) }))
+          }))
+        }))
+      };
+      const root = d3.partition().size([2 * Math.PI, radius])(d3.hierarchy(data).sum(d => d.value).sort((a, b) => b.value - a.value));
+      const arc = d3.arc().startAngle(d => d.x0).endAngle(d => d.x1).innerRadius(d => d.y0).outerRadius(d => d.y1 - 1);
+      const color = d3.scaleOrdinal().range([MPS.primary, MPS.primaryDark, MPS.primaryMedium, MPS.primaryLight, MPS.primaryLighter, MPS.primaryLightest, MPS.gray400, MPS.success]);
+      svg.selectAll('path').data(root.descendants().filter(d => d.depth)).join('path')
+        .attr('d', arc).attr('fill', d => { let p = d; while (p.depth > 1) p = p.parent; return color(p.data.name); })
+        .attr('opacity', d => 1 - d.depth * 0.15).attr('stroke', '#fff').attr('stroke-width', 1);
+      svg.selectAll('text').data(root.descendants().filter(d => d.depth === 1 && (d.x1 - d.x0 > 0.3))).join('text')
+        .attr('transform', d => { const a = (d.x0 + d.x1) / 2 * 180 / Math.PI - 90; const r = (d.y0 + d.y1) / 2; return `rotate(${a}) translate(${r},0) rotate(${a > 90 ? 180 : 0})`; })
+        .attr('text-anchor', 'middle').attr('font-size', 9).attr('font-weight', 600).attr('fill', '#fff').text(d => d.data.name);
+    }
+
+    // 15 — Scatter Chart
+    function renderChart15() {
+      const pts = Array.from({ length: 40 }, () => ({ x: rand(1, 50), y: rand(100, 5000) }));
+      new Chart(document.getElementById('chart-15'), {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: 'Shipments',
+            data: pts,
+            backgroundColor: MPS.primary + 'AA',
+            pointRadius: 5,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          scales: { x: { title: { display: true, text: 'Weight (tons)' }, grid: { color: '#F1F5F9' } }, y: { title: { display: true, text: 'Cost ($)' }, grid: { color: '#F1F5F9' } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // 16 — Bubble Chart
+    function renderChart16() {
+      new Chart(document.getElementById('chart-16'), {
+        type: 'bubble',
+        data: {
+          datasets: VENDORS.map((v, i) => ({
+            label: v,
+            data: [{ x: rand(5, 45), y: rand(200, 4000), r: rand(5, 25) }],
+            backgroundColor: MPS.colors[i % MPS.colors.length] + 'AA'
+          }))
+        },
+        options: {
+          scales: { x: { title: { display: true, text: 'Avg Weight (tons)' }, grid: { color: '#F1F5F9' } }, y: { title: { display: true, text: 'Avg Cost ($)' }, grid: { color: '#F1F5F9' } } }
+        }
+      });
+    }
+
+    // 17 — Dot Plot (D3)
+    function renderD3_17() {
+      const container = document.getElementById('d3-17');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const margin = { top: 10, right: 20, bottom: 30, left: 90 };
+      const iw = w - margin.left - margin.right, ih = h - margin.top - margin.bottom;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+      const wts = WASTE_TYPES.slice(0, 7);
+      const data = wts.map(wt => ({ name: wt, mps: rand(200, 800), cust: rand(300, 1000) }));
+      const x = d3.scaleLinear().domain([0, d3.max(data, d => Math.max(d.mps, d.cust)) * 1.1]).range([0, iw]);
+      const y = d3.scaleBand().domain(wts).range([0, ih]).padding(0.4);
+      g.append('g').attr('transform', `translate(0,${ih})`).call(d3.axisBottom(x).ticks(5).tickFormat(d => '$' + d));
+      g.append('g').call(d3.axisLeft(y).tickSize(0)).select('.domain').remove();
+      data.forEach(d => {
+        const cy = y(d.name) + y.bandwidth() / 2;
+        g.append('line').attr('x1', x(d.mps)).attr('x2', x(d.cust)).attr('y1', cy).attr('y2', cy).attr('stroke', MPS.gray300).attr('stroke-width', 2);
+        g.append('circle').attr('cx', x(d.mps)).attr('cy', cy).attr('r', 6).attr('fill', MPS.primary);
+        g.append('circle').attr('cx', x(d.cust)).attr('cy', cy).attr('r', 6).attr('fill', MPS.gray400);
+      });
+      // Legend
+      const leg = svg.append('g').attr('transform', `translate(${margin.left},${h - 10})`);
+      leg.append('circle').attr('cx', 0).attr('cy', 0).attr('r', 5).attr('fill', MPS.primary);
+      leg.append('text').attr('x', 10).attr('y', 4).attr('font-size', 10).attr('fill', MPS.textMuted).text('MPS Cost');
+      leg.append('circle').attr('cx', 80).attr('cy', 0).attr('r', 5).attr('fill', MPS.gray400);
+      leg.append('text').attr('x', 90).attr('y', 4).attr('font-size', 10).attr('fill', MPS.textMuted).text('Customer Cost');
+    }
+
+    // 18 — High-Density Scatter (D3 grid-based density)
+    function renderD3_18() {
+      const container = document.getElementById('d3-18');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const margin = { top: 10, right: 20, bottom: 30, left: 40 };
+      const iw = w - margin.left - margin.right, ih = h - margin.top - margin.bottom;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+      const points = Array.from({ length: 300 }, () => [rand(1, 50), rand(10, 500)]);
+      const x = d3.scaleLinear().domain([0, 55]).range([0, iw]);
+      const y = d3.scaleLinear().domain([0, 550]).range([ih, 0]);
+      const cellW = 20, cellH = 20;
+      const bins = {};
+      points.forEach(([px, py]) => {
+        const cx = Math.floor(x(px) / cellW), cy = Math.floor(y(py) / cellH);
+        const key = cx + ',' + cy;
+        bins[key] = (bins[key] || 0) + 1;
+      });
+      const maxCount = Math.max(...Object.values(bins));
+      const colorScale = d3.scaleSequential(d3.interpolateRgbBasis([MPS.primary50, MPS.primaryLight, MPS.primary, MPS.primaryDark])).domain([0, maxCount]);
+      Object.entries(bins).forEach(([key, count]) => {
+        const [cx, cy] = key.split(',').map(Number);
+        g.append('rect').attr('x', cx * cellW).attr('y', cy * cellH).attr('width', cellW - 1).attr('height', cellH - 1).attr('fill', colorScale(count)).attr('rx', 2);
+      });
+      g.append('g').attr('transform', `translate(0,${ih})`).call(d3.axisBottom(x).ticks(6));
+      g.append('g').call(d3.axisLeft(y).ticks(5));
+      g.append('text').attr('x', iw / 2).attr('y', ih + 26).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', MPS.textMuted).text('Weight (tons)');
+    }
+
+    // 19 — Funnel Chart (D3)
+    function renderD3_19() {
+      const container = document.getElementById('d3-19');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const stages = [
+        { label: 'Scheduled', pct: 100 },
+        { label: 'Picked Up', pct: 85 },
+        { label: 'In Transit', pct: 72 },
+        { label: 'Delivered', pct: 68 },
+        { label: 'Invoiced', pct: 61 }
+      ];
+      const maxW = w * 0.85;
+      const stageH = (h - 20) / stages.length;
+      const colorScale = d3.scaleLinear().domain([0, stages.length - 1]).range([MPS.primary, MPS.primaryDark]);
+      stages.forEach((s, i) => {
+        const bw = maxW * (s.pct / 100);
+        const cx = w / 2;
+        const yPos = i * stageH + 10;
+        svg.append('rect').attr('x', cx - bw / 2).attr('y', yPos).attr('width', bw).attr('height', stageH - 4).attr('fill', colorScale(i)).attr('rx', 4);
+        svg.append('text').attr('x', cx).attr('y', yPos + stageH / 2).attr('text-anchor', 'middle').attr('dy', '-0.2em').attr('font-size', 12).attr('font-weight', 600).attr('fill', '#fff').text(s.label);
+        svg.append('text').attr('x', cx).attr('y', yPos + stageH / 2).attr('text-anchor', 'middle').attr('dy', '1.1em').attr('font-size', 10).attr('fill', 'rgba(255,255,255,0.8)').text(s.pct + '%');
+      });
+    }
+
+    // 20 — Waterfall Chart (D3)
+    function renderD3_20() {
+      const container = document.getElementById('d3-20');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const margin = { top: 20, right: 10, bottom: 40, left: 50 };
+      const iw = w - margin.left - margin.right, ih = h - margin.top - margin.bottom;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+      const items = [
+        { label: 'Base Cost', value: 45, type: 'start' },
+        { label: 'Transport', value: 12, type: 'add' },
+        { label: 'Disposal', value: 18, type: 'add' },
+        { label: 'Treatment', value: 8, type: 'add' },
+        { label: 'Rebate', value: -6, type: 'sub' },
+        { label: 'Total', value: 77, type: 'total' }
+      ];
+      let running = 0;
+      const bars = items.map(d => {
+        let y0, y1;
+        if (d.type === 'start') { y0 = 0; y1 = d.value; running = d.value; }
+        else if (d.type === 'total') { y0 = 0; y1 = d.value; }
+        else { y0 = running; running += d.value; y1 = running; }
+        return { ...d, y0: Math.min(y0, y1), y1: Math.max(y0, y1) };
+      });
+      const x = d3.scaleBand().domain(items.map(d => d.label)).range([0, iw]).padding(0.3);
+      const y = d3.scaleLinear().domain([0, 90]).range([ih, 0]);
+      g.append('g').attr('transform', `translate(0,${ih})`).call(d3.axisBottom(x)).selectAll('text').attr('font-size', 10);
+      g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d => '$' + d + 'K'));
+      bars.forEach(d => {
+        let fill = MPS.primary;
+        if (d.type === 'sub') fill = MPS.error;
+        if (d.type === 'total') fill = MPS.gray900;
+        if (d.type === 'start') fill = MPS.success;
+        g.append('rect').attr('x', x(d.label)).attr('y', y(d.y1)).attr('width', x.bandwidth()).attr('height', y(d.y0) - y(d.y1)).attr('fill', fill).attr('rx', 3);
+        g.append('text').attr('x', x(d.label) + x.bandwidth() / 2).attr('y', y(d.y1) - 4).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 600).attr('fill', MPS.text).text('$' + Math.abs(d.value) + 'K');
+      });
+      // Connector lines
+      for (let i = 0; i < bars.length - 1; i++) {
+        const b = bars[i];
+        const nextX = x(items[i + 1].label);
+        const connY = y(b.type === 'total' ? b.y1 : (b.type === 'sub' ? b.y0 : b.y1));
+        g.append('line').attr('x1', x(b.label) + x.bandwidth()).attr('x2', nextX).attr('y1', connY).attr('y2', connY).attr('stroke', MPS.gray300).attr('stroke-dasharray', '3,2');
+      }
+    }
+
+    // 21 — Choropleth (D3)
+    function renderD3_21() {
+      const container = document.getElementById('d3-21');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json')
+        .then(r => r.json())
+        .then(us => {
+          const states = topojson.feature(us, us.objects.states).features;
+          const projection = d3.geoAlbersUsa().fitSize([w - 20, h - 30], { type: 'FeatureCollection', features: states });
+          const path = d3.geoPath().projection(projection);
+          const volumes = {};
+          states.forEach(s => { volumes[s.id] = rand(0, 1000); });
+          const colorScale = d3.scaleSequential(d3.interpolateRgbBasis([MPS.primary50, MPS.primaryLight, MPS.primary, MPS.primaryDark])).domain([0, 1000]);
+          svg.selectAll('path').data(states).join('path').attr('d', path).attr('fill', d => colorScale(volumes[d.id])).attr('stroke', '#fff').attr('stroke-width', 0.5);
+          // Legend
+          const lg = svg.append('g').attr('transform', `translate(${w - 120},${h - 20})`);
+          const lw = 100, lh = 8;
+          const defs = svg.append('defs');
+          const grad = defs.append('linearGradient').attr('id', 'choro-grad');
+          grad.append('stop').attr('offset', '0%').attr('stop-color', MPS.primary50);
+          grad.append('stop').attr('offset', '100%').attr('stop-color', MPS.primaryDark);
+          lg.append('rect').attr('width', lw).attr('height', lh).attr('fill', 'url(#choro-grad)').attr('rx', 2);
+          lg.append('text').attr('y', -3).attr('font-size', 9).attr('fill', MPS.textMuted).text('0');
+          lg.append('text').attr('x', lw).attr('y', -3).attr('text-anchor', 'end').attr('font-size', 9).attr('fill', MPS.textMuted).text('1000');
+        })
+        .catch(() => {
+          svg.append('text').attr('x', w / 2).attr('y', h / 2).attr('text-anchor', 'middle').attr('fill', MPS.textMuted).attr('font-size', 13).text('Map data unavailable — check network');
+        });
+    }
+
+    // 22 — Azure Maps (Leaflet)
+    function renderMap22() {
+      const map = L.map('map-22', { scrollWheelZoom: false }).setView([37, -96], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '' }).addTo(map);
+      const sites = [
+        { name: 'Ashland City', lat: 36.27, lng: -87.06, vol: rand(200, 800) },
+        { name: 'Charlotte', lat: 35.22, lng: -80.84, vol: rand(200, 800) },
+        { name: 'El Paso', lat: 31.76, lng: -106.44, vol: rand(200, 800) },
+        { name: 'Johnson City', lat: 36.31, lng: -82.35, vol: rand(200, 800) },
+        { name: 'Lansing', lat: 42.73, lng: -84.55, vol: rand(200, 800) },
+        { name: 'Sterling Heights', lat: 42.58, lng: -83.03, vol: rand(200, 800) },
+        { name: 'Toledo', lat: 41.65, lng: -83.54, vol: rand(200, 800) },
+        { name: 'Dearborn', lat: 42.32, lng: -83.18, vol: rand(200, 800) }
+      ];
+      sites.forEach(s => {
+        L.circleMarker([s.lat, s.lng], { radius: s.vol / 60, fillColor: MPS.primary, color: MPS.primaryDark, weight: 1, fillOpacity: 0.7 })
+          .bindPopup(`<b>${s.name}</b><br>${s.vol} shipments`)
+          .addTo(map);
+      });
+    }
+
+    // 23 — Shape Map (D3)
+    function renderD3_23() {
+      const container = document.getElementById('d3-23');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const zones = [
+        { name: 'Loading Dock', x: 10, y: 10, w: w - 20, h: 50, util: 82, color: MPS.primary },
+        { name: 'Hazardous Storage', x: 10, y: 70, w: (w - 30) / 2, h: 90, util: 91, color: MPS.warning },
+        { name: 'Treatment Area', x: (w - 30) / 2 + 20, y: 70, w: (w - 30) / 2, h: 90, util: 67, color: MPS.primary },
+        { name: 'Recycling Bay', x: 10, y: 170, w: (w - 30) / 3, h: 70, util: 78, color: MPS.success },
+        { name: 'Office', x: (w - 30) / 3 + 20, y: 170, w: (w - 30) / 3, h: 70, util: 34, color: MPS.gray400 },
+        { name: 'Waste Lab', x: 2 * (w - 30) / 3 + 30, y: 170, w: (w - 30) / 3 - 10, h: 70, util: 55, color: MPS.primaryMedium }
+      ];
+      zones.forEach(z => {
+        const alpha = 0.3 + z.util / 100 * 0.6;
+        svg.append('rect').attr('x', z.x).attr('y', z.y).attr('width', z.w).attr('height', z.h).attr('fill', z.color).attr('opacity', alpha).attr('rx', 6).attr('stroke', z.color).attr('stroke-width', 1.5);
+        svg.append('text').attr('x', z.x + z.w / 2).attr('y', z.y + z.h / 2 - 6).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 600).attr('fill', MPS.text).text(z.name);
+        svg.append('text').attr('x', z.x + z.w / 2).attr('y', z.y + z.h / 2 + 10).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', MPS.textMuted).text(z.util + '% utilized');
+      });
+      svg.append('text').attr('x', w / 2).attr('y', h - 6).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', MPS.textMuted).text('Facility Floor Plan — Zone Utilization');
+    }
+
+    // 24 — ArcGIS Maps (Leaflet dark)
+    function renderMap24() {
+      const map = L.map('map-24', { scrollWheelZoom: false }).setView([38, -86], 5);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '' }).addTo(map);
+      const routes = [
+        { from: [36.27, -87.06], to: [36.16, -86.78], color: MPS.primary, label: 'Ashland City → Nashville' },
+        { from: [35.22, -80.84], to: [34.00, -81.03], color: MPS.primaryLight, label: 'Charlotte → Columbia' },
+        { from: [42.73, -84.55], to: [42.33, -83.05], color: MPS.warning, label: 'Lansing → Detroit' },
+        { from: [41.65, -83.54], to: [41.50, -81.69], color: MPS.success, label: 'Toledo → Cleveland' },
+        { from: [31.76, -106.44], to: [32.32, -106.76], color: MPS.primaryMedium, label: 'El Paso → Las Cruces' }
+      ];
+      routes.forEach(r => {
+        L.polyline([r.from, r.to], { color: r.color, weight: 3, opacity: 0.8 }).addTo(map);
+        L.circleMarker(r.from, { radius: 5, fillColor: r.color, color: '#fff', weight: 1, fillOpacity: 1 }).addTo(map);
+        L.circleMarker(r.to, { radius: 4, fillColor: r.color, color: '#fff', weight: 1, fillOpacity: 0.7 }).bindPopup(r.label).addTo(map);
+      });
+    }
+
+    // 25 — Card (HTML)
+    function renderHTML25() {
+      document.getElementById('html-25').innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center">
+          <div style="font-size:42px;font-weight:800;color:${MPS.text};letter-spacing:-0.03em;line-height:1.1">12,847</div>
+          <div style="font-size:14px;color:${MPS.textMuted};margin-top:8px;font-weight:500">Total Shipments</div>
+          <div style="font-size:13px;font-weight:600;color:${MPS.success};margin-top:8px">&#8593; 8.3% vs prior year</div>
+        </div>`;
+    }
+
+    // 26 — Multi-row Card (HTML)
+    function renderHTML26() {
+      const rows = [
+        { icon: '📦', label: 'Total Shipments', value: '12,847' },
+        { icon: '⚖️', label: 'Total Weight', value: '45,230 tons' },
+        { icon: '💰', label: 'Avg Cost/Ton', value: '$342' },
+        { icon: '✅', label: 'Compliance Rate', value: '98.7%' },
+        { icon: '🏭', label: 'Active Vendors', value: '16' },
+        { icon: '📊', label: 'Revenue', value: '$15.5M' }
+      ];
+      document.getElementById('html-26').innerHTML = `<div style="width:100%">${rows.map(r => `
+        <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid ${MPS.gray200}">
+          <span style="font-size:18px;margin-right:12px">${r.icon}</span>
+          <span style="flex:1;font-size:13px;color:${MPS.textSecondary}">${r.label}</span>
+          <span style="font-size:14px;font-weight:700;color:${MPS.text}">${r.value}</span>
+        </div>`).join('')}</div>`;
+    }
+
+    // 27 — KPI Visual (HTML)
+    function renderHTML27() {
+      document.getElementById('html-27').innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${MPS.textMuted};margin-bottom:8px">Recycling Rate</div>
+          <div style="font-size:42px;font-weight:800;color:${MPS.primary};letter-spacing:-0.03em">94.2%</div>
+          <div style="font-size:13px;color:${MPS.textMuted};margin-top:6px">Goal: 95%</div>
+          <svg width="120" height="30" style="margin-top:12px">
+            <polyline points="0,25 20,20 40,18 60,15 80,12 100,8 120,5" fill="none" stroke="${MPS.primary}" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div style="display:inline-flex;align-items:center;gap:6px;margin-top:10px">
+            <span style="width:10px;height:10px;border-radius:50%;background:${MPS.warningLight}"></span>
+            <span style="font-size:11px;color:${MPS.textMuted}">Close to target</span>
+          </div>
+        </div>`;
+    }
+
+    // 28 — Gauge Chart (SVG / D3)
+    function renderSVG28() {
+      const container = document.getElementById('svg-28');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const cx = w / 2, cy = h / 2 + 20;
+      const outerR = Math.min(w, h) / 2 - 20;
+      const innerR = outerR - 22;
+      const value = 0.87;
+      const arc = d3.arc().innerRadius(innerR).outerRadius(outerR).startAngle(-Math.PI / 2);
+      // Background arc
+      svg.append('path').datum({ endAngle: Math.PI / 2 }).attr('d', arc).attr('fill', MPS.gray200).attr('transform', `translate(${cx},${cy})`);
+      // Value arc
+      svg.append('path').datum({ endAngle: -Math.PI / 2 + Math.PI * value }).attr('d', arc).attr('fill', MPS.primary).attr('transform', `translate(${cx},${cy})`);
+      // Needle
+      const needleAngle = -Math.PI / 2 + Math.PI * value;
+      const needleLen = innerR - 10;
+      svg.append('line').attr('x1', cx).attr('y1', cy).attr('x2', cx + Math.cos(needleAngle) * needleLen).attr('y2', cy + Math.sin(needleAngle) * needleLen).attr('stroke', MPS.text).attr('stroke-width', 2.5).attr('stroke-linecap', 'round');
+      svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 5).attr('fill', MPS.text);
+      // Labels
+      svg.append('text').attr('x', cx).attr('y', cy - 10).attr('text-anchor', 'middle').attr('font-size', 28).attr('font-weight', 800).attr('fill', MPS.text).text('87%');
+      svg.append('text').attr('x', cx).attr('y', cy + 30).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 500).attr('fill', MPS.textMuted).text('Compliance Score');
+    }
+
+    // 29 — Table (HTML)
+    function renderHTML29() {
+      const statuses = ['Delivered', 'In Transit', 'Scheduled', 'Delivered', 'Delivered', 'In Transit', 'Invoiced', 'Delivered'];
+      const statusColors = { Delivered: MPS.success, 'In Transit': MPS.warning, Scheduled: MPS.gray500, Invoiced: MPS.primary };
+      const rows = Array.from({ length: 8 }, (_, i) => ({
+        manifest: 'MNF-2025-' + String(1000 + i).padStart(4, '0'),
+        date: `${rand(1, 12)}/${rand(1, 28)}/2025`,
+        client: CLIENTS[i % CLIENTS.length],
+        waste: WASTE_TYPES[i % WASTE_TYPES.length],
+        weight: rand(2, 40) + '.' + rand(0, 9) + ' tons',
+        status: statuses[i]
+      }));
+      document.getElementById('html-29').innerHTML = `
+        <div style="width:100%;overflow-x:auto">
+          <table class="mini-table">
+            <thead><tr><th>Manifest# &#9650;&#9660;</th><th>Date</th><th>Client</th><th>Waste Type</th><th>Weight</th><th>Status</th></tr></thead>
+            <tbody>${rows.map((r, i) => `<tr style="background:${i % 2 ? '#FAFBFC' : '#fff'}">
+              <td style="font-weight:600;color:${MPS.primary}">${r.manifest}</td><td>${r.date}</td><td>${r.client}</td><td>${r.waste}</td><td>${r.weight}</td>
+              <td><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;color:#fff;background:${statusColors[r.status] || MPS.gray500}">${r.status}</span></td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div>`;
+    }
+
+    // 30 — Matrix (HTML)
+    function renderHTML30() {
+      const quarters = ['Q1', 'Q2', 'Q3', 'Q4', 'Total'];
+      const data = CLIENTS.map(c => {
+        const sites = SITES.slice(0, 2).map(s => {
+          const vals = randArr(4, 40, 200);
+          return { name: s, vals: vals, total: vals.reduce((a, b) => a + b, 0) };
+        });
+        const totals = [0, 1, 2, 3].map(qi => sites.reduce((s, si) => s + si.vals[qi], 0));
+        return { name: c, sites, totals, total: totals.reduce((a, b) => a + b, 0) };
+      });
+      const grandTotals = [0, 1, 2, 3].map(qi => data.reduce((s, d) => s + d.totals[qi], 0));
+      const grandTotal = grandTotals.reduce((a, b) => a + b, 0);
+      let html = `<div style="width:100%;overflow-x:auto;font-size:12px"><table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#F8FAFC"><th style="text-align:left;padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:0.3px;color:${MPS.textSecondary};border-bottom:2px solid ${MPS.gray200}">Client / Site</th>`;
+      quarters.forEach(q => { html += `<th style="text-align:right;padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:0.3px;color:${MPS.textSecondary};border-bottom:2px solid ${MPS.gray200}">${q}</th>`; });
+      html += '</tr></thead><tbody>';
+      data.forEach(d => {
+        html += `<tr style="background:#FAFBFC"><td style="padding:8px;font-weight:700;color:${MPS.text}">+ ${d.name}</td>`;
+        d.totals.forEach(v => { html += `<td style="text-align:right;padding:8px;font-weight:700;color:${MPS.text}">$${v}K</td>`; });
+        html += `<td style="text-align:right;padding:8px;font-weight:700;color:${MPS.text}">$${d.total}K</td></tr>`;
+        d.sites.forEach(s => {
+          html += `<tr><td style="padding:6px 8px 6px 28px;color:${MPS.textSecondary}">${s.name}</td>`;
+          s.vals.forEach(v => { html += `<td style="text-align:right;padding:6px 8px;color:${MPS.textSecondary}">$${v}K</td>`; });
+          html += `<td style="text-align:right;padding:6px 8px;color:${MPS.textSecondary}">$${s.total}K</td></tr>`;
+        });
+      });
+      html += `<tr style="border-top:2px solid ${MPS.gray300};background:#F1F5F9"><td style="padding:8px;font-weight:800;color:${MPS.text}">Grand Total</td>`;
+      grandTotals.forEach(v => { html += `<td style="text-align:right;padding:8px;font-weight:800;color:${MPS.text}">$${v}K</td>`; });
+      html += `<td style="text-align:right;padding:8px;font-weight:800;color:${MPS.text}">$${grandTotal}K</td></tr>`;
+      html += '</tbody></table></div>';
+      document.getElementById('html-30').innerHTML = html;
+    }
+
+    // 31 — Decomposition Tree (D3)
+    function renderD3_31() {
+      const container = document.getElementById('d3-31');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const g = svg.append('g').attr('transform', 'translate(10,0)');
+      const data = {
+        name: 'Total Cost\n$15.5M', children: CLIENTS.map((c, ci) => ({
+          name: c + '\n$' + rand(2, 5) + '.' + rand(1, 9) + 'M',
+          ai: ci === 0,
+          children: SITES.slice(ci * 2, ci * 2 + 2).map(s => ({
+            name: s + '\n$' + rand(500, 999) + 'K',
+            children: WASTE_TYPES.slice(0, 2).map(wt => ({ name: wt + '\n$' + rand(100, 400) + 'K' }))
+          }))
+        }))
+      };
+      const root = d3.hierarchy(data);
+      const treeLayout = d3.tree().size([h - 20, w - 160]);
+      treeLayout(root);
+      // Links
+      g.selectAll('.link').data(root.links()).join('path').attr('class', 'link')
+        .attr('d', d3.linkHorizontal().x(d => d.y).y(d => d.x))
+        .attr('fill', 'none').attr('stroke', MPS.gray300).attr('stroke-width', 1.5);
+      // Nodes
+      const node = g.selectAll('.node').data(root.descendants()).join('g').attr('transform', d => `translate(${d.y},${d.x})`);
+      node.append('rect').attr('x', -50).attr('y', -16).attr('width', 100).attr('height', 32).attr('rx', 6)
+        .attr('fill', d => d.depth === 0 ? MPS.primaryDark : '#fff').attr('stroke', d => d.data.ai ? MPS.warning : MPS.gray300).attr('stroke-width', d => d.data.ai ? 2 : 1);
+      node.each(function(d) {
+        const lines = d.data.name.split('\n');
+        const sel = d3.select(this);
+        sel.append('text').attr('y', lines.length > 1 ? -4 : 1).attr('text-anchor', 'middle').attr('font-size', 8).attr('font-weight', 600).attr('fill', d.depth === 0 ? '#fff' : MPS.text).text(lines[0]);
+        if (lines[1]) sel.append('text').attr('y', 8).attr('text-anchor', 'middle').attr('font-size', 7).attr('fill', d.depth === 0 ? 'rgba(255,255,255,0.8)' : MPS.textMuted).text(lines[1]);
+      });
+      // AI badge on first child
+      const aiNode = root.children[0];
+      g.append('rect').attr('x', aiNode.y + 22).attr('y', aiNode.x - 24).attr('width', 28).attr('height', 12).attr('rx', 3).attr('fill', MPS.warning);
+      g.append('text').attr('x', aiNode.y + 36).attr('y', aiNode.x - 15).attr('text-anchor', 'middle').attr('font-size', 7).attr('font-weight', 700).attr('fill', '#fff').text('AI');
+    }
+
+    // 32 — Key Influencers (HTML)
+    function renderHTML32() {
+      const factors = [
+        { label: 'Hazardous = Yes', mult: '2.4x increase', pct: 95 },
+        { label: 'Distance > 200 mi', mult: '1.8x increase', pct: 72 },
+        { label: 'Treatment = Incineration', mult: '1.6x increase', pct: 63 },
+        { label: 'Weight > 20 tons', mult: '1.3x increase', pct: 50 },
+        { label: 'Vendor = Clean Harbors', mult: '1.1x increase', pct: 42 }
+      ];
+      const distBins = ['$0-200', '$200-400', '$400-600', '$600-800', '$800+'];
+      const distVals = [12, 28, 35, 18, 7];
+      const maxDist = Math.max(...distVals);
+      document.getElementById('html-32').innerHTML = `
+        <div style="display:flex;gap:16px;height:100%;padding:12px;font-size:12px">
+          <div style="flex:6">
+            <div style="font-size:13px;font-weight:700;color:${MPS.text};margin-bottom:12px">What influences <span style="color:${MPS.primary}">High Cost</span>?</div>
+            ${factors.map((f, i) => `<div style="margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-weight:500;color:${MPS.text}">${i + 1}. ${f.label}</span><span style="color:${MPS.primaryDark};font-weight:600">${f.mult}</span></div>
+              <div style="height:6px;background:${MPS.gray200};border-radius:3px"><div style="width:${f.pct}%;height:100%;background:linear-gradient(90deg,${MPS.primary},${MPS.primaryDark});border-radius:3px"></div></div>
+            </div>`).join('')}
+          </div>
+          <div style="flex:4;border-left:1px solid ${MPS.gray200};padding-left:12px">
+            <div style="font-size:11px;font-weight:600;color:${MPS.textMuted};margin-bottom:8px;text-transform:uppercase">Cost Distribution</div>
+            ${distBins.map((b, i) => `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <span style="width:48px;font-size:10px;color:${MPS.textMuted};text-align:right">${b}</span>
+              <div style="flex:1;height:10px;background:${MPS.gray200};border-radius:2px"><div style="width:${distVals[i] / maxDist * 100}%;height:100%;background:${MPS.primary};border-radius:2px"></div></div>
+            </div>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    // 33 — Anomaly Detection
+    function renderChart33() {
+      const data = randArr(12, 400, 700);
+      data[7] = 1100; // August spike
+      const upperBand = data.map(v => v + 180);
+      new Chart(document.getElementById('chart-33'), {
+        type: 'line',
+        data: {
+          labels: MONTHS,
+          datasets: [
+            { label: 'Waste Volume', data: data, borderColor: MPS.primary, backgroundColor: MPS.primary, tension: 0.3, pointRadius: data.map((v, i) => i === 7 ? 8 : 3), pointBackgroundColor: data.map((v, i) => i === 7 ? MPS.error : MPS.primary), borderWidth: 2 },
+            { label: 'Upper Band', data: upperBand, borderColor: MPS.gray300, borderDash: [5, 3], backgroundColor: MPS.gray300 + '22', fill: true, pointRadius: 0, tension: 0.3 }
+          ]
+        },
+        options: {
+          plugins: { legend: { labels: { usePointStyle: true } } },
+          scales: { y: { grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } }
+        }
+      });
+    }
+
+    // 34 — Smart Narrative (HTML)
+    function renderHTML34() {
+      document.getElementById('html-34').innerHTML = `
+        <div style="padding:16px;font-size:14px;line-height:1.8;color:${MPS.text}">
+          <div style="display:inline-flex;align-items:center;gap:4px;background:#F5F3FF;color:#7C3AED;font-size:10px;font-weight:700;padding:3px 10px;border-radius:12px;margin-bottom:12px">&#10024; AI Generated</div>
+          <p>Total waste volume was <b style="color:${MPS.primary}">12,450 tons</b>, an increase of
+          <b style="color:${MPS.success}">+8.3%</b> from the previous period. <b>AO Smith</b> was the
+          largest contributor at <b>4,230 tons</b>, followed by General Motors at <b>3,890 tons</b>.
+          Hazardous waste comprised <b style="color:${MPS.warning}">23%</b> of total volume.
+          The recycling rate improved to <b style="color:${MPS.primary}">67.2%</b>, exceeding the target
+          of 65%. Cost per ton decreased by <b style="color:${MPS.success}">-$12</b> to <b>$342/ton</b>.</p>
+        </div>`;
+    }
+
+    // 35 — Q&A Visual (HTML)
+    function renderHTML35() {
+      const qClients = CLIENTS.map((c, i) => ({ name: c, val: rand(200, 600) }));
+      const maxQ = Math.max(...qClients.map(c => c.val));
+      document.getElementById('html-35').innerHTML = `
+        <div style="padding:16px">
+          <div style="display:flex;align-items:center;background:${MPS.gray200}22;border:1px solid ${MPS.gray200};border-radius:8px;padding:10px 14px;margin-bottom:14px">
+            <span style="color:${MPS.gray400};margin-right:8px;font-size:16px">&#128270;</span>
+            <span style="color:${MPS.gray400};font-size:13px">Ask a question about your data</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+            <span style="padding:6px 14px;background:${MPS.primary}15;color:${MPS.primaryDark};border-radius:20px;font-size:11px;font-weight:500;border:1px solid ${MPS.primary}33;cursor:pointer">Total waste by client</span>
+            <span style="padding:6px 14px;background:${MPS.primary}15;color:${MPS.primaryDark};border-radius:20px;font-size:11px;font-weight:500;border:1px solid ${MPS.primary}33;cursor:pointer">Cost trend last 6 months</span>
+            <span style="padding:6px 14px;background:${MPS.primary}15;color:${MPS.primaryDark};border-radius:20px;font-size:11px;font-weight:500;border:1px solid ${MPS.primary}33;cursor:pointer">Top vendors by volume</span>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:${MPS.textMuted};margin-bottom:10px;text-transform:uppercase">Total Waste by Client (tons)</div>
+          ${qClients.map(c => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="width:80px;font-size:11px;color:${MPS.textSecondary};text-align:right">${c.name}</span>
+            <div style="flex:1;height:16px;background:${MPS.gray200};border-radius:3px"><div style="width:${c.val / maxQ * 100}%;height:100%;background:${MPS.primary};border-radius:3px"></div></div>
+            <span style="font-size:11px;font-weight:600;color:${MPS.text};width:36px">${c.val}</span>
+          </div>`).join('')}
+        </div>`;
+    }
+
+    // 36 — Button Slicer (HTML)
+    function renderHTML36() {
+      const pills = ['All', 'Hazardous', 'Non-Hazardous', 'Recycling', 'Universal'];
+      document.getElementById('html-36').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;height:100%;padding:20px">
+          ${pills.map((p, i) => `<span style="padding:8px 16px;border-radius:20px;font-size:12px;font-weight:${i === 0 ? 600 : 500};cursor:pointer;
+            background:${i === 0 ? MPS.primary : '#F1F5F9'};color:${i === 0 ? '#fff' : MPS.text};
+            border:1px solid ${i === 0 ? MPS.primary : MPS.gray200};transition:all 0.15s">${p}</span>`).join('')}
+        </div>`;
+    }
+
+    // 37 — List Slicer (HTML)
+    function renderHTML37() {
+      const vendors = ['Clean Harbors', 'Safety Kleen', 'Republic Services', 'Waste Mgmt', 'Heritage Env.', 'Veolia', 'Reworld', 'Pratt Industries'];
+      const checked = [true, true, true, false, false, false, true, false];
+      document.getElementById('html-37').innerHTML = `
+        <div style="padding:12px;width:100%">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <input placeholder="Search vendors..." style="flex:1;padding:8px 12px;border:1px solid ${MPS.gray200};border-radius:6px;font-size:12px;font-family:inherit;outline:none">
+            <span style="font-size:11px;color:${MPS.primary};font-weight:600;margin-left:8px;cursor:pointer;white-space:nowrap">Select All</span>
+          </div>
+          <div style="max-height:200px;overflow-y:auto;border:1px solid ${MPS.gray200};border-radius:6px">
+            ${vendors.map((v, i) => `<label style="display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #F1F5F9;cursor:pointer;font-size:13px;color:${MPS.text}">
+              <input type="checkbox" ${checked[i] ? 'checked' : ''} style="margin-right:10px;accent-color:${MPS.primary}"> ${v}
+            </label>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    // 38 — Input Slicer (HTML)
+    function renderHTML38() {
+      document.getElementById('html-38').innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;gap:16px">
+          <div style="font-size:13px;font-weight:600;color:${MPS.text}">Shipment Weight (tons)</div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <div><label style="font-size:10px;color:${MPS.textMuted};text-transform:uppercase;font-weight:600">Min</label><br>
+            <input type="number" value="1" style="width:80px;padding:8px 12px;border:1px solid ${MPS.gray200};border-radius:6px;font-size:14px;font-family:inherit;text-align:center;outline:none"></div>
+            <span style="color:${MPS.gray400};font-size:16px;margin-top:14px">&mdash;</span>
+            <div><label style="font-size:10px;color:${MPS.textMuted};text-transform:uppercase;font-weight:600">Max</label><br>
+            <input type="number" value="50" style="width:80px;padding:8px 12px;border:1px solid ${MPS.gray200};border-radius:6px;font-size:14px;font-family:inherit;text-align:center;outline:none"></div>
+          </div>
+          <div style="width:200px;height:6px;background:${MPS.gray200};border-radius:3px;position:relative;margin-top:4px">
+            <div style="position:absolute;left:2%;right:0;height:100%;background:${MPS.primary};border-radius:3px"></div>
+            <div style="position:absolute;left:2%;top:-5px;width:16px;height:16px;background:${MPS.primary};border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div>
+            <div style="position:absolute;right:0;top:-5px;width:16px;height:16px;background:${MPS.primary};border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div>
+          </div>
+          <div style="font-size:12px;color:${MPS.textMuted}">1 &mdash; 50 tons</div>
+        </div>`;
+    }
+
+    // 39 — Date Range Slicer (HTML)
+    function renderHTML39() {
+      const makeCal = (month, year, selStart, selEnd) => {
+        const days = new Date(year, month + 1, 0).getDate();
+        const firstDay = new Date(year, month, 1).getDay();
+        const monthName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month];
+        let html = `<div style="width:48%"><div style="text-align:center;font-size:11px;font-weight:600;color:${MPS.text};margin-bottom:6px">${monthName} ${year}</div>`;
+        html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center;font-size:9px">`;
+        ['S','M','T','W','T','F','S'].forEach(d => { html += `<div style="color:${MPS.textMuted};font-weight:600;padding:2px">${d}</div>`; });
+        for (let i = 0; i < firstDay; i++) html += '<div></div>';
+        for (let d = 1; d <= days; d++) {
+          const inRange = d >= selStart && d <= selEnd;
+          const bg = inRange ? MPS.primary : 'transparent';
+          const color = inRange ? '#fff' : MPS.text;
+          html += `<div style="padding:3px;border-radius:3px;background:${bg};color:${color};font-weight:${inRange ? 600 : 400};cursor:pointer">${d}</div>`;
+        }
+        html += '</div></div>';
+        return html;
+      };
+      document.getElementById('html-39').innerHTML = `
+        <div style="padding:16px">
+          <div style="display:flex;justify-content:space-between;gap:8px">${makeCal(0, 2025, 10, 31)}${makeCal(11, 2025, 1, 20)}</div>
+          <div style="text-align:center;margin-top:12px">
+            <button style="padding:8px 24px;background:${MPS.primary};color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Apply</button>
+          </div>
+        </div>`;
+    }
+
+    // 40 — Image Visual (HTML)
+    function renderHTML40() {
+      document.getElementById('html-40').innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center">
+          <img src="../public/logo.png" alt="MPS Group" style="height:50px;width:auto;margin-bottom:16px">
+          <div style="font-size:15px;font-weight:700;color:${MPS.text}">Client: AO Smith</div>
+          <div style="font-size:13px;color:${MPS.textMuted};margin-top:4px">Ashland City, TN</div>
+          <div style="font-size:11px;color:${MPS.textMuted};margin-top:8px;padding:4px 12px;background:#F1F5F9;border-radius:12px">Active since 2019</div>
+        </div>`;
+    }
+
+    // 41 — Paginated Report (HTML)
+    function renderHTML41() {
+      const rows = Array.from({ length: 6 }, (_, i) => ({
+        id: 'SHP-' + (2025000 + i),
+        date: `01/${String(rand(1, 28)).padStart(2, '0')}/2025`,
+        client: CLIENTS[i % CLIENTS.length],
+        type: WASTE_TYPES[i % WASTE_TYPES.length],
+        wt: (rand(2, 25) + '.' + rand(0, 9)),
+        cost: '$' + rand(200, 2000).toLocaleString()
+      }));
+      document.getElementById('html-41').innerHTML = `
+        <div style="border:1px solid ${MPS.gray200};border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.06);background:#fff;padding:20px;font-size:11px;max-width:100%">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid ${MPS.text};padding-bottom:8px;margin-bottom:12px">
+            <img src="../public/logo.png" alt="MPS Group" style="height:18px;width:auto">
+            <span style="color:${MPS.textMuted}">Monthly Waste Report</span>
+            <span style="color:${MPS.textMuted}">January 2025</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:10px">
+            <tr style="background:#F8FAFC">${['ID','Date','Client','Waste','Weight','Cost'].map(h => `<th style="padding:5px 6px;text-align:left;font-weight:600;color:${MPS.textSecondary};border-bottom:1px solid ${MPS.gray200}">${h}</th>`).join('')}</tr>
+            ${rows.map(r => `<tr><td style="padding:4px 6px">${r.id}</td><td style="padding:4px 6px">${r.date}</td><td style="padding:4px 6px">${r.client}</td><td style="padding:4px 6px">${r.type}</td><td style="padding:4px 6px">${r.wt}t</td><td style="padding:4px 6px">${r.cost}</td></tr>`).join('')}
+          </table>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:8px;border-top:1px solid ${MPS.gray200};font-size:9px;color:${MPS.textMuted}">
+            <span>Page 1 of 3</span><span>Generated 03/11/2026</span><span>CONFIDENTIAL</span>
+          </div>
+        </div>`;
+    }
+
+    // 42 — R Visual (Chart.js scatter + regression)
+    function renderChart42() {
+      const pts = Array.from({ length: 20 }, () => ({ x: rand(1, 50), y: rand(100, 3000) }));
+      pts.sort((a, b) => a.x - b.x);
+      const n = pts.length;
+      const sx = pts.reduce((s, p) => s + p.x, 0), sy = pts.reduce((s, p) => s + p.y, 0);
+      const sxy = pts.reduce((s, p) => s + p.x * p.y, 0), sx2 = pts.reduce((s, p) => s + p.x * p.x, 0);
+      const slope = (n * sxy - sx * sy) / (n * sx2 - sx * sx);
+      const intercept = (sy - slope * sx) / n;
+      const lineStart = { x: pts[0].x, y: slope * pts[0].x + intercept };
+      const lineEnd = { x: pts[n - 1].x, y: slope * pts[n - 1].x + intercept };
+      const ctx42 = document.getElementById('chart-42');
+      new Chart(ctx42, {
+        type: 'scatter',
+        data: {
+          datasets: [
+            { label: 'Shipments', data: pts, backgroundColor: MPS.primary + 'AA', pointRadius: 5 },
+            { label: 'Regression', type: 'line', data: [lineStart, lineEnd], borderColor: MPS.error, borderWidth: 2, pointRadius: 0, borderDash: [6, 3] }
+          ]
+        },
+        options: { scales: { x: { title: { display: true, text: 'Weight' }, grid: { color: '#F1F5F9' } }, y: { title: { display: true, text: 'Cost' }, grid: { color: '#F1F5F9' } } } }
+      });
+      // R badge
+      const badge = document.createElement('div');
+      badge.style.cssText = `position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:#2563EB;color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:5`;
+      badge.textContent = 'R';
+      ctx42.parentElement.style.position = 'relative';
+      ctx42.parentElement.appendChild(badge);
+    }
+
+    // 43 — Python Visual (HTML)
+    function renderHTML43() {
+      const labels = ['Weight', 'Cost', 'Distance', 'Volume', 'Duration'];
+      const matrix = [
+        [1.00, 0.92, 0.45, 0.78, 0.31],
+        [0.92, 1.00, 0.38, 0.65, 0.28],
+        [0.45, 0.38, 1.00, -0.12, 0.81],
+        [0.78, 0.65, -0.12, 1.00, -0.45],
+        [0.31, 0.28, 0.81, -0.45, 1.00]
+      ];
+      const getColor = v => {
+        if (v >= 0.7) return `rgba(5,150,105,${Math.min(v, 1) * 0.8})`;
+        if (v >= 0.3) return `rgba(0,189,157,${v * 0.6})`;
+        if (v >= 0) return `rgba(241,245,249,${1 - v})`;
+        if (v >= -0.3) return `rgba(251,191,36,${Math.abs(v) * 0.6})`;
+        return `rgba(220,38,38,${Math.abs(v) * 0.6})`;
+      };
+      let html = `<div style="padding:12px;position:relative"><div style="position:absolute;top:8px;right:8px;background:#FBBF24;color:#1E293B;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px">Python</div>`;
+      html += `<div style="display:grid;grid-template-columns:60px repeat(5,1fr);gap:2px;font-size:10px">`;
+      html += '<div></div>';
+      labels.forEach(l => { html += `<div style="text-align:center;font-weight:600;color:${MPS.textMuted};padding:4px;font-size:9px">${l}</div>`; });
+      matrix.forEach((row, ri) => {
+        html += `<div style="display:flex;align-items:center;font-weight:600;color:${MPS.textMuted};padding:4px;font-size:9px">${labels[ri]}</div>`;
+        row.forEach(v => {
+          html += `<div style="background:${getColor(v)};text-align:center;padding:8px 4px;border-radius:3px;font-weight:600;color:${Math.abs(v) > 0.5 ? '#fff' : MPS.text};font-size:11px">${v.toFixed(2)}</div>`;
+        });
+      });
+      html += '</div></div>';
+      document.getElementById('html-43').innerHTML = html;
+    }
+
+    // 44 — Power Apps Visual (HTML)
+    function renderHTML44() {
+      document.getElementById('html-44').innerHTML = `
+        <div style="padding:20px">
+          <div style="font-size:15px;font-weight:700;color:${MPS.text};margin-bottom:16px">New Shipment Entry</div>
+          <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:${MPS.textMuted};text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px">Client</label>
+            <select style="width:100%;padding:8px 12px;border:1px solid ${MPS.gray200};border-radius:6px;font-size:13px;font-family:inherit;background:#fff;outline:none">${CLIENTS.map(c => `<option>${c}</option>`).join('')}</select></div>
+          <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:${MPS.textMuted};text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px">Waste Type</label>
+            <select style="width:100%;padding:8px 12px;border:1px solid ${MPS.gray200};border-radius:6px;font-size:13px;font-family:inherit;background:#fff;outline:none">${WASTE_TYPES.map(w => `<option>${w}</option>`).join('')}</select></div>
+          <div style="display:flex;gap:12px;margin-bottom:16px">
+            <div style="flex:1"><label style="font-size:11px;font-weight:600;color:${MPS.textMuted};text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px">Weight (tons)</label>
+              <input type="number" value="12.5" style="width:100%;padding:8px 12px;border:1px solid ${MPS.gray200};border-radius:6px;font-size:13px;font-family:inherit;outline:none"></div>
+            <div style="flex:1"><label style="font-size:11px;font-weight:600;color:${MPS.textMuted};text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px">Date</label>
+              <input type="date" value="2025-03-11" style="width:100%;padding:8px 12px;border:1px solid ${MPS.gray200};border-radius:6px;font-size:13px;font-family:inherit;outline:none"></div>
+          </div>
+          <button style="width:100%;padding:10px;background:${MPS.primary};color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Create Shipment</button>
+          <div style="text-align:center;margin-top:12px;font-size:10px;color:${MPS.textMuted}">Power Apps Visual</div>
+        </div>`;
+    }
+
+    // 45 — Text Box / Shapes (HTML)
+    function renderHTML45() {
+      document.getElementById('html-45').innerHTML = `
+        <div style="padding:20px">
+          <div style="border-left:4px solid ${MPS.primary};padding-left:16px;margin-bottom:20px">
+            <div style="font-size:16px;font-weight:700;color:${MPS.text};margin-bottom:6px">Waste Management Overview</div>
+            <p style="font-size:13px;color:${MPS.textSecondary};line-height:1.6">MPS provides comprehensive waste management services across 10+ facilities, handling hazardous, non-hazardous, and recycling waste streams for Fortune 500 manufacturers.</p>
+          </div>
+          <div style="display:inline-flex;align-items:center;padding:12px 20px;background:${MPS.primary50};border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.06)">
+            <span style="font-size:13px;font-weight:600;color:${MPS.primaryDark}">Q1 2025 Report</span>
+          </div>
+        </div>`;
+    }
+
+    // 46 — Buttons / Navigators (HTML)
+    function renderHTML46() {
+      const btns = [
+        { icon: '&#8592;', label: 'Back', active: false },
+        { icon: '&#8594;', label: 'Forward', active: false },
+        { icon: '&#8962;', label: 'Home', active: true },
+        { icon: '&#9733;', label: 'Bookmarks', active: false },
+        { icon: '&#8599;', label: 'Drill Through', active: false }
+      ];
+      document.getElementById('html-46').innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;padding:20px">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+            ${btns.map(b => `<button style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:${b.active ? 600 : 500};cursor:pointer;border:1px solid ${b.active ? MPS.primary : MPS.gray200};background:${b.active ? MPS.primary : '#fff'};color:${b.active ? '#fff' : MPS.text};font-family:inherit;transition:all 0.15s"><span>${b.icon}</span>${b.label}</button>`).join('')}
+          </div>
+          <div style="display:flex;gap:6px">
+            <span style="width:8px;height:8px;border-radius:50%;background:${MPS.primary}"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:${MPS.gray300}"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:${MPS.gray300}"></span>
+          </div>
+        </div>`;
+    }
+
+    // 47 — Bullet Chart
+    function renderChart47() {
+      const metrics = ['Recycling Rate', 'Compliance', 'Cost Efficiency', 'On-Time Delivery'];
+      const actuals = [82, 94, 71, 88];
+      const targets = [90, 95, 80, 85];
+      new Chart(document.getElementById('chart-47'), {
+        type: 'bar',
+        data: {
+          labels: metrics,
+          datasets: [
+            { label: 'Poor', data: [100, 100, 100, 100], backgroundColor: MPS.gray200, barPercentage: 0.7, categoryPercentage: 0.8, borderRadius: 2 },
+            { label: 'Satisfactory', data: [75, 75, 75, 75], backgroundColor: MPS.gray300, barPercentage: 0.7, categoryPercentage: 0.8, borderRadius: 2 },
+            { label: 'Good', data: [50, 50, 50, 50], backgroundColor: MPS.gray400 + '66', barPercentage: 0.7, categoryPercentage: 0.8, borderRadius: 2 },
+            { label: 'Actual', data: actuals, backgroundColor: MPS.primary, barPercentage: 0.3, categoryPercentage: 0.8, borderRadius: 2 },
+            { label: 'Target', data: targets, backgroundColor: MPS.text, barPercentage: 0.02, categoryPercentage: 0.8 }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          scales: { x: { max: 100, grid: { color: '#F1F5F9' }, ticks: { callback: v => v + '%' } }, y: { grid: { display: false } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // 48 — Tornado Chart (D3)
+    function renderD3_48() {
+      const container = document.getElementById('d3-48');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const margin = { top: 10, right: 40, bottom: 20, left: 40 };
+      const iw = w - margin.left - margin.right, ih = h - margin.top - margin.bottom;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+      const wts = WASTE_TYPES.slice(0, 7);
+      const data = wts.map(wt => ({ name: wt, haz: rand(50, 400), nonHaz: rand(50, 400) }));
+      const maxVal = d3.max(data, d => Math.max(d.haz, d.nonHaz));
+      const cx = iw / 2;
+      const y = d3.scaleBand().domain(wts).range([0, ih]).padding(0.2);
+      const xLeft = d3.scaleLinear().domain([0, maxVal]).range([0, cx - 40]);
+      const xRight = d3.scaleLinear().domain([0, maxVal]).range([0, cx - 40]);
+      data.forEach(d => {
+        const by = y(d.name);
+        // Left (hazardous)
+        g.append('rect').attr('x', cx - 40 - xLeft(d.haz)).attr('y', by).attr('width', xLeft(d.haz)).attr('height', y.bandwidth()).attr('fill', MPS.warning).attr('rx', 3);
+        g.append('text').attr('x', cx - 44 - xLeft(d.haz)).attr('y', by + y.bandwidth() / 2).attr('text-anchor', 'end').attr('dy', '0.35em').attr('font-size', 9).attr('fill', MPS.textMuted).text(d.haz);
+        // Right (non-haz)
+        g.append('rect').attr('x', cx + 40).attr('y', by).attr('width', xRight(d.nonHaz)).attr('height', y.bandwidth()).attr('fill', MPS.primary).attr('rx', 3);
+        g.append('text').attr('x', cx + 44 + xRight(d.nonHaz)).attr('y', by + y.bandwidth() / 2).attr('dy', '0.35em').attr('font-size', 9).attr('fill', MPS.textMuted).text(d.nonHaz);
+        // Center label
+        g.append('text').attr('x', cx).attr('y', by + y.bandwidth() / 2).attr('text-anchor', 'middle').attr('dy', '0.35em').attr('font-size', 10).attr('font-weight', 600).attr('fill', MPS.text).text(d.name);
+      });
+      // Legend
+      const leg = svg.append('g').attr('transform', `translate(${margin.left},${h - 8})`);
+      leg.append('rect').attr('width', 10).attr('height', 10).attr('fill', MPS.warning).attr('rx', 2);
+      leg.append('text').attr('x', 14).attr('y', 9).attr('font-size', 10).attr('fill', MPS.textMuted).text('Hazardous');
+      leg.append('rect').attr('x', 90).attr('width', 10).attr('height', 10).attr('fill', MPS.primary).attr('rx', 2);
+      leg.append('text').attr('x', 104).attr('y', 9).attr('font-size', 10).attr('fill', MPS.textMuted).text('Non-Hazardous');
+    }
+
+    // 49 — Chord Diagram (D3)
+    function renderD3_49() {
+      const container = document.getElementById('d3-49');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const radius = Math.min(w, h) / 2 - 30;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h).append('g').attr('transform', `translate(${w / 2},${h / 2})`);
+      const names = ['Ashland City', 'Charlotte', 'El Paso', 'Johnson City', 'McBee'];
+      const matrix = names.map(() => names.map(() => rand(10, 100)));
+      // Zero diagonal
+      matrix.forEach((row, i) => { row[i] = 0; });
+      const chord = d3.chord().padAngle(0.05).sortSubgroups(d3.descending)(matrix);
+      const arc = d3.arc().innerRadius(radius).outerRadius(radius + 12);
+      const ribbon = d3.ribbon().radius(radius);
+      const color = d3.scaleOrdinal().domain(d3.range(names.length)).range(MPS.colors);
+      svg.selectAll('.group').data(chord.groups).join('path').attr('d', arc).attr('fill', d => color(d.index)).attr('stroke', '#fff');
+      svg.selectAll('.ribbon').data(chord).join('path').attr('d', ribbon).attr('fill', d => color(d.source.index)).attr('opacity', 0.6).attr('stroke', '#fff').attr('stroke-width', 0.5);
+      // Labels
+      svg.selectAll('.label').data(chord.groups).join('text')
+        .attr('transform', d => { const a = (d.startAngle + d.endAngle) / 2; return `rotate(${a * 180 / Math.PI - 90}) translate(${radius + 18}) ${a > Math.PI ? 'rotate(180)' : ''}`; })
+        .attr('text-anchor', d => (d.startAngle + d.endAngle) / 2 > Math.PI ? 'end' : 'start')
+        .attr('font-size', 9).attr('font-weight', 500).attr('fill', MPS.text)
+        .text((d, i) => names[i]);
+    }
+
+    // 50 — Radar Chart
+    function renderChart50() {
+      new Chart(document.getElementById('chart-50'), {
+        type: 'radar',
+        data: {
+          labels: ['Safety', 'Compliance', 'Cost', 'Reliability', 'Responsiveness', 'Quality'],
+          datasets: [
+            { label: 'Clean Harbors', data: randArr(6, 50, 95), backgroundColor: MPS.primary + '33', borderColor: MPS.primary, pointBackgroundColor: MPS.primary, borderWidth: 2 },
+            { label: 'Waste Mgmt', data: randArr(6, 50, 95), backgroundColor: MPS.warning + '33', borderColor: MPS.warning, pointBackgroundColor: MPS.warning, borderWidth: 2 }
+          ]
+        },
+        options: { scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 }, grid: { color: '#E2E8F0' }, pointLabels: { font: { size: 11, weight: 500 } } } } }
+      });
+    }
+
+    // 51 — Histogram
+    function renderChart51() {
+      const bins = ['0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-45', '45-50'];
+      const freq = [8, 22, 45, 68, 80, 72, 55, 30, 15, 5];
+      new Chart(document.getElementById('chart-51'), {
+        type: 'bar',
+        data: {
+          labels: bins,
+          datasets: [{ label: 'Frequency', data: freq, backgroundColor: MPS.primary, borderRadius: 0, barPercentage: 1, categoryPercentage: 1 }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, title: { display: true, text: 'Frequency' }, grid: { color: '#F1F5F9' } }, x: { title: { display: true, text: 'Weight (tons)' }, grid: { display: false } } }
+        }
+      });
+    }
+
+    // 52 — Stream Graph (D3)
+    function renderD3_52() {
+      const container = document.getElementById('d3-52');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const margin = { top: 10, right: 10, bottom: 20, left: 10 };
+      const iw = w - margin.left - margin.right, ih = h - margin.top - margin.bottom;
+      const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+      const cats = CATEGORIES.slice(0, 5);
+      const data = MONTHS.map((m, mi) => {
+        const obj = { month: mi };
+        cats.forEach(c => { obj[c] = rand(20, 80); });
+        return obj;
+      });
+      const stack = d3.stack().keys(cats).offset(d3.stackOffsetWiggle).order(d3.stackOrderInsideOut)(data);
+      const x = d3.scaleLinear().domain([0, 11]).range([0, iw]);
+      const y = d3.scaleLinear().domain([d3.min(stack, s => d3.min(s, d => d[0])), d3.max(stack, s => d3.max(s, d => d[1]))]).range([ih, 0]);
+      const area = d3.area().x((d, i) => x(i)).y0(d => y(d[0])).y1(d => y(d[1])).curve(d3.curveBasis);
+      const color = d3.scaleOrdinal().domain(cats).range(MPS.colors);
+      g.selectAll('path').data(stack).join('path').attr('d', area).attr('fill', d => color(d.key)).attr('opacity', 0.8);
+      // Month labels
+      MONTHS.forEach((m, i) => {
+        g.append('text').attr('x', x(i)).attr('y', ih + 14).attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', MPS.textMuted).text(m);
+      });
+    }
+
+    // 53 — Hexbin Scatter (D3 grid-based)
+    function renderD3_53() {
+      const container = document.getElementById('d3-53');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const margin = { top: 10, right: 10, bottom: 30, left: 40 };
+      const iw = w - margin.left - margin.right, ih = h - margin.top - margin.bottom;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+      const points = Array.from({ length: 200 }, () => [rand(1, 50), rand(100, 3000)]);
+      const x = d3.scaleLinear().domain([0, 55]).range([0, iw]);
+      const y = d3.scaleLinear().domain([0, 3200]).range([ih, 0]);
+      // Grid circles
+      const gridSize = 16;
+      const bins = {};
+      points.forEach(([px, py]) => {
+        const gx = Math.floor(x(px) / gridSize), gy = Math.floor(y(py) / gridSize);
+        const key = gx + ',' + gy;
+        bins[key] = (bins[key] || 0) + 1;
+      });
+      const maxC = Math.max(...Object.values(bins));
+      const cScale = d3.scaleSequential(d3.interpolateRgbBasis([MPS.primary50, MPS.primaryLight, MPS.primary, MPS.primaryDarker])).domain([0, maxC]);
+      Object.entries(bins).forEach(([key, count]) => {
+        const [gx, gy] = key.split(',').map(Number);
+        g.append('circle').attr('cx', gx * gridSize + gridSize / 2).attr('cy', gy * gridSize + gridSize / 2).attr('r', gridSize / 2 - 1).attr('fill', cScale(count)).attr('opacity', 0.85);
+      });
+      g.append('g').attr('transform', `translate(0,${ih})`).call(d3.axisBottom(x).ticks(6));
+      g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d => '$' + d));
+    }
+
+    // 54 — Calendar Chart (D3)
+    function renderD3_54() {
+      const container = document.getElementById('d3-54');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const cellSize = Math.min((w - 30) / 53, (h - 30) / 9);
+      const g = svg.append('g').attr('transform', `translate(15,20)`);
+      // Day labels
+      ['Mon', 'Wed', 'Fri'].forEach((d, i) => {
+        g.append('text').attr('x', -2).attr('y', (i * 2 + 1) * cellSize + cellSize / 2).attr('text-anchor', 'end').attr('font-size', 8).attr('fill', MPS.textMuted).attr('dy', '0.35em').text(d);
+      });
+      const colorScale = d3.scaleSequential(d3.interpolateRgbBasis(['#F1F5F9', MPS.primaryLight, MPS.primary, MPS.primaryDark])).domain([0, 10]);
+      // Generate days of 2025
+      const startDate = new Date(2025, 0, 1);
+      const endDate = new Date(2025, 11, 31);
+      let date = new Date(startDate);
+      while (date <= endDate) {
+        const day = date.getDay();
+        const week = d3.timeWeek.count(d3.timeYear(date), date);
+        const count = rand(0, 10);
+        g.append('rect').attr('x', week * cellSize).attr('y', day * cellSize).attr('width', cellSize - 1.5).attr('height', cellSize - 1.5).attr('rx', 2).attr('fill', colorScale(count));
+        date = new Date(date.getTime() + 86400000);
+      }
+      // Month labels
+      d3.range(12).forEach(m => {
+        const firstDay = new Date(2025, m, 1);
+        const week = d3.timeWeek.count(d3.timeYear(firstDay), firstDay);
+        g.append('text').attr('x', week * cellSize).attr('y', -5).attr('font-size', 8).attr('fill', MPS.textMuted).text(MONTHS[m]);
+      });
+    }
+
+    // 55 — Chiclet Slicer (HTML)
+    function renderHTML55() {
+      const items = [
+        { label: 'AO Smith', initials: 'AO', color: MPS.primary, active: true },
+        { label: 'General Motors', initials: 'GM', color: MPS.primaryDark, active: false },
+        { label: 'Stellantis', initials: 'ST', color: MPS.primaryMedium, active: true },
+        { label: 'Ford', initials: 'FD', color: MPS.primaryLight, active: false },
+        { label: 'Hazardous', initials: 'HZ', color: MPS.warning, active: false },
+        { label: 'Non-Hazardous', initials: 'NH', color: MPS.gray500, active: false },
+        { label: 'Recycling', initials: 'RC', color: MPS.success, active: true },
+        { label: 'Medical', initials: 'MD', color: MPS.error, active: false }
+      ];
+      document.getElementById('html-55').innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px">
+          ${items.map(it => `<div style="display:flex;flex-direction:column;align-items:center;padding:12px 8px;border:2px solid ${it.active ? MPS.primary : MPS.gray200};border-radius:10px;cursor:pointer;transition:all 0.15s;background:${it.active ? MPS.primary50 : '#fff'}">
+            <div style="width:40px;height:40px;border-radius:50%;background:${it.color};display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">${it.initials}</div>
+            <span style="font-size:10px;font-weight:500;color:${MPS.text};margin-top:6px;text-align:center">${it.label}</span>
+          </div>`).join('')}
+        </div>`;
+    }
+
+    // 56 — Synoptic Panel (D3)
+    function renderD3_56() {
+      const container = document.getElementById('d3-56');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+      const zones = [
+        { name: 'Loading Dock', x: 10, y: 10, w: w - 20, h: 45, util: 82, color: MPS.primary },
+        { name: 'Hazardous Storage', x: 10, y: 65, w: (w - 30) / 2, h: 85, util: 91, color: MPS.warning },
+        { name: 'Treatment Area', x: (w + 10) / 2, y: 65, w: (w - 30) / 2, h: 85, util: 67, color: MPS.primary },
+        { name: 'Recycling Bay', x: 10, y: 160, w: (w - 40) / 3, h: 65, util: 78, color: MPS.success },
+        { name: 'Office', x: 20 + (w - 40) / 3, y: 160, w: (w - 40) / 3, h: 65, util: 34, color: MPS.gray500 },
+        { name: 'Waste Lab', x: 30 + 2 * (w - 40) / 3, y: 160, w: (w - 40) / 3 - 10, h: 65, util: 55, color: '#7C3AED' }
+      ];
+      zones.forEach(z => {
+        const opacity = 0.25 + z.util / 100 * 0.55;
+        const group = svg.append('g');
+        group.append('title').text(z.name + ': ' + z.util + '% utilized');
+        group.append('rect').attr('x', z.x).attr('y', z.y).attr('width', z.w).attr('height', z.h).attr('fill', z.color).attr('opacity', opacity).attr('rx', 6).attr('stroke', z.color).attr('stroke-width', 1);
+        group.append('text').attr('x', z.x + z.w / 2).attr('y', z.y + z.h / 2 - 5).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 600).attr('fill', MPS.text).text(z.name);
+        group.append('text').attr('x', z.x + z.w / 2).attr('y', z.y + z.h / 2 + 10).attr('text-anchor', 'middle').attr('font-size', 14).attr('font-weight', 800).attr('fill', z.color).text(z.util + '%');
+      });
+      svg.append('text').attr('x', w / 2).attr('y', h - 4).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', MPS.textMuted).text('Facility Floor Plan');
+    }
+
+    // 57 — Aster Plot (D3)
+    function renderD3_57() {
+      const container = document.getElementById('d3-57');
+      const w = container.clientWidth, h = container.clientHeight || 280;
+      const radius = Math.min(w, h) / 2 - 20;
+      const innerR = radius * 0.35;
+      const svg = d3.select(container).append('svg').attr('width', w).attr('height', h).append('g').attr('transform', `translate(${w / 2},${h / 2})`);
+      const data = [
+        { label: 'Hazardous', weight: 35, score: 88 },
+        { label: 'Non-Haz', weight: 30, score: 72 },
+        { label: 'Recycling', weight: 20, score: 95 },
+        { label: 'Universal', weight: 10, score: 60 },
+        { label: 'Medical', weight: 5, score: 82 }
+      ];
+      const totalWeight = data.reduce((s, d) => s + d.weight, 0);
+      const color = d3.scaleOrdinal().domain(data.map(d => d.label)).range(MPS.colors);
+      let startAngle = 0;
+      data.forEach(d => {
+        const angle = (d.weight / totalWeight) * 2 * Math.PI;
+        const endAngle = startAngle + angle;
+        const outerR = innerR + (radius - innerR) * (d.score / 100);
+        const arc = d3.arc().innerRadius(innerR).outerRadius(outerR).startAngle(startAngle).endAngle(endAngle).padAngle(0.03).cornerRadius(3);
+        svg.append('path').attr('d', arc).attr('fill', color(d.label)).attr('opacity', 0.85);
+        // Background arc (full radius)
+        const bgArc = d3.arc().innerRadius(innerR).outerRadius(radius).startAngle(startAngle).endAngle(endAngle).padAngle(0.03);
+        svg.append('path').attr('d', bgArc).attr('fill', color(d.label)).attr('opacity', 0.12);
+        // Label
+        const midAngle = (startAngle + endAngle) / 2;
+        const lx = Math.sin(midAngle) * (radius + 12);
+        const ly = -Math.cos(midAngle) * (radius + 12);
+        svg.append('text').attr('x', lx).attr('y', ly).attr('text-anchor', 'middle').attr('font-size', 9).attr('font-weight', 500).attr('fill', MPS.text).text(d.label);
+        startAngle = endAngle;
+      });
+      // Center label
+      svg.append('text').attr('text-anchor', 'middle').attr('dy', '-0.2em').attr('font-size', 16).attr('font-weight', 800).attr('fill', MPS.text).text('Score');
+      svg.append('text').attr('text-anchor', 'middle').attr('dy', '1.2em').attr('font-size', 10).attr('fill', MPS.textMuted).text('by Category');
+    }
+
+    // === INITIALIZATION ===
+    document.addEventListener('DOMContentLoaded', () => {
+      const renders = [
+        ['chart-01', renderChart01],
+        ['chart-02', renderChart02],
+        ['chart-03', renderChart03],
+        ['chart-04', renderChart04],
+        ['chart-05', renderChart05],
+        ['chart-06', renderChart06],
+        ['chart-07', renderChart07],
+        ['chart-08', renderChart08],
+        ['chart-09', renderChart09],
+        ['d3-10', renderD3_10],
+        ['chart-11', renderChart11],
+        ['chart-12', renderChart12],
+        ['d3-13', renderD3_13],
+        ['d3-14', renderD3_14],
+        ['chart-15', renderChart15],
+        ['chart-16', renderChart16],
+        ['d3-17', renderD3_17],
+        ['d3-18', renderD3_18],
+        ['d3-19', renderD3_19],
+        ['d3-20', renderD3_20],
+        ['d3-21', renderD3_21],
+        ['map-22', renderMap22],
+        ['d3-23', renderD3_23],
+        ['map-24', renderMap24],
+        ['html-25', renderHTML25],
+        ['html-26', renderHTML26],
+        ['html-27', renderHTML27],
+        ['svg-28', renderSVG28],
+        ['html-29', renderHTML29],
+        ['html-30', renderHTML30],
+        ['d3-31', renderD3_31],
+        ['html-32', renderHTML32],
+        ['chart-33', renderChart33],
+        ['html-34', renderHTML34],
+        ['html-35', renderHTML35],
+        ['html-36', renderHTML36],
+        ['html-37', renderHTML37],
+        ['html-38', renderHTML38],
+        ['html-39', renderHTML39],
+        ['html-40', renderHTML40],
+        ['html-41', renderHTML41],
+        ['chart-42', renderChart42],
+        ['html-43', renderHTML43],
+        ['html-44', renderHTML44],
+        ['html-45', renderHTML45],
+        ['html-46', renderHTML46],
+        ['chart-47', renderChart47],
+        ['d3-48', renderD3_48],
+        ['d3-49', renderD3_49],
+        ['chart-50', renderChart50],
+        ['chart-51', renderChart51],
+        ['d3-52', renderD3_52],
+        ['d3-53', renderD3_53],
+        ['d3-54', renderD3_54],
+        ['html-55', renderHTML55],
+        ['d3-56', renderD3_56],
+        ['d3-57', renderD3_57]
+      ];
+
+      renders.forEach(([id, fn]) => {
+        try {
+          if (document.getElementById(id)) {
+            fn();
+          } else {
+            console.warn('Container not found:', id);
+          }
+        } catch (err) {
+          console.error('Error rendering ' + id + ':', err);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

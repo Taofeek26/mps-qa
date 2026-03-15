@@ -33,6 +33,23 @@ import {
   computeVendorSpend,
   computeWasteStreamSummary,
   computeCostBySite,
+  computeOperationalKpis,
+  computeSafetyKpis,
+  computePlatformKpis,
+  computeCustomerKpis,
+  computeCostComposition,
+  computeMarginHeatmap,
+  computeGhgEmissions,
+  computeDiversionTrend,
+  computeEfficiencyScatter,
+  computeTreemapData,
+  computeIncidentTrend,
+  computeCsatTrend,
+  computeArAging,
+  computeFacilityUtilization,
+  computeRouteMargin,
+  computeVendorRisk,
+  computeQualityBreakdown,
 } from "@/lib/report-builder-data";
 import { totalMpsCost, totalCustomerCost } from "@/lib/report-utils";
 import {
@@ -173,7 +190,151 @@ function PdfSection({ section, shipments }: { section: ReportSection; shipments:
             <Text style={ps.notesText}>{config.notes || "No notes added."}</Text>
           </View>
         );
-      default: return null;
+      /* ── New KPI blocks ── */
+      case "kpi-operational": {
+        const op = computeOperationalKpis(shipments);
+        return (
+          <PdfKpiRow>
+            <PdfKpiCard label="Active Sites" value={String(op.activeSites)} sub="Sites with shipments" />
+            <PdfKpiCard label="Avg Miles" value={`${op.avgMiles} mi`} sub="Per shipment" />
+            <PdfKpiCard label="Target vs Actual" value={`${op.targetVsActualPct}%`} sub="" />
+          </PdfKpiRow>
+        );
+      }
+      case "kpi-safety": {
+        const sf = computeSafetyKpis();
+        return (
+          <PdfKpiRow>
+            <PdfKpiCard label="TRIR" value={sf.trir.toFixed(2)} sub="Per 200K hours" />
+            <PdfKpiCard label="Incidents" value={String(sf.totalIncidents)} sub="Last 12 months" />
+            <PdfKpiCard label="Resolved" value={`${sf.resolvedPct}%`} sub="Of incidents" />
+            <PdfKpiCard label="Training" value={`${sf.trainingPct}%`} sub="" />
+          </PdfKpiRow>
+        );
+      }
+      case "kpi-platform": {
+        const pl = computePlatformKpis();
+        return (
+          <PdfKpiRow>
+            <PdfKpiCard label="Monthly Active" value={String(pl.monthlyActive)} sub="Users" />
+            <PdfKpiCard label="Entries/User" value={String(pl.entriesPerUser)} sub="Avg shipments" />
+            <PdfKpiCard label="Adoption Rate" value={`${pl.adoptionRate}%`} sub="" />
+          </PdfKpiRow>
+        );
+      }
+      case "kpi-customer": {
+        const cx = computeCustomerKpis();
+        return (
+          <PdfKpiRow>
+            <PdfKpiCard label="CSAT" value={`${cx.avgCsat}/5`} sub="Satisfaction" />
+            <PdfKpiCard label="NPS" value={String(cx.nps)} sub="Net promoter" />
+            <PdfKpiCard label="FCR" value={`${cx.fcrPct}%`} sub="" />
+          </PdfKpiRow>
+        );
+      }
+      /* ── New charts ── */
+      case "chart-cost-composition":
+        return <PdfBarChart data={computeCostComposition(shipments)} dataKey="Haul" label="Cost Composition" subtitle="Monthly cost breakdown (haul component)" />;
+      case "chart-margin-heatmap": {
+        const hm = computeMarginHeatmap(shipments);
+        const hmCols = ["Site", ...hm.wasteTypes.slice(0, 6)];
+        const hmRows = hm.rows.map((r) => {
+          const row: Record<string, string> = { Site: r.site };
+          r.cells.forEach((c) => {
+            if (hmCols.includes(c.wasteType)) {
+              row[c.wasteType] = c.margin != null ? `$${Math.abs(c.margin).toLocaleString()}` : "—";
+            }
+          });
+          return row;
+        });
+        return <PdfTable title="Margin Heatmap" subtitle="Site × Waste Type" columns={hmCols.map((h) => ({ key: h, label: h, width: h === "Site" ? 80 : 55 }))} rows={hmRows} />;
+      }
+      case "chart-ghg-emissions": {
+        const ghg = computeGhgEmissions(shipments);
+        return <PdfBarChart data={ghg} dataKey="co2" label="GHG Emissions" subtitle="t CO₂e by waste category" />;
+      }
+      case "chart-diversion-trend":
+        return <PdfBarChart data={computeDiversionTrend(shipments)} dataKey="diversion" label="Diversion Trend" subtitle="Monthly diversion rate %" />;
+      case "chart-efficiency-scatter": {
+        const eff = computeEfficiencyScatter(shipments);
+        return <PdfProgressList data={eff.slice(0, 15).map((d) => ({ name: d.label, value: d.x }))} title="Load Efficiency" subtitle="Actual weight (lbs) — top 15" valueFormatter={(v) => `${fmtNum(v)} lbs`} />;
+      }
+      case "chart-treemap": {
+        const tm = computeTreemapData(shipments);
+        return <PdfProgressList data={tm.slice(0, 10).map((d) => ({ name: d.name, value: d.size }))} title="Waste Composition" subtitle="Volume by waste type (lbs)" valueFormatter={(v) => `${fmtNum(v)} lbs`} />;
+      }
+      case "chart-incident-trend":
+        return <PdfBarChart data={computeIncidentTrend()} dataKey="incidents" label="Incident Trend" subtitle="Monthly safety incidents" />;
+      case "chart-csat-trend": {
+        const csat = computeCsatTrend();
+        return <PdfBarChart data={csat} dataKey="csat" label="CSAT Trend" subtitle="Monthly customer satisfaction" />;
+      }
+      case "chart-ar-aging":
+        return <PdfBarChart data={computeArAging()} dataKey="amount" label="AR Aging" subtitle="Outstanding invoices by days overdue" />;
+      case "chart-facility-utilization": {
+        const fu = computeFacilityUtilization();
+        return <PdfProgressList data={fu.map((d) => ({ name: d.name, value: d.utilization }))} title="Facility Utilization" subtitle="% of capacity" valueFormatter={(v) => `${v}%`} />;
+      }
+      /* ── New tables ── */
+      case "table-route-margin": {
+        const routes = computeRouteMargin(shipments).slice(0, config.tableRowLimit ?? 25);
+        return <PdfTable title="Route Margin" subtitle="Profit per route" columns={[
+          { label: "Route", key: "route", width: 120 },
+          { label: "Shipments", key: "shipments", width: 50, align: "right" },
+          { label: "Revenue", key: "revenue", width: 60, align: "right" },
+          { label: "Cost", key: "cost", width: 60, align: "right" },
+          { label: "Margin", key: "margin", width: 60, align: "right" },
+          { label: "Margin %", key: "marginPct", width: 50, align: "right" },
+        ]} rows={routes.map((r) => ({
+          route: r.route,
+          shipments: String(r.shipments),
+          revenue: fmtDollar(r.revenue),
+          cost: fmtDollar(r.cost),
+          margin: fmtDollar(r.margin),
+          marginPct: `${r.marginPct}%`,
+        }))} />;
+      }
+      case "table-vendor-risk": {
+        const vr = computeVendorRisk(shipments).slice(0, config.tableRowLimit ?? 25);
+        return <PdfTable title="Vendor Risk Matrix" subtitle="Risk levels and performance" columns={[
+          { label: "Vendor", key: "name", width: 100 },
+          { label: "Risk", key: "risk", width: 50 },
+          { label: "Shipments", key: "shipments", width: 50, align: "right" },
+          { label: "Cost", key: "cost", width: 60, align: "right" },
+          { label: "DBE", key: "dbe", width: 30 },
+          { label: "Status", key: "status", width: 50 },
+        ]} rows={vr.map((v) => ({
+          name: v.vendor,
+          risk: v.risk,
+          shipments: String(v.shipments),
+          cost: fmtDollar(v.cost),
+          dbe: v.dbe ? "Yes" : "—",
+          status: v.status,
+        }))} />;
+      }
+      case "table-quality-breakdown": {
+        const qb = computeQualityBreakdown(shipments);
+        return <PdfTable title="Quality Breakdown" subtitle="Data quality checks" columns={[
+          { label: "Check", key: "label", width: 120 },
+          { label: "Issues", key: "issues", width: 50, align: "right" },
+          { label: "Total", key: "total", width: 50, align: "right" },
+          { label: "Rate", key: "rate", width: 40, align: "right" },
+          { label: "Status", key: "status", width: 50 },
+        ]} rows={qb.map((q) => ({
+          label: q.check,
+          issues: String(q.issues),
+          total: String(q.total),
+          rate: `${q.rate}%`,
+          status: q.rate < 5 ? "Good" : q.rate <= 15 ? "Attention" : "Critical",
+        }))} />;
+      }
+      default:
+        return (
+          <View style={ps.notesBox}>
+            <Text style={ps.chartTitle}>{String(type).replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</Text>
+            <Text style={ps.notesText}>This widget type is not yet available in PDF export.</Text>
+          </View>
+        );
     }
   })();
 

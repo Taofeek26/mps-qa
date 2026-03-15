@@ -40,6 +40,42 @@ export function loadEfficiency(s: Shipment): number | null {
   return Math.round((s.standardizedVolumeLbs / s.targetLoadWeight) * 100);
 }
 
+/* ─── Margin / KPI helpers ─── */
+
+export function getNetTonMargin(shipments: Shipment[]): number {
+  let totalRevenue = 0;
+  let totalCost = 0;
+  let totalLbs = 0;
+  for (const s of shipments) {
+    totalRevenue += totalCustomerCost(s);
+    totalCost += totalMpsCost(s);
+    totalLbs += s.standardizedVolumeLbs ?? s.weightValue;
+  }
+  const tons = totalLbs / 2000;
+  if (tons === 0) return 0;
+  return (totalRevenue - totalCost) / tons;
+}
+
+export function getRecyclablesRevenuePerTon(shipments: Shipment[]): number {
+  let totalRebate = 0;
+  let recycledLbs = 0;
+  for (const s of shipments) {
+    if (s.wasteCategory === "Recycling" || s.treatmentMethod === "Recycling") {
+      totalRebate += s.customerCost?.rebate ?? 0;
+      recycledLbs += s.standardizedVolumeLbs ?? s.weightValue;
+    }
+  }
+  const tons = recycledLbs / 2000;
+  if (tons === 0) return 0;
+  return totalRebate / tons;
+}
+
+export function daysBetween(date1: string, date2: string): number {
+  const d1 = new Date(date1 + "T00:00:00");
+  const d2 = new Date(date2 + "T00:00:00");
+  return Math.round(Math.abs(d2.getTime() - d1.getTime()) / 86400000);
+}
+
 /* ─── CSV Export ─── */
 
 export function downloadCsv(filename: string, headers: string[], rows: string[][]) {

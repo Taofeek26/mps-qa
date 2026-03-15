@@ -580,6 +580,22 @@ export function deleteUser(id: string): boolean {
 
 const ALL_SHIPMENTS: Shipment[] = [...GENERATED_SHIPMENTS];
 
+/* Inject completedDate for ~80% of submitted shipments (for Shipment Cycle Time KPI) */
+(() => {
+  let seed = 7;
+  ALL_SHIPMENTS.forEach((s) => {
+    if (s.status === "submitted") {
+      seed = (seed * 16807) % 2147483647;
+      if ((seed / 2147483647) < 0.8) {
+        const dayOffset = 1 + Math.floor(((seed * 13) % 2147483647) / 2147483647 * 7);
+        const d = new Date(s.shipmentDate + "T00:00:00");
+        d.setDate(d.getDate() + dayOffset);
+        s.completedDate = d.toISOString().slice(0, 10);
+      }
+    }
+  });
+})();
+
 /* ════════════════════════════════════════════════════════════
    Enterprise Schema — Normalized Transaction Data
    Generated from the denormalized ALL_SHIPMENTS for structural alignment.
@@ -927,6 +943,29 @@ export function getShipments(
     }
     if (filters.treatmentMethod) {
       result = result.filter((s) => s.treatmentMethod === filters.treatmentMethod);
+    }
+    if (filters.transporterName) {
+      result = result.filter((s) => s.transporterName === filters.transporterName);
+    }
+    if (filters.containerType) {
+      result = result.filter((s) => s.containerType === filters.containerType);
+    }
+    if (filters.receivingState) {
+      result = result.filter((s) => s.receivingState === filters.receivingState);
+    }
+    if (filters.receivingCompany) {
+      result = result.filter((s) => s.receivingCompany === filters.receivingCompany);
+    }
+    if (filters.serviceFrequency) {
+      result = result.filter((s) => s.serviceFrequency === filters.serviceFrequency);
+    }
+    if (filters.wasteStreamName) {
+      const q = filters.wasteStreamName.toLowerCase();
+      result = result.filter(
+        (s) =>
+          s.wasteStreamName?.toLowerCase() === q ||
+          s.wasteTypeName.toLowerCase() === q
+      );
     }
   }
 

@@ -228,6 +228,9 @@ export interface ShipmentView {
   /* ── Customer Cost ── */
   customerCost?: CostBreakdown;
 
+  /* ── Lifecycle ── */
+  completedDate?: string;
+
   /* ── GM-specific (File 1 format) ── */
   plantId?: string;
   approvalId?: string;
@@ -458,6 +461,126 @@ export interface ShipmentCustomField {
   fieldValueDate?: string;
 }
 
+/* ─── KPI Support — Operational & Analytical Mock Entities ─── */
+
+export interface InvoiceRecord {
+  id: string;
+  clientId: string;
+  invoiceDate: string;
+  dueDate: string;
+  amount: number;
+  paidDate?: string;
+}
+
+export interface CollectionEvent {
+  id: string;
+  siteId: string;
+  scheduledDate: string;
+  actualDate?: string;
+  status: "completed" | "missed" | "late";
+}
+
+export interface ContainerPlacement {
+  id: string;
+  containerId: string;
+  containerType: string;
+  siteId: string;
+  placedDate: string;
+  removedDate?: string;
+  fillPercentage: number;
+}
+
+export interface FacilityCapacity {
+  facilityId: string;
+  facilityName: string;
+  monthlyCapacityTons: number;
+  monthlyProcessedTons: number;
+}
+
+export interface FuelRecord {
+  transporterId: string;
+  transporterName: string;
+  mpg: number;
+  fuelCostPerMile: number;
+}
+
+export interface RouteSchedule {
+  id: string;
+  routeId: string;
+  siteId: string;
+  siteName: string;
+  scheduledDay: string;
+  completedDay?: string;
+  onTime: boolean;
+}
+
+export interface TruckLoad {
+  id: string;
+  truckId: string;
+  transporterName: string;
+  maxWeightLbs: number;
+  loadedWeightLbs: number;
+}
+
+export interface SafetyIncident {
+  id: string;
+  date: string;
+  type: "vehicle" | "chemical" | "slip-fall" | "equipment" | "ergonomic";
+  severity: "minor" | "moderate" | "serious";
+  resolved: boolean;
+  siteId: string;
+  description: string;
+}
+
+export interface InspectionRecord {
+  id: string;
+  siteId: string;
+  siteName: string;
+  date: string;
+  passed: boolean;
+  findings: number;
+  inspectorName: string;
+}
+
+export interface ServiceVerification {
+  shipmentId: string;
+  verified: boolean;
+  verifiedDate?: string;
+  goBack: boolean;
+  goBackReason?: string;
+}
+
+export interface ContainerWeightRecord {
+  shipmentId: string;
+  containerType: string;
+  tareWeightLbs: number;
+  grossWeightLbs: number;
+}
+
+export interface PlatformUserActivity {
+  userId: string;
+  userName: string;
+  role: UserRole;
+  lastActiveDate: string;
+  shipmentsCreated: number;
+  features: string[];
+  loginCount: number;
+  avgSessionMinutes: number;
+}
+
+export interface CustomerSurvey {
+  id: string;
+  clientId: string;
+  clientName: string;
+  date: string;
+  csat: number;
+  nps: number;
+  fcrResolved: boolean;
+  responseTimeHrs: number;
+  hasComplaint: boolean;
+  complaintCategory?: string;
+}
+
 /* ─── Query / Filter Helpers ─── */
 
 export interface ShipmentFilters {
@@ -471,6 +594,12 @@ export interface ShipmentFilters {
   status?: ShipmentStatus;
   wasteCategory?: WasteCategory;
   treatmentMethod?: TreatmentMethod;
+  transporterName?: string;
+  containerType?: string;
+  receivingState?: string;
+  receivingCompany?: string;
+  serviceFrequency?: ServiceFrequency;
+  wasteStreamName?: string;
 }
 
 export interface AuditLogFilters {

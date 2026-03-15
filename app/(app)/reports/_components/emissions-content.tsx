@@ -16,7 +16,7 @@ import {
   Legend,
   Cell,
 } from "recharts";
-import { Leaf, RotateCcw, Factory, Recycle, Truck } from "lucide-react";
+import { Leaf, RotateCcw, Factory, Recycle, Truck, AlertCircle, Star, Weight, Clock as ClockIcon, DollarSign } from "lucide-react";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,13 @@ import {
   TOOLTIP_STYLE,
 } from "@/components/charts";
 import { getMonthKey, formatMonthLabel, downloadCsv } from "@/lib/report-utils";
+import {
+  getContainerWeightRecords,
+  ROUTE_PROGRESS_DATA,
+  YARD_TURNAROUND_DATA,
+  SERVICE_AGREEMENT_RATES,
+} from "@/lib/mock-kpi-data";
+import { ProgressList } from "@/components/charts";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
@@ -148,6 +155,87 @@ export function EmissionsContent() {
       }));
   }, [shipments]);
 
+  /* ─── New ESG KPIs ─── */
+
+  /* Contamination Rate: % of recycling shipments flagged (simulated based on waste codes presence) */
+  const contaminationRate = React.useMemo(() => {
+    const recyclingShipments = shipments.filter(
+      (s) => s.wasteCategory === "Recycling" || s.treatmentMethod === "Recycling"
+    );
+    if (recyclingShipments.length === 0) return 0;
+    const contaminated = recyclingShipments.filter((s) => !s.wasteCodes || s.wasteCodes.includes("D")).length;
+    return Math.round((contaminated / recyclingShipments.length) * 100);
+  }, [shipments]);
+
+  /* Recycling Participation: % of sites with at least 1 recycling shipment */
+  const recyclingParticipation = React.useMemo(() => {
+    const allSiteIds = new Set(shipments.map((s) => s.siteId));
+    const recyclingSiteIds = new Set(
+      shipments
+        .filter((s) => s.wasteCategory === "Recycling" || s.treatmentMethod === "Recycling")
+        .map((s) => s.siteId)
+    );
+    return allSiteIds.size > 0 ? Math.round((recyclingSiteIds.size / allSiteIds.size) * 100) : 0;
+  }, [shipments]);
+
+  /* Container Weight Records */
+  const containerWeights = React.useMemo(() => getContainerWeightRecords(), []);
+  const totalDeductionWeight = React.useMemo(
+    () => containerWeights.reduce((sum, cw) => sum + cw.tareWeightLbs, 0),
+    [containerWeights]
+  );
+  const avgTareDelta = React.useMemo(() => {
+    if (containerWeights.length === 0) return 0;
+    const totalDelta = containerWeights.reduce((sum, cw) => sum + (cw.grossWeightLbs - cw.tareWeightLbs), 0);
+    return Math.round(totalDelta / containerWeights.length);
+  }, [containerWeights]);
+
+  /* Tare vs Gross by container type */
+  const tareByType = React.useMemo(() => {
+    const byType = new Map<string, { tare: number; gross: number; count: number }>();
+    containerWeights.forEach((cw) => {
+      const existing = byType.get(cw.containerType) ?? { tare: 0, gross: 0, count: 0 };
+      existing.tare += cw.tareWeightLbs;
+      existing.gross += cw.grossWeightLbs;
+      existing.count++;
+      byType.set(cw.containerType, existing);
+    });
+    return Array.from(byType.entries())
+      .map(([name, d]) => ({
+        name,
+        avgTare: Math.round(d.tare / d.count),
+        avgGross: Math.round(d.gross / d.count),
+        avgNet: Math.round((d.gross - d.tare) / d.count),
+      }))
+      .sort((a, b) => b.avgNet - a.avgNet);
+  }, [containerWeights]);
+
+  /* Route Progress */
+  const routeProgress = ROUTE_PROGRESS_DATA;
+  const avgRouteCompletion = React.useMemo(() => {
+    if (routeProgress.length === 0) return 0;
+    const total = routeProgress.reduce((s, r) => s + r.completedStops / r.totalStops, 0);
+    return Math.round((total / routeProgress.length) * 100);
+  }, [routeProgress]);
+
+  /* Asset Utilization */
+  const activeContainers = React.useMemo(() => {
+    // Active = containers placed but not yet removed
+    const total = 80; // from mock data
+    const active = Math.round(total * 0.88);
+    return { total, active, pct: Math.round((active / total) * 100) };
+  }, []);
+
+  /* Yard Turnaround */
+  const yardData = YARD_TURNAROUND_DATA;
+  const avgYardTurnaround = React.useMemo(() => {
+    if (yardData.length === 0) return 0;
+    return Math.round(yardData.reduce((s, d) => s + d.turnaroundMinutes, 0) / yardData.length);
+  }, [yardData]);
+
+  /* Service Agreement Rates */
+  const agreements = SERVICE_AGREEMENT_RATES;
+
   /* ─── CSV export ─── */
 
   const handleExport = () => {
@@ -178,17 +266,11 @@ export function EmissionsContent() {
             variant="success"
           />
           <KpiCard
-            title="Recycling Offset"
-            value={`${Math.round(kpis.recyclingOffset).toLocaleString()} t`}
-            subtitle="Carbon savings"
-            icon={Leaf}
-            variant="success"
-          />
-          <KpiCard
-            title="Scope 3 Proxy"
-            value={`${kpis.scope3.toFixed(1)} t CO₂`}
-            subtitle="Transport emissions"
-            icon={Truck}
+            title="Contamination"
+            value={`${contaminationRate}%`}
+            subtitle="Recycling streams"
+            icon={AlertCircle}
+            variant={contaminationRate < 15 ? "success" : "warning"}
           />
         </>
       }
@@ -243,6 +325,7 @@ export function EmissionsContent() {
             <PillTabsTrigger value="overview">Overview</PillTabsTrigger>
             <PillTabsTrigger value="trends">Diversion & Scope 3</PillTabsTrigger>
             <PillTabsTrigger value="breakdown">Breakdown Table</PillTabsTrigger>
+            <PillTabsTrigger value="material">Material & Assets</PillTabsTrigger>
           </PillTabsList>
 
           {/* Tab 1: GHG by Category bar + Emissions Intensity */}
@@ -256,13 +339,16 @@ export function EmissionsContent() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={ghgByCategory}
-                    margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
+                    margin={{ top: 5, right: 5, bottom: 5, left: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
                     <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
                     <YAxis
                       tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                       tickFormatter={(v) => `${v}t`}
+                      width={40}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
                     />
                     <Tooltip
                       {...TOOLTIP_STYLE}
@@ -288,14 +374,17 @@ export function EmissionsContent() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={monthlyData}
-                    margin={{ top: 5, right: 40, bottom: 5, left: 0 }}
+                    margin={{ top: 5, right: 5, bottom: 5, left: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
                     <YAxis
                       tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                       tickFormatter={(v) => `${v}%`}
                       domain={[0, 100]}
+                      width={35}
+                      axisLine={{ stroke: "var(--color-border-default)" }}
+                      tickLine={false}
                     />
                     <Tooltip
                       {...TOOLTIP_STYLE}
@@ -325,13 +414,16 @@ export function EmissionsContent() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={monthlyData}
-                  margin={{ top: 5, right: 40, bottom: 5, left: 0 }}
+                  margin={{ top: 5, right: 5, bottom: 5, left: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
                   <YAxis
                     tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                     tickFormatter={(v) => `${v}t`}
+                    width={35}
+                    axisLine={{ stroke: "var(--color-border-default)" }}
+                    tickLine={false}
                   />
                   <Tooltip
                     {...TOOLTIP_STYLE}
@@ -341,8 +433,8 @@ export function EmissionsContent() {
                     type="monotone"
                     dataKey="scope3"
                     name="Scope 3 (t CO₂)"
-                    stroke="#7c3aed"
-                    fill="rgba(124,58,237,.08)"
+                    stroke="var(--color-primary-600)"
+                    fill="color-mix(in srgb, var(--color-primary-600) 8%, transparent)"
                     strokeWidth={2}
                   />
                 </AreaChart>
@@ -374,7 +466,7 @@ export function EmissionsContent() {
                           <td className="py-2.5 pr-3 font-semibold text-text-primary">{row.name}</td>
                           <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">{row.qty.toLocaleString()}</td>
                           <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">{row.factor}</td>
-                          <td className={`py-2.5 px-3 text-right tabular-nums font-mono font-semibold ${row.co2 < 0 ? "text-teal-400" : "text-error-500"}`}>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-mono font-semibold" style={{ color: row.co2 < 0 ? "var(--color-teal-400)" : "var(--color-error-500)" }}>
                             {row.co2.toLocaleString()}
                           </td>
                           <td className="py-2.5 pl-3">
@@ -384,6 +476,122 @@ export function EmissionsContent() {
                           </td>
                         </tr>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </PillTabsContent>
+          {/* Material & Assets */}
+          <PillTabsContent value="material" className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <KpiCard
+                title="Deduction Weight"
+                value={`${(totalDeductionWeight / 1000).toFixed(0)}k lbs`}
+                subtitle="Container tare total"
+                icon={Weight}
+              />
+              <KpiCard
+                title="Avg Net Weight"
+                value={`${avgTareDelta.toLocaleString()} lbs`}
+                subtitle="Gross − Tare"
+                icon={Weight}
+              />
+              <KpiCard
+                title="Asset Utilization"
+                value={`${activeContainers.pct}%`}
+                subtitle={`${activeContainers.active}/${activeContainers.total} active`}
+                icon={Recycle}
+                variant="success"
+              />
+              <KpiCard
+                title="Yard Turnaround"
+                value={`${avgYardTurnaround} min`}
+                subtitle="Avg facility time"
+                icon={ClockIcon}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Tare vs Gross by Container Type */}
+              <ChartContainer
+                title="Tare vs Gross Weight by Container"
+                subtitle="Average weights by container type"
+                chartClassName="h-[280px] lg:h-[320px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={tareByType} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip {...TOOLTIP_STYLE} formatter={(value) => [`${Number(value).toLocaleString()} lbs`, ""]} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="avgTare" name="Tare (lbs)" fill={CATEGORY_COLORS[5]} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="avgNet" name="Net (lbs)" fill={CATEGORY_COLORS[0]} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+
+              {/* Route Progress */}
+              <ChartContainer
+                title="Route Progress"
+                subtitle={`${avgRouteCompletion}% avg completion across ${routeProgress.length} routes`}
+                chartClassName="h-[280px] lg:h-[320px] overflow-y-auto"
+              >
+                <div className="space-y-2 px-1">
+                  {routeProgress.map((r) => {
+                    const pct = Math.round((r.completedStops / r.totalStops) * 100);
+                    return (
+                      <div key={r.routeId} className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-text-primary font-medium">{r.siteName}</span>
+                          <span className="text-text-muted">{r.completedStops}/{r.totalStops} stops ({pct}%)</span>
+                        </div>
+                        <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--color-bg-subtle)" }}>
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{ width: `${pct}%`, backgroundColor: pct >= 90 ? "var(--color-success-400)" : pct >= 60 ? "var(--color-warning-400)" : "var(--color-error-400)" }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ChartContainer>
+            </div>
+
+            {/* Service Agreement Haul Rates */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Service Agreement Haul Rates</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border-default">
+                        <th className="pb-2 pr-3 text-left font-semibold text-text-muted text-xs uppercase tracking-wider">Client</th>
+                        <th className="pb-2 px-3 text-left font-semibold text-text-muted text-xs uppercase tracking-wider">Transporter</th>
+                        <th className="pb-2 px-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">Contracted</th>
+                        <th className="pb-2 px-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">Actual Avg</th>
+                        <th className="pb-2 pl-3 text-right font-semibold text-text-muted text-xs uppercase tracking-wider">Variance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {agreements.map((a, idx) => {
+                        const variance = ((a.actualAvgRate - a.contractedHaulRate) / a.contractedHaulRate) * 100;
+                        return (
+                          <tr key={idx} className="border-b border-border-default last:border-0">
+                            <td className="py-2.5 pr-3 font-medium text-text-primary">{a.clientName}</td>
+                            <td className="py-2.5 px-3 text-text-secondary">{a.transporterName}</td>
+                            <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">${a.contractedHaulRate.toFixed(0)}</td>
+                            <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">${a.actualAvgRate.toFixed(0)}</td>
+                            <td className="py-2.5 pl-3 text-right tabular-nums font-mono font-semibold" style={{ color: variance > 0 ? "var(--color-error-500)" : "var(--color-success-500)" }}>
+                              {variance > 0 ? "+" : ""}{variance.toFixed(1)}%
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

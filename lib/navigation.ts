@@ -18,6 +18,8 @@ import {
   Globe,
   MapPin,
   Leaf,
+  Monitor,
+  Heart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -56,6 +58,8 @@ export const NAV_GROUPS: NavGroup[] = [
           { label: "Vendor Intel", href: "/reports?tab=vendor-intel", icon: Globe },
           { label: "Logistics", href: "/reports?tab=logistics", icon: MapPin },
           { label: "Emissions", href: "/reports?tab=emissions", icon: Leaf },
+          { label: "Platform Analytics", href: "/reports?tab=platform-analytics", icon: Monitor },
+          { label: "Customer Experience", href: "/reports?tab=customer-experience", icon: Heart },
         ],
       },
       { label: "Report Builder", href: "/reports/builder", icon: FileBarChart },
@@ -120,6 +124,8 @@ const TAB_LABELS: Record<string, string> = {
   "vendor-intel": "Vendor Intel",
   logistics: "Logistics",
   emissions: "Emissions",
+  "platform-analytics": "Platform Analytics",
+  "customer-experience": "Customer Experience",
   // Admin > Clients & Sites
   clients: "Clients",
   sites: "Sites",
