@@ -26,8 +26,19 @@ import {
   PillTabsContent,
 } from "@/components/ui/pill-tabs";
 
-import { ChartContainer, CATEGORY_COLORS, DonutChart } from "@/components/charts";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Cell,
+} from "recharts";
+import { ChartContainer, CATEGORY_COLORS, CHART_COLORS, TOOLTIP_STYLE, DonutChart, ProgressList } from "@/components/charts";
 import { getVendors } from "@/lib/mock-data";
+import { getServiceVerifications, getRouteSchedules } from "@/lib/mock-kpi-data";
 import { totalMpsCost, downloadCsv } from "@/lib/report-utils";
 import { cn } from "@/lib/utils";
 import type { Vendor } from "@/lib/types";
@@ -296,6 +307,52 @@ export function VendorIntelContent() {
     downloadCsv("Vendor_Intelligence_Report.csv", headers, rows);
   };
 
+  /* ── Service Quality KPIs (new) ── */
+  const serviceVerifications = React.useMemo(() => getServiceVerifications(), []);
+  const routeSchedules = React.useMemo(() => getRouteSchedules(), []);
+
+  const verificationRate = React.useMemo(() => {
+    if (serviceVerifications.length === 0) return 100;
+    const verified = serviceVerifications.filter((sv) => sv.verified).length;
+    return Math.round((verified / serviceVerifications.length) * 100);
+  }, [serviceVerifications]);
+
+  const goBackRate = React.useMemo(() => {
+    if (serviceVerifications.length === 0) return 0;
+    const gobacks = serviceVerifications.filter((sv) => sv.goBack).length;
+    return Math.round((gobacks / serviceVerifications.length) * 1000) / 10;
+  }, [serviceVerifications]);
+
+  const goBackReasons = React.useMemo(() => {
+    const byReason = new Map<string, number>();
+    serviceVerifications.forEach((sv) => {
+      if (sv.goBackReason) {
+        byReason.set(sv.goBackReason, (byReason.get(sv.goBackReason) ?? 0) + 1);
+      }
+    });
+    return Array.from(byReason.entries())
+      .map(([reason, count]) => ({ reason, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [serviceVerifications]);
+
+  const routeOptimization = React.useMemo(() => {
+    const bySite = new Map<string, { onTime: number; total: number }>();
+    routeSchedules.forEach((rs) => {
+      const existing = bySite.get(rs.siteName) ?? { onTime: 0, total: 0 };
+      if (rs.onTime) existing.onTime++;
+      existing.total++;
+      bySite.set(rs.siteName, existing);
+    });
+    return Array.from(bySite.entries())
+      .map(([name, d]) => ({
+        label: name,
+        value: d.total > 0 ? (d.onTime / d.total) * 100 : 0,
+        displayValue: `${Math.round(d.total > 0 ? (d.onTime / d.total) * 100 : 0)}%`,
+        secondary: `${d.onTime}/${d.total} on-time`,
+      }))
+      .sort((a, b) => a.value - b.value);
+  }, [routeSchedules]);
+
   /* Reset pagination when data changes */
   React.useEffect(() => {
     setCompliancePage(1);
@@ -364,65 +421,180 @@ export function VendorIntelContent() {
             <PillTabsTrigger value="compliance" count={complianceData.length}>
               Compliance
             </PillTabsTrigger>
+            <PillTabsTrigger value="service-quality">Service Quality</PillTabsTrigger>
           </PillTabsList>
 
-          {/* Risk Pyramid + DBE Spend */}
+          {/* Risk Matrix + DBE Spend */}
           <PillTabsContent value="risk" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Risk Pyramid */}
+            <div className="grid grid-cols-1 lg:grid-cols-[65fr_35fr] gap-4">
+              {/* Vendor Risk Matrix */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Vendor Risk Pyramid</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center gap-1">
-                    {/* High Risk - narrow */}
-                    <div className="w-[40%] bg-error-200 rounded-sm px-3 py-2 text-center">
-                      <span className="text-xs font-semibold text-error-700">
-                        {riskCounts.high} vendors
-                      </span>
-                      <span className="text-xs text-error-600 ml-2">
-                        ({riskCounts.highVol} shipments)
-                      </span>
-                    </div>
-                    {/* Medium Risk - medium */}
-                    <div className="w-[65%] bg-warning-200 rounded-sm px-3 py-2 text-center">
-                      <span className="text-xs font-semibold text-warning-700">
-                        {riskCounts.medium} vendors
-                      </span>
-                      <span className="text-xs text-warning-600 ml-2">
-                        ({riskCounts.medVol} shipments)
-                      </span>
-                    </div>
-                    {/* Low Risk - wide */}
-                    <div className="w-full bg-success-200 rounded-sm px-3 py-2 text-center">
-                      <span className="text-xs font-semibold text-success-700">
-                        {riskCounts.low} vendors
-                      </span>
-                      <span className="text-xs text-success-600 ml-2">
-                        ({riskCounts.lowVol} shipments)
-                      </span>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Vendor Risk Matrix</CardTitle>
+                    <div className="flex items-center gap-3 text-[10px] text-text-muted">
+                      {[
+                        { label: "High", color: "var(--color-error-400)" },
+                        { label: "Medium", color: "var(--color-warning-400)" },
+                        { label: "Low", color: "var(--color-success-400)" },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center gap-1">
+                          <span className="shrink-0 rounded-sm" style={{ width: 10, height: 10, display: "block", backgroundColor: item.color }} />
+                          {item.label}
+                        </div>
+                      ))}
                     </div>
                   </div>
-
-                  <div className="mt-4 flex justify-between text-xs text-text-muted px-2">
-                    <span>High Risk (top)</span>
-                    <span>Low Risk (bottom)</span>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b-2 border-border-default">
+                          <th className="pb-2 pr-3 text-left font-semibold text-text-muted uppercase tracking-wider">Vendor</th>
+                          <th className="pb-2 px-2 text-center font-semibold text-text-muted uppercase tracking-wider">Risk</th>
+                          <th className="pb-2 px-2 text-right font-semibold text-text-muted uppercase tracking-wider">Shipments</th>
+                          <th className="pb-2 px-2 text-left font-semibold text-text-muted uppercase tracking-wider w-28">Volume</th>
+                          <th className="pb-2 px-2 text-right font-semibold text-text-muted uppercase tracking-wider">Cost</th>
+                          <th className="pb-2 px-2 text-center font-semibold text-text-muted uppercase tracking-wider">DBE</th>
+                          <th className="pb-2 pl-2 text-center font-semibold text-text-muted uppercase tracking-wider">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(() => {
+                          const maxVol = Math.max(...vendors.map((v) => vendorShipmentMap.get(v.name)?.count ?? 0), 1);
+                          return [...vendors]
+                            .sort((a, b) => {
+                              const riskOrder = (r?: string) => r?.includes("High") ? 0 : r?.includes("Medium") ? 1 : 2;
+                              const diff = riskOrder(a.riskLevel) - riskOrder(b.riskLevel);
+                              if (diff !== 0) return diff;
+                              return (vendorShipmentMap.get(b.name)?.count ?? 0) - (vendorShipmentMap.get(a.name)?.count ?? 0);
+                            })
+                            .map((v) => {
+                              const data = vendorShipmentMap.get(v.name) ?? { count: 0, volume: 0, cost: 0 };
+                              const riskColor = v.riskLevel?.includes("High")
+                                ? "var(--color-error-400)"
+                                : v.riskLevel?.includes("Medium")
+                                  ? "var(--color-warning-400)"
+                                  : "var(--color-success-400)";
+                              const barPct = maxVol > 0 ? (data.count / maxVol) * 100 : 0;
+                              return (
+                                <tr key={v.id} className="border-b border-border-default last:border-0 hover:bg-surface-secondary/50 transition-colors">
+                                  <td className="py-2 pr-3 font-medium text-text-primary truncate max-w-[140px]">{v.name}</td>
+                                  <td className="py-2 px-2 text-center">
+                                    <span
+                                      className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold text-white"
+                                      style={{ backgroundColor: riskColor }}
+                                    >
+                                      {riskLabel(v.riskLevel)}
+                                    </span>
+                                  </td>
+                                  <td className="py-2 px-2 text-right tabular-nums font-mono text-text-secondary">{data.count}</td>
+                                  <td className="py-2 px-2">
+                                    <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--color-bg-subtle)" }}>
+                                      <div
+                                        className="h-full rounded-full transition-all"
+                                        style={{ width: `${barPct}%`, backgroundColor: riskColor }}
+                                      />
+                                    </div>
+                                  </td>
+                                  <td className="py-2 px-2 text-right tabular-nums font-mono text-text-secondary">
+                                    {data.cost >= 1000 ? `$${(data.cost / 1000).toFixed(0)}k` : `$${Math.round(data.cost)}`}
+                                  </td>
+                                  <td className="py-2 px-2 text-center">
+                                    {v.dbeFlag ? (
+                                      <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "var(--color-success-400)" }} />
+                                    ) : (
+                                      <span className="text-text-muted">—</span>
+                                    )}
+                                  </td>
+                                  <td className="py-2 pl-2 text-center">
+                                    <Badge variant={statusVariant(v.vendorStatus)}>
+                                      {v.vendorStatus ?? "Unknown"}
+                                    </Badge>
+                                  </td>
+                                </tr>
+                              );
+                            });
+                        })()}
+                      </tbody>
+                    </table>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* DBE / Diversity Spend Donut */}
-              <ChartContainer
-                title="DBE / Diversity Spend"
-                subtitle="Cost allocation by DBE status"
-              >
-                <DonutChart
-                  data={dbeSpendData.data}
-                  colors={[CATEGORY_COLORS[1], CATEGORY_COLORS[6]]}
-                  valueFormatter={(v) => `$${v.toLocaleString()}`}
-                />
-              </ChartContainer>
+              {/* DBE / Diversity Spend */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>DBE / Diversity Spend</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Proportion bar */}
+                  {(() => {
+                    const total = dbeSpendData.dbeCost + dbeSpendData.nonDbeCost;
+                    const dbePct = total > 0 ? Math.round((dbeSpendData.dbeCost / total) * 100) : 0;
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="font-semibold text-text-primary">DBE: ${Math.round(dbeSpendData.dbeCost).toLocaleString()} ({dbePct}%)</span>
+                          <span className="text-text-muted">Non-DBE: ${Math.round(dbeSpendData.nonDbeCost).toLocaleString()} ({100 - dbePct}%)</span>
+                        </div>
+                        <div className="flex h-4 rounded overflow-hidden">
+                          <div
+                            className="h-full rounded-l transition-all"
+                            style={{ width: `${dbePct}%`, backgroundColor: "var(--color-primary-400)" }}
+                          />
+                          <div
+                            className="h-full rounded-r flex-1"
+                            style={{ backgroundColor: "var(--color-border-strong)" }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* DBE vendor breakdown */}
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-2">DBE Vendors</p>
+                    {(() => {
+                      const dbeVendorNames = new Set(vendors.filter((v) => v.dbeFlag).map((v) => v.name));
+                      const dbeVendorSpend: Array<{ name: string; cost: number }> = [];
+                      const byVendor = new Map<string, number>();
+                      shipments.forEach((s) => {
+                        if (dbeVendorNames.has(s.vendorName)) {
+                          byVendor.set(s.vendorName, (byVendor.get(s.vendorName) ?? 0) + totalMpsCost(s));
+                        }
+                      });
+                      byVendor.forEach((cost, name) => dbeVendorSpend.push({ name, cost }));
+                      dbeVendorSpend.sort((a, b) => b.cost - a.cost);
+                      const maxCost = Math.max(...dbeVendorSpend.map((d) => d.cost), 1);
+
+                      if (dbeVendorSpend.length === 0) {
+                        return <p className="text-xs text-text-muted">No DBE vendor spend in current filter</p>;
+                      }
+
+                      return (
+                        <div className="space-y-2">
+                          {dbeVendorSpend.map((d) => (
+                            <div key={d.name} className="flex items-center gap-3">
+                              <span className="text-xs text-text-primary w-28 truncate shrink-0">{d.name}</span>
+                              <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--color-bg-subtle)" }}>
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{ width: `${(d.cost / maxCost) * 100}%`, backgroundColor: "var(--color-primary-400)" }}
+                                />
+                              </div>
+                              <span className="text-xs text-text-muted tabular-nums font-mono shrink-0">
+                                ${d.cost >= 1000 ? `${(d.cost / 1000).toFixed(0)}k` : Math.round(d.cost)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </PillTabsContent>
 
@@ -452,22 +624,23 @@ export function VendorIntelContent() {
 
                       const barColor =
                         item.status === "expired"
-                          ? "bg-error-400"
+                          ? "var(--color-error-400)"
                           : item.status === "warning"
-                            ? "bg-warning-400"
-                            : "bg-success-400";
+                            ? "var(--color-warning-400)"
+                            : "var(--color-success-400)";
 
                       return (
                         <div key={item.name} className="flex items-center gap-3">
                           <span className="text-xs text-text-muted w-36 min-w-[9rem] truncate text-right">
                             {item.name}
                           </span>
-                          <div className="relative flex-1 h-5 bg-surface-secondary rounded-sm min-w-[200px]">
+                          <div className="relative flex-1 h-5 rounded-sm min-w-[200px]" style={{ backgroundColor: "var(--color-bg-subtle)" }}>
                             <div
-                              className={cn("absolute h-full rounded-sm", barColor)}
+                              className="absolute h-full rounded-sm"
                               style={{
                                 left: `${leftPct}%`,
                                 width: `${Math.max(widthPct, 1)}%`,
+                                backgroundColor: barColor,
                               }}
                             />
                           </div>
@@ -499,15 +672,15 @@ export function VendorIntelContent() {
                       </span>
                       <div className="flex gap-4">
                         <span className="flex items-center gap-1">
-                          <span className="inline-block w-3 h-2 rounded-sm bg-success-400" />
+                          <span className="shrink-0 rounded-sm" style={{ width: 12, height: 8, display: "block", backgroundColor: "var(--color-success-400)" }} />
                           Active
                         </span>
                         <span className="flex items-center gap-1">
-                          <span className="inline-block w-3 h-2 rounded-sm bg-warning-400" />
+                          <span className="shrink-0 rounded-sm" style={{ width: 12, height: 8, display: "block", backgroundColor: "var(--color-warning-400)" }} />
                           &lt;90 days
                         </span>
                         <span className="flex items-center gap-1">
-                          <span className="inline-block w-3 h-2 rounded-sm bg-error-400" />
+                          <span className="shrink-0 rounded-sm" style={{ width: 12, height: 8, display: "block", backgroundColor: "var(--color-error-400)" }} />
                           Expired
                         </span>
                       </div>
@@ -545,6 +718,85 @@ export function VendorIntelContent() {
                 </div>
               }
             />
+            </div>
+          </PillTabsContent>
+          {/* Service Quality */}
+          <PillTabsContent value="service-quality" className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <KpiCard
+                title="Verification Rate"
+                value={`${verificationRate}%`}
+                subtitle="Service confirmed"
+                icon={Award}
+                variant={verificationRate >= 95 ? "success" : "warning"}
+              />
+              <KpiCard
+                title="Go-Back Rate"
+                value={`${goBackRate}%`}
+                subtitle="Return trips needed"
+                icon={Clock}
+                variant={goBackRate < 3 ? "success" : "warning"}
+              />
+              <KpiCard
+                title="Missing Items"
+                value={serviceVerifications.filter((sv) => !sv.verified && !sv.goBack).length}
+                subtitle="Unresolved"
+                icon={ShieldAlert}
+                variant="warning"
+              />
+              <KpiCard
+                title="Route Efficiency"
+                value={`${Math.round(routeSchedules.filter((r) => r.onTime).length / Math.max(routeSchedules.length, 1) * 100)}%`}
+                subtitle="On-time routes"
+                icon={Users}
+                variant="success"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <ChartContainer
+                title="Go-Back Reasons"
+                subtitle="Why return trips were required"
+              >
+                {goBackReasons.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={goBackReasons} layout="vertical" margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} allowDecimals={false} />
+                      <YAxis type="category" dataKey="reason" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} width={120} />
+                      <Tooltip {...TOOLTIP_STYLE} />
+                      <Bar dataKey="count" fill={CHART_COLORS.warning} radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[200px] text-sm text-text-muted">
+                    No go-back events in current data
+                  </div>
+                )}
+              </ChartContainer>
+
+              <ChartContainer
+                title="Route Optimization by Site"
+                subtitle="On-time route completion rate"
+              >
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart
+                    data={routeOptimization.map((d) => ({ name: d.label, rate: Math.round(d.value) }))}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" horizontal={false} />
+                    <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} tickFormatter={(v) => `${v}%`} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} width={100} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                    <Tooltip {...TOOLTIP_STYLE} formatter={(value) => [`${value}%`, "On-Time"]} />
+                    <Bar dataKey="rate" name="On-Time %" radius={[0, 4, 4, 0]}>
+                      {routeOptimization.map((d, i) => (
+                        <Cell key={i} fill={d.value >= 90 ? "var(--color-success-400)" : d.value >= 70 ? "var(--color-warning-400)" : "var(--color-error-400)"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
             </div>
           </PillTabsContent>
         </PillTabs>

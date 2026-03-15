@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPS Group — KPI Directory</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--c1:#121212;--c2:#191919;--bd:#2a2a2a;--tp:#fff;--ts:#f0f0f0;--tm:#7a7a7a;--ac:#fff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tp);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-width:240px;background:var(--c1);border-right:1px solid var(--bd);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;}
+.sb-logo{padding:28px 24px 20px;border-bottom:1px solid var(--bd);}
+.sb-logo img{max-width:120px;filter:brightness(0) invert(1);}
+.sb-head{padding:20px 24px 8px;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--tm);}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 24px;font-size:12px;font-weight:500;color:var(--tm);cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none;}
+.sb-item:hover{color:var(--tp);background:var(--c2);border-left-color:var(--bd);}
+.sb-item.active{color:var(--tp);background:var(--c2);border-left-color:var(--ac);}
+.sb-num{font-size:9px;font-weight:700;color:var(--bd);min-width:18px;}
+.sb-footer{margin-top:auto;padding:20px 24px;border-top:1px solid var(--bd);font-size:10px;color:var(--tm);line-height:1.6;}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;padding:48px 56px;}
+
+/* PAGE HEADER */
+.ph{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--bd);}
+.ph h1{font-size:30px;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px;}
+.ph p{font-size:13px;color:var(--tm);max-width:640px;line-height:1.7;}
+.kpi-strip{display:flex;gap:1px;background:var(--bd);border-radius:5px;overflow:hidden;margin-top:24px;width:fit-content;}
+.ks{background:var(--c1);padding:16px 28px;text-align:center;}
+.ks-n{font-size:26px;font-weight:700;line-height:1;}
+.ks-l{font-size:9px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;}
+
+/* DOMAIN SECTION */
+.domain{margin-bottom:56px;}
+.d-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:2px solid var(--bd);margin-bottom:4px;}
+.d-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;}
+.d-q{font-size:12px;color:var(--tm);padding-bottom:16px;margin-bottom:0;}
+.d-count{font-size:11px;color:var(--tm);font-weight:500;}
+
+/* KPI TABLE */
+.kt{width:100%;border-collapse:collapse;font-size:12px;margin-top:16px;}
+.kt thead th{text-align:left;padding:10px 14px;font-size:9px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:1px;background:var(--c2);border-bottom:1px solid var(--bd);}
+.kt thead th:first-child{padding-left:16px;}
+.kt tbody tr{border-bottom:1px solid #1c1c1c;transition:background .1s;}
+.kt tbody tr:hover{background:var(--c2);}
+.kt tbody td{padding:11px 14px;vertical-align:middle;color:var(--ts);}
+.kt tbody td:first-child{padding-left:16px;}
+.kpi-name{font-weight:500;color:var(--tp);}
+.tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.tag-mps{background:rgba(255,255,255,0.12);color:var(--tp);}
+.tag-shared{background:transparent;color:var(--tm);border:1px solid #3a3a3a;}
+.ex-val{font-family:monospace;font-size:11px;color:var(--tm);}
+.unit{font-size:11px;color:var(--tm);}
+
+/* FILTER SECTION */
+.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border-radius:5px;overflow:hidden;margin-top:16px;}
+.fc{background:var(--c2);padding:22px 20px;}
+.fc-t{font-size:12px;font-weight:600;margin-bottom:6px;}
+.fc-v{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.fc-tag{font-size:10px;padding:2px 7px;background:rgba(255,255,255,0.05);border-radius:2px;color:var(--tm);}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <img src="https://www.mpsgrp.com/wp-content/uploads/2024/02/mps-group-logo.png" alt="MPS Group">
+  </div>
+  <div class="sb-head">KPI Domains</div>
+  <a class="sb-item active" href="#d1"><span class="sb-num">01</span>Commercial & Margin</a>
+  <a class="sb-item" href="#d2"><span class="sb-num">02</span>Operational</a>
+  <a class="sb-item" href="#d3"><span class="sb-num">03</span>Regulatory & Vendor</a>
+  <a class="sb-item" href="#d4"><span class="sb-num">04</span>Environmental (ESG)</a>
+  <a class="sb-item" href="#d5"><span class="sb-num">05</span>Platform Analytics</a>
+  <a class="sb-item" href="#d6"><span class="sb-num">06</span>Customer Experience</a>
+  <a class="sb-item" href="#filters"><span class="sb-num">—</span>Filter Dimensions</a>
+  <div class="sb-footer">
+    MPS Group Analytics<br>
+    118 KPIs across 6 domains<br>
+    9 filter dimensions
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="ph">
+    <h1>Key Performance Indicators</h1>
+    <p>A complete directory of all 120 KPIs — 66 native from MPS source data, 54 added through industry research. Organized across 6 strategic domains with type, benchmark values, and source for each metric.</p>
+    <div class="kpi-strip">
+      <div class="ks"><div class="ks-n">120</div><div class="ks-l">Total KPIs</div></div>
+      <div class="ks"><div class="ks-n">66</div><div class="ks-l">Native from Data</div></div>
+      <div class="ks"><div class="ks-n">54</div><div class="ks-l">Research Added</div></div>
+      <div class="ks"><div class="ks-n">6</div><div class="ks-l">Domains</div></div>
+    </div>
+  </div>
+
+  <!-- D1: COMMERCIAL -->
+  <div class="domain" id="d1">
+    <div class="d-head">
+      <span class="d-name">01 — Commercial &amp; Margin Strategy</span>
+      <span class="d-count">20 KPIs</span>
+    </div>
+    <div class="d-q">Are we making money, and where is it leaking?</div>
+    <table class="kt">
+      <thead><tr><th>KPI / Metric</th><th>Type</th><th>Example Value</th><th>Unit</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kpi-name">Total Revenue (Customer Billed)</span></td><td>Currency</td><td class="ex-val">$1.9M</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Total MPS Cost (Platform Payable)</span></td><td>Currency</td><td class="ex-val">$5.5M</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Gross Margin ($)</span></td><td>Currency</td><td class="ex-val">−$3.5M</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Gross Margin (%)</span></td><td>Percentage</td><td class="ex-val">Negative</td><td class="unit">%</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Blended Cost Per Ton</span></td><td>Rate</td><td class="ex-val">$641.94</td><td class="unit">$/Ton</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">MPS Haul Cost Component</span></td><td>Currency</td><td class="ex-val">$30.00</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">MPS Disposal Fee Component</span></td><td>Currency</td><td class="ex-val">$125.00/unit</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Customer Haul Charge</span></td><td>Currency</td><td class="ex-val">$0.00</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Customer Disposal Charge</span></td><td>Currency</td><td class="ex-val">$0.00/unit</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Customer Rebate / Credit</span></td><td>Currency</td><td class="ex-val">$1,776.30</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Total Rebate Credits</span></td><td>Currency</td><td class="ex-val">$292,500</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Total Haul Costs (MPS)</span></td><td>Currency</td><td class="ex-val">$490,700</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Fuel Surcharge Costs</span></td><td>Currency</td><td class="ex-val">Varies</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Environmental Fees</span></td><td>Currency</td><td class="ex-val">Varies</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Net Ton Margin</span></td><td>Currency</td><td class="ex-val">$45.50</td><td class="unit">$/Ton</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">True Margin / Profit per Route</span></td><td>Currency</td><td class="ex-val">$1,250</td><td class="unit">$ USD</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Subcontractor / Vendor Spend</span></td><td>Currency</td><td class="ex-val">$22,000</td><td class="unit">$ USD</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Accounts Receivable (AR) Aging</span></td><td>Currency/Time</td><td class="ex-val">45 Days</td><td class="unit">Days</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Operational Cost Reduction %</span></td><td>Percentage</td><td class="ex-val">37%</td><td class="unit">%</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Dumping Summary Cost</span></td><td>Currency</td><td class="ex-val">$2,500</td><td class="unit">$ USD</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Recyclables Revenue per Ton</span></td><td>Currency</td><td class="ex-val">Varies</td><td class="unit">$/Ton</td><td><span class="tag tag-shared">Added</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- D2: OPERATIONAL -->
+  <div class="domain" id="d2">
+    <div class="d-head">
+      <span class="d-name">02 — Operational Throughput &amp; Efficiency</span>
+      <span class="d-count">42 KPIs</span>
+    </div>
+    <div class="d-q">Are we moving waste efficiently and maximizing every container?</div>
+    <table class="kt">
+      <thead><tr><th>KPI / Metric</th><th>Type</th><th>Example Value</th><th>Unit</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kpi-name">Total Shipments (Platform)</span></td><td>Count</td><td class="ex-val">120</td><td class="unit"># Manifests</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Pending Shipments</span></td><td>Count</td><td class="ex-val">24</td><td class="unit">#</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Submitted Shipments</span></td><td>Count</td><td class="ex-val">96</td><td class="unit">#</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Hazardous Shipments Count</span></td><td>Count</td><td class="ex-val">Varies</td><td class="unit">#</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Non-Hazardous Shipments Count</span></td><td>Count</td><td class="ex-val">Varies</td><td class="unit">#</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Shipment Date</span></td><td>Date</td><td class="ex-val">Jul 1, 2024</td><td class="unit">MM/DD/YYYY</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Manifest Number</span></td><td>String ID</td><td class="ex-val">0019928103FLE</td><td class="unit">Haz/Non-Haz ID</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Pickup Site / Facility Name</span></td><td>String</td><td class="ex-val">Ashland City</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Client / Parent Company</span></td><td>String</td><td class="ex-val">AO Smith</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Waste Type Name</span></td><td>String</td><td class="ex-val">MEK</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Hazard Category</span></td><td>Enum</td><td class="ex-val">NON HAZ / HAZ</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Container Type</span></td><td>String</td><td class="ex-val">55gal Drum</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Quantity (Native Unit)</span></td><td>Decimal</td><td class="ex-val">6.0</td><td class="unit">Tons/Drums/Lbs</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Native Unit of Measure</span></td><td>Enum</td><td class="ex-val">Ton / DM / Lb</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Standardized Weight (Lbs)</span></td><td>Decimal</td><td class="ex-val">2,520</td><td class="unit">Lbs</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Treatment Method</span></td><td>Enum</td><td class="ex-val">Incineration</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Receiving Facility Name</span></td><td>String</td><td class="ex-val">Safety Kleen</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Waste Transporter / Hauler</span></td><td>String</td><td class="ex-val">Safety Kleen</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Miles Driven</span></td><td>Decimal</td><td class="ex-val">26.9</td><td class="unit">Miles</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Shipment Status</span></td><td>Enum</td><td class="ex-val">submitted</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Created By / Actor</span></td><td>String</td><td class="ex-val">Jane Cooper</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Total Tons Generated</span></td><td>Weight</td><td class="ex-val">8,000 t</td><td class="unit">Tons</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Average Load Weight</span></td><td>Weight</td><td class="ex-val">11,329 lbs</td><td class="unit">Lbs/shipment</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Container Utilization %</span></td><td>Percentage</td><td class="ex-val">99.1%</td><td class="unit">% of capacity</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Light Load %</span></td><td>Percentage</td><td class="ex-val">36%</td><td class="unit">% &lt; threshold</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Potential Light Load Savings</span></td><td>Currency</td><td class="ex-val">$45,835</td><td class="unit">$ USD</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Target vs. Actual Load Weight</span></td><td>Weight</td><td class="ex-val">16,000 lbs</td><td class="unit">Lbs</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Average Distance per Shipment</span></td><td>Decimal</td><td class="ex-val">56 miles</td><td class="unit">Miles</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Receiving Facility Utilization %</span></td><td>Percentage</td><td class="ex-val">Varies</td><td class="unit">% of capacity</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Facility Total Miles Driven</span></td><td>Decimal</td><td class="ex-val">Varies</td><td class="unit">Total miles</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Client Industry Code</span></td><td>Enum</td><td class="ex-val">Manufacturing</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Active Status</span></td><td>Boolean</td><td class="ex-val">true / false</td><td class="unit">T/F</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Base Container Capacity (Lbs)</span></td><td>Integer</td><td class="ex-val">2,500–80,000</td><td class="unit">Lbs</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Service Frequency Constraint</span></td><td>Enum</td><td class="ex-val">On Call</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">On-Time Collection Rate</span></td><td>Percentage</td><td class="ex-val">98.5%</td><td class="unit">%</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Missed Pickup Frequency</span></td><td>Count</td><td class="ex-val">12</td><td class="unit"># Missed stops</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Jobs / Stops Completed per Day</span></td><td>Count</td><td class="ex-val">45</td><td class="unit"># Stops</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Container "Days on Site"</span></td><td>Duration</td><td class="ex-val">14 Days</td><td class="unit">Days</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Tons Collected Per Route</span></td><td>Weight</td><td class="ex-val">12 Tons</td><td class="unit">Tons</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Container Fill Level (Sensors)</span></td><td>Percentage</td><td class="ex-val">85%</td><td class="unit">% Full</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Volume by Job Type</span></td><td>Volume</td><td class="ex-val">45 Yards</td><td class="unit">Yards</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Sites with Active Rentals</span></td><td>Count</td><td class="ex-val">120</td><td class="unit">#</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Fuel Efficiency</span></td><td>Rate</td><td class="ex-val">Varies</td><td class="unit">Gallons/Mile or Ton</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Route Schedule Adherence</span></td><td>Percentage</td><td class="ex-val">Varies</td><td class="unit">% on-time routes</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Truck Capacity Utilization %</span></td><td>Percentage</td><td class="ex-val">85%–100%</td><td class="unit">% of truck capacity</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Workday Utilization %</span></td><td>Percentage</td><td class="ex-val">90%+</td><td class="unit">% productive time</td><td><span class="tag tag-shared">Added</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- D3: REGULATORY -->
+  <div class="domain" id="d3">
+    <div class="d-head">
+      <span class="d-name">03 — Regulatory, Compliance &amp; Vendor Intelligence</span>
+      <span class="d-count">22 KPIs</span>
+    </div>
+    <div class="d-q">Are we legally compliant, and are our vendors reliable?</div>
+    <table class="kt">
+      <thead><tr><th>KPI / Metric</th><th>Type</th><th>Example Value</th><th>Unit</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kpi-name">Manifest Return Rate</span></td><td>Percentage</td><td class="ex-val">80%</td><td class="unit">% of submitted</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Turnaround Time (Manifests)</span></td><td>Duration</td><td class="ex-val">Varies</td><td class="unit">Days</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Generator Status (RCRA)</span></td><td>Enum</td><td class="ex-val">LQG / SQG</td><td class="unit">Classification</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Overall Data Quality Score</span></td><td>Percentage</td><td class="ex-val">58%</td><td class="unit">% (out of 100)</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Missing Source Codes (G-codes)</span></td><td>Percentage</td><td class="ex-val">83% missing</td><td class="unit">% Incomplete</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Missing Form Codes (W-codes)</span></td><td>Percentage</td><td class="ex-val">83% missing</td><td class="unit">% Incomplete</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Missing Treatment Codes (H)</span></td><td>Percentage</td><td class="ex-val">83% missing</td><td class="unit">% Incomplete</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Total Approved Vendors</span></td><td>Count</td><td class="ex-val">16</td><td class="unit">#</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">High Risk Vendors (Level 1)</span></td><td>Count</td><td class="ex-val">13</td><td class="unit">#</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Vendors Expiring &lt; 90 Days</span></td><td>Count</td><td class="ex-val">7</td><td class="unit">#</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">DBE (Diversity Spend) Status</span></td><td>Flag</td><td class="ex-val">TBD</td><td class="unit">Boolean</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Vendor Completion Status</span></td><td>Enum</td><td class="ex-val">Complete</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Vendor Expiration Timeline</span></td><td>Date</td><td class="ex-val">2025-06-30</td><td class="unit">Expiry Date</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Receiving Facility EPA ID</span></td><td>String</td><td class="ex-val">TND981474125</td><td class="unit">Alpha-numeric</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">HazMat Reporting Accuracy</span></td><td>Percentage</td><td class="ex-val">99%</td><td class="unit">% Compliant</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Vendor / Disposal Partner</span></td><td>String</td><td class="ex-val">Safety Kleen</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Service Verification Rate</span></td><td>Percentage</td><td class="ex-val">98%</td><td class="unit">%</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Go-Back / Return Rate</span></td><td>Percentage</td><td class="ex-val">2%</td><td class="unit">%</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Missing Items Inventory</span></td><td>Count</td><td class="ex-val">3</td><td class="unit">#</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Route Optimization Efficiency</span></td><td>Percentage</td><td class="ex-val">15%</td><td class="unit">% Savings</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Inspection Compliance Rate</span></td><td>Percentage</td><td class="ex-val">100%</td><td class="unit">% Compliant</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Shipment Cycle Time</span></td><td>Duration</td><td class="ex-val">4 Days</td><td class="unit">Days</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Safety Incident Rate</span></td><td>Rate</td><td class="ex-val">Target: &lt;1</td><td class="unit">Per 100K miles</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Team Safety Incidents</span></td><td>Count</td><td class="ex-val">Target: 0</td><td class="unit"># Incidents</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Safety Training Completion %</span></td><td>Percentage</td><td class="ex-val">100%</td><td class="unit">% Employees</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">TRIR (Total Recordable Incident Rate)</span></td><td>Rate</td><td class="ex-val">Target: Low</td><td class="unit">Per 100 workers</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Audit Findings Count</span></td><td>Count</td><td class="ex-val">Target: 0</td><td class="unit"># Findings</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">EWC Code (European Waste Catalogue)</span></td><td>String</td><td class="ex-val">Varies</td><td class="unit">Code</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Vendor Commodities (1 &amp; 2)</span></td><td>String</td><td class="ex-val">Varies</td><td class="unit">Text</td><td><span class="tag tag-mps">MPS</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- D4: ESG -->
+  <div class="domain" id="d4">
+    <div class="d-head">
+      <span class="d-name">04 — Environmental Sustainability (ESG)</span>
+      <span class="d-count">14 KPIs</span>
+    </div>
+    <div class="d-q">What is our environmental impact, and are we reducing our footprint?</div>
+    <table class="kt">
+      <thead><tr><th>KPI / Metric</th><th>Type</th><th>Example Value</th><th>Unit</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kpi-name">Overall Waste Diversion Rate</span></td><td>Percentage</td><td class="ex-val">26%–29.8%</td><td class="unit">%</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Total GHG Emissions</span></td><td>CO₂ Weight</td><td class="ex-val">2,248 t CO₂e</td><td class="unit">Tonnes CO₂ Eq.</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Scope 3 Transport Proxy</span></td><td>CO₂ Weight</td><td class="ex-val">107.9 t CO₂</td><td class="unit">Tonnes CO₂ Eq.</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Material Recovery Rate</span></td><td>Percentage</td><td class="ex-val">40%</td><td class="unit">% Recycled</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Contamination Rate</span></td><td>Percentage</td><td class="ex-val">12%</td><td class="unit">% Non-recyclables</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Estimated Carbon Savings</span></td><td>CO₂ Weight</td><td class="ex-val">450 t CO₂</td><td class="unit">Tonnes CO₂ Eq.</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Participation Rate (Recycling)</span></td><td>Percentage</td><td class="ex-val">80%</td><td class="unit">%</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Secondary Quality Rating Qty</span></td><td>Count</td><td class="ex-val">15</td><td class="unit">#</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Total Container Deduction Weight</span></td><td>Weight</td><td class="ex-val">500</td><td class="unit">Lbs</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Tare Weight vs. Gross Weight Δ</span></td><td>Weight</td><td class="ex-val">1,200</td><td class="unit">Lbs</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Route Progress (Completed)</span></td><td>Percentage</td><td class="ex-val">65%</td><td class="unit">%</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Asset Utilization Score</span></td><td>Percentage</td><td class="ex-val">88%</td><td class="unit">% Active</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Time in Yard (Turnaround)</span></td><td>Duration</td><td class="ex-val">45 Mins</td><td class="unit">Minutes</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Service Agreement Haul Rate</span></td><td>Currency</td><td class="ex-val">$350</td><td class="unit">$ USD</td><td><span class="tag tag-shared">Added</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- D5: PLATFORM ANALYTICS -->
+  <div class="domain" id="d5">
+    <div class="d-head">
+      <span class="d-name">05 — Platform Analytics &amp; Adoption</span>
+      <span class="d-count">6 KPIs</span>
+    </div>
+    <div class="d-q">Is the platform being adopted and delivering measurable ROI?</div>
+    <table class="kt">
+      <thead><tr><th>KPI / Metric</th><th>Type</th><th>Example Value</th><th>Unit</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kpi-name">Daily / Monthly Active Users</span></td><td>Count</td><td class="ex-val">—</td><td class="unit">Users</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Shipment Entries per User</span></td><td>Rate</td><td class="ex-val">—</td><td class="unit"># / user</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Feature Usage Heatmap</span></td><td>Distribution</td><td class="ex-val">—</td><td class="unit">% per feature</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">Platform Adoption Rate (%)</span></td><td>Percentage</td><td class="ex-val">—</td><td class="unit">%</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">User Interaction Events</span></td><td>Count</td><td class="ex-val">—</td><td class="unit"># Events</td><td><span class="tag tag-mps">MPS</span></td></tr>
+        <tr><td><span class="kpi-name">System Utilization Index</span></td><td>Score</td><td class="ex-val">—</td><td class="unit">Index (0–100)</td><td><span class="tag tag-mps">MPS</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- D6: CUSTOMER EXPERIENCE -->
+  <div class="domain" id="d6">
+    <div class="d-head">
+      <span class="d-name">06 — Customer Experience</span>
+      <span class="d-count">5 KPIs</span>
+    </div>
+    <div class="d-q">Are clients satisfied, and are we resolving issues quickly?</div>
+    <table class="kt">
+      <thead><tr><th>KPI / Metric</th><th>Type</th><th>Example Value</th><th>Unit</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kpi-name">Customer Satisfaction Score (CSAT)</span></td><td>Score</td><td class="ex-val">Target: High</td><td class="unit">Score / Survey</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Net Promoter Score (NPS)</span></td><td>Score</td><td class="ex-val">Target: &gt;50</td><td class="unit">−100 to 100</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">First Contact Resolution (FCR)</span></td><td>Percentage</td><td class="ex-val">Target: High</td><td class="unit">% Resolved</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Average Response Time</span></td><td>Duration</td><td class="ex-val">Target: Low</td><td class="unit">Minutes / Hours</td><td><span class="tag tag-shared">Added</span></td></tr>
+        <tr><td><span class="kpi-name">Complaint Rate</span></td><td>Rate</td><td class="ex-val">Target: Low</td><td class="unit">Per 1,000 customers</td><td><span class="tag tag-shared">Added</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="domain" id="filters">
+    <div class="d-head">
+      <span class="d-name">Filter Dimensions</span>
+      <span class="d-count">9 Filters</span>
+    </div>
+    <div class="d-q">All 104 KPIs can be sliced by these dimensions across every dashboard.</div>
+    <div class="fg">
+      <div class="fc"><div class="fc-t">Date Range</div><div class="fc-v"><span class="fc-tag">YTD</span><span class="fc-tag">QTD</span><span class="fc-tag">MTD</span><span class="fc-tag">Custom Range</span><span class="fc-tag">Rolling 12M</span></div></div>
+      <div class="fc"><div class="fc-t">Client / Parent Company</div><div class="fc-v"><span class="fc-tag">AO Smith</span><span class="fc-tag">Roper Corp</span><span class="fc-tag">Multi-select</span></div></div>
+      <div class="fc"><div class="fc-t">Site / Facility</div><div class="fc-v"><span class="fc-tag">Ashland City</span><span class="fc-tag">Lebanon</span><span class="fc-tag">Juarez MX</span></div></div>
+      <div class="fc"><div class="fc-t">Hazard Category</div><div class="fc-v"><span class="fc-tag">HAZ</span><span class="fc-tag">NON-HAZ</span><span class="fc-tag">All</span></div></div>
+      <div class="fc"><div class="fc-t">Waste Type / Stream</div><div class="fc-v"><span class="fc-tag">MEK</span><span class="fc-tag">Paint Sludge</span><span class="fc-tag">Coolant</span><span class="fc-tag">Lab Pack</span></div></div>
+      <div class="fc"><div class="fc-t">Transporter / Vendor</div><div class="fc-v"><span class="fc-tag">Safety Kleen</span><span class="fc-tag">Clean Harbors</span><span class="fc-tag">US Ecology</span></div></div>
+      <div class="fc"><div class="fc-t">Container Type</div><div class="fc-v"><span class="fc-tag">55gal Drum</span><span class="fc-tag">Tanker</span><span class="fc-tag">Roll-Off</span><span class="fc-tag">Tote</span></div></div>
+      <div class="fc"><div class="fc-t">Treatment Method</div><div class="fc-v"><span class="fc-tag">Incineration</span><span class="fc-tag">Landfill</span><span class="fc-tag">Recycling</span><span class="fc-tag">Fuel Blend</span></div></div>
+      <div class="fc"><div class="fc-t">Shipment Status</div><div class="fc-v"><span class="fc-tag">Pending</span><span class="fc-tag">Submitted</span><span class="fc-tag">Returned</span><span class="fc-tag">Complete</span></div></div>
+      <div class="fc"><div class="fc-t">Geographic Region / State</div><div class="fc-v"><span class="fc-tag">Tennessee</span><span class="fc-tag">Michigan</span><span class="fc-tag">Texas</span><span class="fc-tag">Multi-state</span></div></div>
+      <div class="fc"><div class="fc-t">Fiscal Quarter</div><div class="fc-v"><span class="fc-tag">Q1</span><span class="fc-tag">Q2</span><span class="fc-tag">Q3</span><span class="fc-tag">Q4</span><span class="fc-tag">Full Year</span></div></div>
+      <div class="fc"><div class="fc-t">Service Type</div><div class="fc-v"><span class="fc-tag">On Call</span><span class="fc-tag">Scheduled</span><span class="fc-tag">Emergency</span><span class="fc-tag">Recurring</span></div></div>
+      <div class="fc"><div class="fc-t">Byproduct / Service Name</div><div class="fc-v"><span class="fc-tag">Solvent Recovery</span><span class="fc-tag">Lab Pack</span><span class="fc-tag">Fuel Blending</span></div></div>
+      <div class="fc"><div class="fc-t">Receiving Company</div><div class="fc-v"><span class="fc-tag">Safety Kleen</span><span class="fc-tag">Clean Harbors</span><span class="fc-tag">US Ecology</span></div></div>
+      <div class="fc"><div class="fc-t">Receiving State</div><div class="fc-v"><span class="fc-tag">Tennessee</span><span class="fc-tag">Ohio</span><span class="fc-tag">Texas</span><span class="fc-tag">Multi-state</span></div></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const items = document.querySelectorAll('.sb-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      items.forEach(i => i.classList.remove('active'));
+      const t = document.querySelector('.sb-item[href="#'+e.target.id+'"]');
+      if(t) t.classList.add('active');
+    }
+  });
+},{threshold:0.2});
+document.querySelectorAll('.domain').forEach(d => observer.observe(d));
+</script>
+</body>
+</html>

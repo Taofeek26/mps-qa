@@ -5,7 +5,9 @@
 
 import type { Shipment } from "./types";
 import type { SectionType } from "./report-builder-types";
-import { totalMpsCost, totalCustomerCost, getMonthKey, formatMonthLabel } from "./report-utils";
+import { totalMpsCost, totalCustomerCost, getMonthKey, formatMonthLabel, loadEfficiency } from "./report-utils";
+import { getSafetyIncidents, SAFETY_TRAINING_DATA, getPlatformUserActivity, getCustomerSurveys, getInvoiceRecords, getFacilityCapacities } from "./mock-kpi-data";
+import { getVendors } from "./mock-data";
 
 /* ─── KPI Definitions ─── */
 
@@ -40,6 +42,27 @@ export const KPI_DEFINITIONS: Record<string, KpiDefinition[]> = {
     { key: "recyclingTons", label: "Recycling", description: "Tons diverted from landfill" },
     { key: "landfillTons", label: "Landfill", description: "Tons sent to landfill" },
     { key: "totalVolume", label: "Total Volume", description: "All treatment methods" },
+  ],
+  "kpi-operational": [
+    { key: "activeSites", label: "Active Sites", description: "Sites with shipments in period" },
+    { key: "avgMiles", label: "Avg Miles", description: "Average haul distance per shipment" },
+    { key: "targetVsActual", label: "Target vs Actual", description: "Load weight accuracy percentage" },
+  ],
+  "kpi-safety": [
+    { key: "trir", label: "TRIR", description: "Total Recordable Incident Rate" },
+    { key: "incidents", label: "Incidents", description: "Total incidents in period" },
+    { key: "resolvedPct", label: "Resolved %", description: "Percentage of incidents resolved" },
+    { key: "trainingPct", label: "Training %", description: "Training completion rate" },
+  ],
+  "kpi-platform": [
+    { key: "monthlyActive", label: "Monthly Active", description: "Monthly active users" },
+    { key: "entriesPerUser", label: "Entries/User", description: "Average entries per user" },
+    { key: "adoptionRate", label: "Adoption Rate", description: "Platform adoption percentage" },
+  ],
+  "kpi-customer": [
+    { key: "csat", label: "CSAT", description: "Customer satisfaction score" },
+    { key: "nps", label: "NPS", description: "Net Promoter Score" },
+    { key: "fcr", label: "FCR", description: "First contact resolution rate" },
   ],
 };
 
@@ -233,6 +256,214 @@ export function computeVendorSpend(shipments: Shipment[]) {
     .slice(0, 8);
 }
 
+/* ─── Chart: Cost Composition (stacked area by cost category) ─── */
+
+export function computeCostComposition(shipments: Shipment[]) {
+  const byMonth = new Map<string, { haul: number; disposal: number; fuel: number; environmental: number; other: number }>();
+  shipments.forEach((s) => {
+    const key = getMonthKey(s.shipmentDate);
+    const existing = byMonth.get(key) ?? { haul: 0, disposal: 0, fuel: 0, environmental: 0, other: 0 };
+    if (s.mpsCost) {
+      existing.haul += s.mpsCost.haulCharge;
+      existing.disposal += s.mpsCost.disposalFeeTotal;
+      existing.fuel += s.mpsCost.fuelFee;
+      existing.environmental += s.mpsCost.environmentalFee;
+      const knownCosts = s.mpsCost.haulCharge + s.mpsCost.disposalFeeTotal + s.mpsCost.fuelFee + s.mpsCost.environmentalFee;
+      const total = totalMpsCost(s);
+      existing.other += Math.max(0, total - knownCosts);
+    }
+    byMonth.set(key, existing);
+  });
+  return Array.from(byMonth.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, d]) => ({
+      month: formatMonthLabel(key),
+      Haul: Math.round(d.haul),
+      Disposal: Math.round(d.disposal),
+      Fuel: Math.round(d.fuel),
+      Environmental: Math.round(d.environmental),
+      Other: Math.round(d.other),
+    }));
+}
+
+/* ─── Chart: Margin Heatmap (site x waste type) ─── */
+
+export function computeMarginHeatmap(shipments: Shipment[]) {
+  const sites = new Set<string>();
+  const wasteTypes = new Set<string>();
+  const marginMap = new Map<string, { revenue: number; cost: number }>();
+
+  shipments.forEach((s) => {
+    sites.add(s.siteName);
+    wasteTypes.add(s.wasteTypeName);
+    const cellKey = `${s.siteName}|${s.wasteTypeName}`;
+    const existing = marginMap.get(cellKey) ?? { revenue: 0, cost: 0 };
+    existing.revenue += totalCustomerCost(s);
+    existing.cost += totalMpsCost(s);
+    marginMap.set(cellKey, existing);
+  });
+
+  const siteList = Array.from(sites).sort();
+  const wasteTypeList = Array.from(wasteTypes).sort();
+
+  const rows = siteList.map((site) => {
+    const cells = wasteTypeList.map((wt) => {
+      const cellKey = `${site}|${wt}`;
+      const data = marginMap.get(cellKey);
+      if (!data) return { wasteType: wt, margin: null as number | null };
+      return { wasteType: wt, margin: Math.round(data.revenue - data.cost) };
+    });
+    return { site, cells };
+  });
+
+  return { wasteTypes: wasteTypeList, rows };
+}
+
+/* ─── Chart: GHG Emissions ─── */
+
+export function computeGhgEmissions(shipments: Shipment[]) {
+  const emissionFactors: Record<string, number> = {
+    "Hazardous Waste": 0.45,
+    "Non-Hazardous Waste": 0.15,
+    "Universal Waste": 0.08,
+    "Used Oil": -0.12,
+    "Recyclable Materials": -0.25,
+    Unknown: 0.10,
+  };
+
+  const byCategory = new Map<string, number>();
+  shipments.forEach((s) => {
+    const cat = s.wasteCategory ?? "Unknown";
+    const tons = s.weightValue / 2000;
+    const factor = emissionFactors[cat] ?? emissionFactors["Unknown"];
+    byCategory.set(cat, (byCategory.get(cat) ?? 0) + tons * factor);
+  });
+
+  return Array.from(byCategory.entries())
+    .map(([name, co2]) => ({ name, co2: Math.round(co2 * 10) / 10 }))
+    .sort((a, b) => b.co2 - a.co2);
+}
+
+/* ─── Chart: Diversion Trend ─── */
+
+export function computeDiversionTrend(shipments: Shipment[]) {
+  const byMonth = new Map<string, { diverted: number; total: number }>();
+  shipments.forEach((s) => {
+    const key = getMonthKey(s.shipmentDate);
+    const tons = s.weightValue / 2000;
+    const existing = byMonth.get(key) ?? { diverted: 0, total: 0 };
+    existing.total += tons;
+    const method = (s.treatmentMethod ?? "").toLowerCase();
+    if (method.includes("recycl") || method.includes("reuse") || method.includes("recovery")) {
+      existing.diverted += tons;
+    }
+    byMonth.set(key, existing);
+  });
+
+  return Array.from(byMonth.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, d]) => ({
+      month: formatMonthLabel(key),
+      rate: d.total > 0 ? Math.round((d.diverted / d.total) * 1000) / 10 : 0,
+    }));
+}
+
+/* ─── Chart: Efficiency Scatter (actual vs target weight) ─── */
+
+export function computeEfficiencyScatter(shipments: Shipment[]) {
+  return shipments
+    .filter((s) => s.targetLoadWeight && s.targetLoadWeight > 0)
+    .map((s) => ({
+      x: s.weightValue,
+      y: s.targetLoadWeight!,
+      label: `${s.wasteTypeName} — ${s.siteName}`,
+      category: s.wasteCategory ?? "Unknown",
+    }));
+}
+
+/* ─── Chart: Treemap (waste type volume) ─── */
+
+export function computeTreemapData(shipments: Shipment[]) {
+  const byType = new Map<string, number>();
+  shipments.forEach((s) => {
+    byType.set(s.wasteTypeName, (byType.get(s.wasteTypeName) ?? 0) + s.weightValue);
+  });
+  return Array.from(byType.entries())
+    .map(([name, size]) => ({ name, size: Math.round(size) }))
+    .sort((a, b) => b.size - a.size);
+}
+
+/* ─── Chart: Incident Trend ─── */
+
+export function computeIncidentTrend() {
+  const incidents = getSafetyIncidents();
+  const byMonth = new Map<string, number>();
+  incidents.forEach((inc) => {
+    const key = getMonthKey(inc.date);
+    byMonth.set(key, (byMonth.get(key) ?? 0) + 1);
+  });
+  return Array.from(byMonth.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, count]) => ({ month: formatMonthLabel(key), incidents: count }));
+}
+
+/* ─── Chart: CSAT & NPS Trend ─── */
+
+export function computeCsatTrend() {
+  const surveys = getCustomerSurveys();
+  const byMonth = new Map<string, { csatSum: number; npsSum: number; count: number }>();
+  surveys.forEach((s) => {
+    const key = getMonthKey(s.date);
+    const existing = byMonth.get(key) ?? { csatSum: 0, npsSum: 0, count: 0 };
+    existing.csatSum += s.csat;
+    existing.npsSum += s.nps;
+    existing.count += 1;
+    byMonth.set(key, existing);
+  });
+  return Array.from(byMonth.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, d]) => ({
+      month: formatMonthLabel(key),
+      csat: d.count > 0 ? Math.round((d.csatSum / d.count) * 10) / 10 : 0,
+      nps: d.count > 0 ? Math.round(((d.npsSum / d.count - 5) / 5) * 100) : 0,
+    }));
+}
+
+/* ─── Chart: AR Aging ─── */
+
+export function computeArAging() {
+  const invoices = getInvoiceRecords();
+  const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
+  const today = new Date("2024-12-31");
+
+  invoices.forEach((inv) => {
+    if (inv.paidDate) return;
+    const due = new Date(inv.dueDate + "T00:00:00");
+    const daysOverdue = Math.max(0, Math.floor((today.getTime() - due.getTime()) / 86400000));
+    if (daysOverdue <= 30) buckets["0-30"] += inv.amount;
+    else if (daysOverdue <= 60) buckets["31-60"] += inv.amount;
+    else if (daysOverdue <= 90) buckets["61-90"] += inv.amount;
+    else buckets["90+"] += inv.amount;
+  });
+
+  return Object.entries(buckets).map(([bucket, amount]) => ({
+    bucket,
+    amount: Math.round(amount),
+  }));
+}
+
+/* ─── Chart: Facility Utilization ─── */
+
+export function computeFacilityUtilization() {
+  const facilities = getFacilityCapacities();
+  return facilities.map((f) => ({
+    name: f.facilityName,
+    utilization: f.monthlyCapacityTons > 0
+      ? Math.round((f.monthlyProcessedTons / f.monthlyCapacityTons) * 1000) / 10
+      : 0,
+  })).sort((a, b) => b.utilization - a.utilization);
+}
+
 /* ─── Table: Waste Stream Summary ─── */
 
 export function computeWasteStreamSummary(shipments: Shipment[]) {
@@ -279,4 +510,182 @@ export function computeCostBySite(shipments: Shipment[]) {
       shipments: d.count,
     }))
     .sort((a, b) => b.revenue - a.revenue);
+}
+
+/* ─── KPI: Operational ─── */
+
+export function computeOperationalKpis(shipments: Shipment[]) {
+  const uniqueSites = new Set(shipments.map((s) => s.siteId));
+  const activeSites = uniqueSites.size;
+
+  const milesArray = shipments
+    .map((s) => s.milesFromFacility)
+    .filter((m): m is number => m != null && m > 0);
+  const avgMiles = milesArray.length > 0
+    ? Math.round(milesArray.reduce((sum, m) => sum + m, 0) / milesArray.length)
+    : 0;
+
+  let actualTotal = 0;
+  let targetTotal = 0;
+  shipments.forEach((s) => {
+    const eff = loadEfficiency(s);
+    if (eff != null) {
+      actualTotal += s.weightValue;
+      targetTotal += s.targetLoadWeight!;
+    }
+  });
+  const targetVsActualPct = targetTotal > 0 ? Math.round((actualTotal / targetTotal) * 100) : 0;
+
+  return { activeSites, avgMiles, targetVsActualPct };
+}
+
+/* ─── KPI: Safety ─── */
+
+export function computeSafetyKpis() {
+  const incidents = getSafetyIncidents();
+  const totalIncidents = incidents.length;
+  const resolved = incidents.filter((i) => i.resolved).length;
+  const resolvedPct = totalIncidents > 0 ? Math.round((resolved / totalIncidents) * 100) : 0;
+
+  // TRIR = (incidents * 200,000) / total hours worked (estimate 85 employees * 2000 hrs/yr)
+  const totalHours = SAFETY_TRAINING_DATA.totalEmployees * 2000;
+  const trir = totalHours > 0 ? Math.round(((totalIncidents * 200000) / totalHours) * 100) / 100 : 0;
+
+  const modules = Object.values(SAFETY_TRAINING_DATA.modulesCompleted);
+  const totalModuleCompletions = modules.reduce((sum, v) => sum + v, 0);
+  const maxCompletions = modules.length * SAFETY_TRAINING_DATA.totalEmployees;
+  const trainingPct = maxCompletions > 0 ? Math.round((totalModuleCompletions / maxCompletions) * 100) : 0;
+
+  return { trir, totalIncidents, resolvedPct, trainingPct };
+}
+
+/* ─── KPI: Platform ─── */
+
+export function computePlatformKpis() {
+  const users = getPlatformUserActivity();
+  const totalUsers = users.length;
+
+  // Active in last 7 days (relative to latest activity date)
+  const latestDate = users.reduce((max, u) => u.lastActiveDate > max ? u.lastActiveDate : max, "");
+  const cutoff = new Date(latestDate + "T00:00:00");
+  cutoff.setDate(cutoff.getDate() - 30);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const monthlyActive = users.filter((u) => u.lastActiveDate >= cutoffStr).length;
+
+  const totalEntries = users.reduce((sum, u) => sum + u.shipmentsCreated, 0);
+  const entriesPerUser = totalUsers > 0 ? Math.round(totalEntries / totalUsers) : 0;
+
+  const adoptionRate = totalUsers > 0 ? Math.round((monthlyActive / totalUsers) * 100) : 0;
+
+  return { monthlyActive, entriesPerUser, adoptionRate };
+}
+
+/* ─── KPI: Customer ─── */
+
+export function computeCustomerKpis() {
+  const surveys = getCustomerSurveys();
+  const totalSurveys = surveys.length;
+
+  const avgCsat = totalSurveys > 0
+    ? Math.round((surveys.reduce((sum, s) => sum + s.csat, 0) / totalSurveys) * 10) / 10
+    : 0;
+
+  // NPS = % promoters (9-10) minus % detractors (0-6)
+  const promoters = surveys.filter((s) => s.nps >= 9).length;
+  const detractors = surveys.filter((s) => s.nps <= 6).length;
+  const nps = totalSurveys > 0
+    ? Math.round(((promoters - detractors) / totalSurveys) * 100)
+    : 0;
+
+  const fcrResolved = surveys.filter((s) => s.fcrResolved).length;
+  const fcrPct = totalSurveys > 0 ? Math.round((fcrResolved / totalSurveys) * 100) : 0;
+
+  return { avgCsat, nps, fcrPct };
+}
+
+/* ─── Table: Route Margin ─── */
+
+export function computeRouteMargin(shipments: Shipment[]) {
+  const byRoute = new Map<string, { revenue: number; cost: number; count: number }>();
+  shipments.forEach((s) => {
+    const route = `${s.siteName} → ${s.transporterName ?? "Direct"}`;
+    const existing = byRoute.get(route) ?? { revenue: 0, cost: 0, count: 0 };
+    existing.revenue += totalCustomerCost(s);
+    existing.cost += totalMpsCost(s);
+    existing.count += 1;
+    byRoute.set(route, existing);
+  });
+  return Array.from(byRoute.entries())
+    .map(([route, d]) => {
+      const margin = Math.round(d.revenue - d.cost);
+      const marginPct = d.revenue > 0 ? (margin / d.revenue) * 100 : 0;
+      return {
+        route,
+        shipments: d.count,
+        revenue: Math.round(d.revenue),
+        cost: Math.round(d.cost),
+        margin,
+        marginPct: Math.round(marginPct * 10) / 10,
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue);
+}
+
+/* ─── Table: Vendor Risk ─── */
+
+export function computeVendorRisk(shipments: Shipment[]) {
+  const vendors = getVendors();
+  const vendorMap = new Map(vendors.map((v) => [v.id, v]));
+
+  const byVendor = new Map<string, { cost: number; count: number; vendorId: string }>();
+  shipments.forEach((s) => {
+    const existing = byVendor.get(s.vendorName) ?? { cost: 0, count: 0, vendorId: s.vendorId };
+    existing.cost += totalMpsCost(s);
+    existing.count += 1;
+    byVendor.set(s.vendorName, existing);
+  });
+
+  return Array.from(byVendor.entries())
+    .map(([name, d]) => {
+      const vendor = vendorMap.get(d.vendorId);
+      return {
+        vendor: name,
+        risk: vendor?.riskLevel ?? "Level 3 - Low",
+        shipments: d.count,
+        cost: Math.round(d.cost),
+        dbe: vendor?.dbeFlag ?? false,
+        status: vendor?.vendorStatus ?? "Active",
+      };
+    })
+    .sort((a, b) => {
+      const riskOrder: Record<string, number> = { "Level 1 - High": 0, "Level 2 - Medium": 1, "Level 3 - Low": 2 };
+      return (riskOrder[a.risk] ?? 2) - (riskOrder[b.risk] ?? 2);
+    });
+}
+
+/* ─── Table: Quality Breakdown ─── */
+
+export function computeQualityBreakdown(shipments: Shipment[]) {
+  const total = shipments.length;
+  const checks: { check: string; test: (s: Shipment) => boolean }[] = [
+    { check: "Missing Manifest", test: (s) => !s.manifestNumber },
+    { check: "Missing Weight", test: (s) => !s.weightValue || s.weightValue === 0 },
+    { check: "Missing Waste Category", test: (s) => !s.wasteCategory },
+    { check: "Missing Treatment Method", test: (s) => !s.treatmentMethod },
+    { check: "Missing Transporter", test: (s) => !s.transporterName },
+    { check: "Missing Container Type", test: (s) => !s.containerType },
+    { check: "Missing Cost Data", test: (s) => !s.mpsCost },
+    { check: "Missing Customer Cost", test: (s) => !s.customerCost },
+  ];
+
+  return checks.map(({ check, test }) => {
+    const issues = shipments.filter(test).length;
+    const rate = total > 0 ? (issues / total) * 100 : 0;
+    return {
+      check,
+      issues,
+      total,
+      rate: Math.round(rate * 10) / 10,
+    };
+  });
 }

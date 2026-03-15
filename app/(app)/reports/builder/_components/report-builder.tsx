@@ -113,6 +113,21 @@ export function ReportBuilder({
         onSave={onSave ? handleSave : undefined}
         isSaving={isSaving}
         showBack={!!(onSave || reportId)}
+        transporterName={builder.transporterName}
+        onTransporterChange={builder.setTransporterName}
+        transporterOptions={builder.transporterOptions}
+        containerType={builder.containerType}
+        onContainerTypeChange={builder.setContainerType}
+        containerTypeOptions={builder.containerTypeOptions}
+        receivingState={builder.receivingState}
+        onReceivingStateChange={builder.setReceivingState}
+        receivingStateOptions={builder.receivingStateOptions}
+        wasteCategory={builder.wasteCategory}
+        onWasteCategoryChange={builder.setWasteCategory}
+        wasteCategoryOptions={builder.wasteCategoryOptions}
+        serviceFrequency={builder.serviceFrequency}
+        onServiceFrequencyChange={builder.setServiceFrequency}
+        serviceFrequencyOptions={builder.serviceFrequencyOptions}
       />
 
       {/* Main area: Sidebar + Preview */}

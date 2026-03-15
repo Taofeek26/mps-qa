@@ -16,6 +16,8 @@ import {
   FileBarChart,
   ChevronRight,
   ArrowLeft,
+  Monitor,
+  Heart,
   type LucideIcon,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
@@ -29,6 +31,8 @@ import { DataQualityContent } from "./_components/data-quality-content";
 import { VendorIntelContent } from "./_components/vendor-intel-content";
 import { LogisticsContent } from "./_components/logistics-content";
 import { EmissionsContent } from "./_components/emissions-content";
+import { PlatformAnalyticsContent } from "./_components/platform-analytics-content";
+import { CustomerExperienceContent } from "./_components/customer-experience-content";
 
 const REPORT_CONTENT: Record<string, React.ComponentType> = {
   "waste-trends": WasteTrendsContent,
@@ -40,6 +44,8 @@ const REPORT_CONTENT: Record<string, React.ComponentType> = {
   "vendor-intel": VendorIntelContent,
   logistics: LogisticsContent,
   emissions: EmissionsContent,
+  "platform-analytics": PlatformAnalyticsContent,
+  "customer-experience": CustomerExperienceContent,
 };
 
 interface ReportListItem {
@@ -60,6 +66,8 @@ const REPORT_LIST: ReportListItem[] = [
   { tab: "vendor-intel", label: "Vendor Intel", description: "Vendor performance, risk, and scoring", icon: Globe },
   { tab: "logistics", label: "Logistics", description: "Route analysis, distance, and carrier metrics", icon: MapPin },
   { tab: "emissions", label: "Emissions", description: "Carbon footprint and environmental impact", icon: Leaf },
+  { tab: "platform-analytics", label: "Platform Analytics", description: "User adoption, feature usage, and system utilization", icon: Monitor },
+  { tab: "customer-experience", label: "Customer Experience", description: "CSAT, NPS, response times, and complaint tracking", icon: Heart },
   { tab: "_builder", label: "Report Builder", description: "Build custom reports with drag-and-drop widgets", icon: FileBarChart, href: "/reports/builder" },
 ];
 

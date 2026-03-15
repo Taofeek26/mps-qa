@@ -13,6 +13,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceLine,
+  Cell,
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +44,13 @@ import {
   totalCustomerCost,
   formatMonthLabel,
   getMonthKey,
+  daysBetween,
 } from "@/lib/report-utils";
+import {
+  getSafetyIncidents,
+  getInspectionRecords,
+  SAFETY_TRAINING_DATA,
+} from "@/lib/mock-kpi-data";
 import type { Shipment } from "@/lib/types";
 import {
   FileText,
@@ -54,6 +62,10 @@ import {
   Receipt,
   Package,
   RotateCcw,
+  Timer,
+  ShieldAlert,
+  HardHat,
+  Search,
 } from "lucide-react";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
@@ -122,6 +134,98 @@ export function RegulatoryContent() {
   const manifestRate = hazShipments.length > 0 ? (hazSubmitted / hazShipments.length) * 100 : 100;
   const pendingCount = shipments.filter((s) => s.status === "pending").length;
   const rcraCount = hazShipments.length;
+
+  /* New: Manifest Turnaround + Cycle Time */
+  const avgTurnaround = React.useMemo(() => {
+    const withReturn = shipments.filter((s) => s.returnManifestDate && s.shipmentDate);
+    if (withReturn.length === 0) return 0;
+    const total = withReturn.reduce((sum, s) => sum + daysBetween(s.shipmentDate, s.returnManifestDate!), 0);
+    return Math.round((total / withReturn.length) * 10) / 10;
+  }, [shipments]);
+
+  const avgCycleTime = React.useMemo(() => {
+    const withCompleted = shipments.filter((s) => s.completedDate && s.shipmentDate);
+    if (withCompleted.length === 0) return 0;
+    const total = withCompleted.reduce((sum, s) => sum + daysBetween(s.shipmentDate, s.completedDate!), 0);
+    return Math.round((total / withCompleted.length) * 10) / 10;
+  }, [shipments]);
+
+  /* New: HazMat Reporting Accuracy — % of haz shipments with complete waste codes */
+  const hazmatAccuracy = React.useMemo(() => {
+    if (hazShipments.length === 0) return 100;
+    const complete = hazShipments.filter((s) => s.wasteCodes && s.sourceCode && s.formCode && s.treatmentCode).length;
+    return Math.round((complete / hazShipments.length) * 100);
+  }, [hazShipments]);
+
+  /* New: Safety KPIs */
+  const safetyIncidents = React.useMemo(() => getSafetyIncidents(), []);
+  const inspectionRecords = React.useMemo(() => getInspectionRecords(), []);
+
+  const totalIncidents = safetyIncidents.length;
+  const resolvedIncidents = safetyIncidents.filter((i) => i.resolved).length;
+  const trir = React.useMemo(() => {
+    const hoursWorked = 85 * 2080; // 85 employees * 2080 hours/year
+    return Math.round((totalIncidents / hoursWorked) * 200000 * 100) / 100;
+  }, [totalIncidents]);
+
+  const inspectionPassRate = React.useMemo(() => {
+    if (inspectionRecords.length === 0) return 100;
+    const passed = inspectionRecords.filter((i) => i.passed).length;
+    return Math.round((passed / inspectionRecords.length) * 100);
+  }, [inspectionRecords]);
+
+  const totalFindings = React.useMemo(
+    () => inspectionRecords.reduce((sum, i) => sum + i.findings, 0),
+    [inspectionRecords]
+  );
+
+  /* Safety incidents by type */
+  const incidentsByType = React.useMemo(() => {
+    const byType = new Map<string, number>();
+    safetyIncidents.forEach((i) => {
+      byType.set(i.type, (byType.get(i.type) ?? 0) + 1);
+    });
+    const colors = [CHART_COLORS.primary, CHART_COLORS.error, CHART_COLORS.warning, CHART_COLORS.teal, CHART_COLORS.muted];
+    return Array.from(byType.entries()).map(([name, value], idx) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      value,
+      color: colors[idx % colors.length],
+    }));
+  }, [safetyIncidents]);
+
+  /* Safety incidents by month */
+  const incidentsByMonth = React.useMemo(() => {
+    const byMonth = new Map<string, number>();
+    safetyIncidents.forEach((i) => {
+      const key = getMonthKey(i.date);
+      byMonth.set(key, (byMonth.get(key) ?? 0) + 1);
+    });
+    return Array.from(byMonth.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, count]) => ({ month: formatMonthLabel(key), incidents: count }));
+  }, [safetyIncidents]);
+
+  /* Inspection pass rate by site */
+  const inspectionBySite = React.useMemo(() => {
+    const bySite = new Map<string, { passed: number; total: number }>();
+    inspectionRecords.forEach((i) => {
+      const existing = bySite.get(i.siteName) ?? { passed: 0, total: 0 };
+      if (i.passed) existing.passed++;
+      existing.total++;
+      bySite.set(i.siteName, existing);
+    });
+    return Array.from(bySite.entries())
+      .map(([name, d]) => ({
+        label: name,
+        value: d.total > 0 ? (d.passed / d.total) * 100 : 0,
+        displayValue: `${Math.round(d.total > 0 ? (d.passed / d.total) * 100 : 0)}% pass`,
+        secondary: `${d.total} inspections, ${d.total - d.passed} failures`,
+      }))
+      .sort((a, b) => a.value - b.value);
+  }, [inspectionRecords]);
+
+  /* Training completion */
+  const trainingData = SAFETY_TRAINING_DATA;
 
   /* Donut: Manifest Completion (haz only) */
   const manifestDonutData = React.useMemo(() => {
@@ -344,15 +448,16 @@ export function RegulatoryContent() {
             variant={manifestRate < 90 ? "warning" : "success"}
           />
           <KpiCard
-            title="Pending"
-            value={pendingCount.toLocaleString()}
-            icon={Clock}
-            variant={pendingCount > 0 ? "warning" : "default"}
+            title="Manifest Turnaround"
+            value={`${avgTurnaround}d`}
+            subtitle="Avg days to return"
+            icon={Timer}
           />
           <KpiCard
-            title="RCRA Regulated"
-            value={rcraCount.toLocaleString()}
-            icon={AlertTriangle}
+            title="Cycle Time"
+            value={`${avgCycleTime}d`}
+            subtitle="Ship → complete"
+            icon={Clock}
           />
         </>
       }
@@ -392,6 +497,8 @@ export function RegulatoryContent() {
       <PillTabs defaultValue="compliance">
         <PillTabsList>
           <PillTabsTrigger value="compliance">Regulatory Compliance</PillTabsTrigger>
+          <PillTabsTrigger value="metrics">Compliance Metrics</PillTabsTrigger>
+          <PillTabsTrigger value="safety">Safety</PillTabsTrigger>
           <PillTabsTrigger value="gem">GEM Report (Ford)</PillTabsTrigger>
           <PillTabsTrigger value="gmr2">GMR2 Report (GM)</PillTabsTrigger>
         </PillTabsList>
@@ -409,46 +516,69 @@ export function RegulatoryContent() {
 
             <ChartContainer
               title="RCRA Generator Status by Site"
-              subtitle="Hazardous waste kg/month with LQG/SQG/VSQG classification"
-              chartClassName="h-[250px] lg:h-[280px] overflow-y-auto"
+              subtitle="Hazardous waste kg/month — LQG >1,000 · SQG 100–1,000 · VSQG <100"
             >
-              <ProgressList items={rcraStatusBySite} />
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart
+                  data={rcraStatusBySite.map((d) => ({
+                    name: d.label,
+                    kgPerMonth: Math.round(d.value),
+                    status: d.value > 1000 ? "LQG" : d.value > 100 ? "SQG" : "VSQG",
+                  }))}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} tickFormatter={(v) => `${v} kg`} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} width={100} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                  <ReferenceLine x={1000} stroke="var(--color-error-400)" strokeDasharray="3 3" label={{ value: "LQG", fontSize: 9, fill: "var(--color-error-400)", position: "top" }} />
+                  <ReferenceLine x={100} stroke="var(--color-warning-400)" strokeDasharray="3 3" label={{ value: "SQG", fontSize: 9, fill: "var(--color-warning-400)", position: "top" }} />
+                  <Tooltip {...TOOLTIP_STYLE} formatter={(value, _name, props) => [`${value} kg/mo (${(props.payload as { status: string }).status})`, "Haz Waste"]} />
+                  <Bar dataKey="kgPerMonth" name="kg/month" radius={[0, 4, 4, 0]}>
+                    {rcraStatusBySite.map((d, i) => (
+                      <Cell key={i} fill={d.value > 1000 ? "var(--color-error-400)" : d.value > 100 ? "var(--color-warning-400)" : "var(--color-success-400)"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </ChartContainer>
 
             <ChartContainer
               title="Turnaround by Transporter"
               subtitle="Avg days from shipment to manifest return"
-              chartClassName="h-[250px] lg:h-[280px] overflow-y-auto"
             >
-              <ProgressList items={turnaroundByTransporter} />
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart
+                  data={turnaroundByTransporter.map((d) => ({ name: d.label, days: Math.round(d.value * 10) / 10 }))}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} tickFormatter={(v) => `${v}d`} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} width={110} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                  <Tooltip {...TOOLTIP_STYLE} formatter={(value) => [`${value} days`, "Avg Turnaround"]} />
+                  <Bar dataKey="days" name="Avg Days" fill={CHART_COLORS.primary} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </ChartContainer>
 
             <ChartContainer
               title="Vendor Compliance"
-              subtitle="Transporter trip counts and status"
-              chartClassName="h-[250px] lg:h-[280px] overflow-y-auto"
+              subtitle="Transporter shipment volume"
             >
-              <div className="space-y-2">
-                {vendorCompliance.length === 0 && (
-                  <p className="text-xs text-text-muted text-center py-4">No data available</p>
-                )}
-                {vendorCompliance.map((v) => (
-                  <div
-                    key={v.name}
-                    className="flex items-center justify-between gap-3 rounded-[var(--radius-sm)] border border-border-default px-3 py-2"
-                  >
-                    <span className="text-xs font-semibold text-text-primary truncate">
-                      {v.name}
-                    </span>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-text-muted font-mono">
-                        {v.count} trips
-                      </span>
-                      <Badge variant="success">Active</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart
+                  data={vendorCompliance.map((v) => ({ name: v.name, trips: v.count }))}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} width={110} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                  <Tooltip {...TOOLTIP_STYLE} formatter={(value) => [`${value} shipments`, "Volume"]} />
+                  <Bar dataKey="trips" name="Shipments" fill={CHART_COLORS.teal} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </ChartContainer>
           </div>
 
@@ -487,6 +617,154 @@ export function RegulatoryContent() {
               Export GMR2 CSV
             </Button>
           </div>
+        </PillTabsContent>
+
+        {/* Compliance Metrics */}
+        <PillTabsContent value="metrics" className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <KpiCard
+              title="HazMat Accuracy"
+              value={`${hazmatAccuracy}%`}
+              subtitle="Haz shipments with complete codes"
+              icon={ShieldAlert}
+              variant={hazmatAccuracy >= 90 ? "success" : "warning"}
+            />
+            <KpiCard
+              title="Inspection Pass Rate"
+              value={`${inspectionPassRate}%`}
+              subtitle={`${inspectionRecords.length} inspections`}
+              icon={Search}
+              variant={inspectionPassRate >= 90 ? "success" : "warning"}
+            />
+            <KpiCard
+              title="Audit Findings"
+              value={totalFindings.toLocaleString()}
+              subtitle="Total across all inspections"
+              icon={AlertTriangle}
+              variant={totalFindings === 0 ? "success" : "warning"}
+            />
+          </div>
+
+          <ChartContainer
+            title="Inspection Compliance by Site"
+            subtitle="Pass rate per facility — green ≥90%, amber ≥70%, red <70%"
+          >
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart
+                data={inspectionBySite.map((d) => ({ name: d.label, passRate: Math.round(d.value) }))}
+                layout="vertical"
+                margin={{ top: 5, right: 30, bottom: 5, left: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" horizontal={false} />
+                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} tickFormatter={(v) => `${v}%`} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "var(--color-text-muted)" }} width={100} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                <ReferenceLine x={90} stroke="var(--color-success-400)" strokeDasharray="3 3" label={{ value: "90%", fontSize: 9, fill: "var(--color-success-400)", position: "top" }} />
+                <Tooltip {...TOOLTIP_STYLE} formatter={(value) => [`${value}%`, "Pass Rate"]} />
+                <Bar dataKey="passRate" name="Pass Rate" radius={[0, 4, 4, 0]}>
+                  {inspectionBySite.map((d, i) => (
+                    <Cell key={i} fill={d.value >= 90 ? "var(--color-success-400)" : d.value >= 70 ? "var(--color-warning-400)" : "var(--color-error-400)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </PillTabsContent>
+
+        {/* Safety */}
+        <PillTabsContent value="safety" className="space-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <KpiCard
+              title="Total Incidents"
+              value={totalIncidents.toLocaleString()}
+              subtitle="Last 12 months"
+              icon={ShieldAlert}
+              variant={totalIncidents === 0 ? "success" : "warning"}
+            />
+            <KpiCard
+              title="TRIR"
+              value={trir.toFixed(2)}
+              subtitle="Per 200K hours"
+              icon={HardHat}
+              variant={trir < 2 ? "success" : trir < 4 ? "warning" : "error"}
+            />
+            <KpiCard
+              title="Resolved"
+              value={`${totalIncidents > 0 ? Math.round((resolvedIncidents / totalIncidents) * 100) : 100}%`}
+              subtitle={`${resolvedIncidents} of ${totalIncidents}`}
+              icon={CheckCircle2}
+              variant="success"
+            />
+            <KpiCard
+              title="Training Completion"
+              value={`${Math.round(
+                (Object.values(trainingData.modulesCompleted).reduce((a, b) => a + b, 0) /
+                  (Object.keys(trainingData.modulesCompleted).length * trainingData.totalEmployees)) *
+                  100
+              )}%`}
+              subtitle={`${trainingData.totalEmployees} employees`}
+              icon={HardHat}
+              variant="success"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <ChartContainer
+              title="Incidents by Type"
+              subtitle="Breakdown of safety incident categories"
+              chartClassName="h-[260px] lg:h-[280px]"
+            >
+              <DonutChart data={incidentsByType} />
+            </ChartContainer>
+
+            <ChartContainer
+              title="Incident Trend"
+              subtitle="Monthly safety incidents"
+              chartClassName="h-[260px] lg:h-[280px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={incidentsByMonth} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="incidentGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-error-400)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="var(--color-error-400)" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} allowDecimals={false} width={30} />
+                  <Tooltip {...TOOLTIP_STYLE} formatter={(value) => [`${value}`, "Incidents"]} />
+                  <Area type="monotone" dataKey="incidents" name="Incidents" stroke="var(--color-error-400)" fill="url(#incidentGradient)" strokeWidth={2} dot={{ r: 3, fill: "var(--color-error-400)", stroke: "var(--color-bg-card)", strokeWidth: 2 }} activeDot={{ r: 5 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+
+          <Card>
+            <CardContent className="space-y-3">
+              <h3 className="text-sm font-semibold text-text-primary">
+                Safety Training Modules
+              </h3>
+              <div className="space-y-2">
+                {Object.entries(trainingData.modulesCompleted).map(([module, completed]) => {
+                  const pct = Math.round((completed / trainingData.totalEmployees) * 100);
+                  return (
+                    <div key={module} className="flex items-center gap-3">
+                      <span className="text-xs text-text-primary w-48 truncate shrink-0">{module}</span>
+                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--color-bg-subtle)" }}>
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{ width: `${pct}%`, backgroundColor: "var(--color-primary-400)" }}
+                        />
+                      </div>
+                      <span className="text-xs text-text-muted font-mono shrink-0 w-16 text-right">
+                        {completed}/{trainingData.totalEmployees}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </PillTabsContent>
 
         {/* GEM Report (Ford) */}
@@ -559,7 +837,7 @@ export function RegulatoryContent() {
               chartClassName="h-[280px] lg:h-[320px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={treatmentRevenue} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                <BarChart data={treatmentRevenue} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
                   <XAxis dataKey="method" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
@@ -575,7 +853,7 @@ export function RegulatoryContent() {
               chartClassName="h-[280px] lg:h-[320px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyTonnage} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                <AreaChart data={monthlyTonnage} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "var(--color-text-muted)" }} axisLine={{ stroke: "var(--color-border-default)" }} tickLine={false} tickFormatter={(value) => `${value}t`} />

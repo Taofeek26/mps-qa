@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download, FileDown, Loader2, SlidersHorizontal } from "lucide-react";
+import { Download, FileDown, Loader2, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,10 +10,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface ReportContentLayoutProps {
   kpiCards: React.ReactNode;
+  /** Primary filters — always visible inline on desktop */
   filters: React.ReactNode;
+  /** Secondary filters — collapsed behind "More Filters" on desktop */
+  moreFilters?: React.ReactNode;
   children: React.ReactNode;
   onExport?: () => void;
   exportDisabled?: boolean;
@@ -26,6 +30,7 @@ interface ReportContentLayoutProps {
 export function ReportContentLayout({
   kpiCards,
   filters,
+  moreFilters,
   children,
   onExport,
   exportDisabled,
@@ -35,6 +40,7 @@ export function ReportContentLayout({
   hasFilters,
 }: ReportContentLayoutProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const [moreOpen, setMoreOpen] = React.useState(false);
 
   return (
     <div className="space-y-6">
@@ -43,6 +49,18 @@ export function ReportContentLayout({
         {/* Desktop: inline filters */}
         <div className="hidden sm:flex flex-wrap items-center gap-3">
           {filters}
+          {moreFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMoreOpen((p) => !p)}
+              className="text-text-muted"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              More Filters
+              <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", moreOpen && "rotate-180")} />
+            </Button>
+          )}
           <div className="sm:ml-auto flex items-center gap-2">
             {onExportPdf && (
               <Button variant="secondary" onClick={onExportPdf} disabled={exportDisabled || isPdfExporting}>
@@ -62,6 +80,13 @@ export function ReportContentLayout({
             )}
           </div>
         </div>
+
+        {/* Desktop: expanded secondary filters */}
+        {moreFilters && moreOpen && (
+          <div className="hidden sm:flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-border-default">
+            {moreFilters}
+          </div>
+        )}
 
         {/* Mobile: filter icon + icon-only export buttons */}
         <div className="flex sm:hidden items-center gap-2">
@@ -108,7 +133,7 @@ export function ReportContentLayout({
           </div>
         </div>
 
-        {/* Mobile: filter dialog */}
+        {/* Mobile: filter dialog — shows ALL filters */}
         <Dialog open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
           <DialogContent>
             <DialogHeader>
@@ -116,6 +141,7 @@ export function ReportContentLayout({
             </DialogHeader>
             <div className="space-y-4 py-2">
               {filters}
+              {moreFilters}
             </div>
             <DialogFooter>
               {onResetFilters && hasFilters && (

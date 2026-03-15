@@ -14,6 +14,10 @@ export type SectionType =
   | "kpi-cost-summary"
   | "kpi-compliance"
   | "kpi-diversion"
+  | "kpi-operational"
+  | "kpi-safety"
+  | "kpi-platform"
+  | "kpi-customer"
   // Charts
   | "chart-volume-trend"
   | "chart-cost-comparison"
@@ -21,10 +25,23 @@ export type SectionType =
   | "chart-top-streams"
   | "chart-cost-waterfall"
   | "chart-vendor-spend"
+  | "chart-cost-composition"
+  | "chart-margin-heatmap"
+  | "chart-ghg-emissions"
+  | "chart-diversion-trend"
+  | "chart-efficiency-scatter"
+  | "chart-treemap"
+  | "chart-incident-trend"
+  | "chart-csat-trend"
+  | "chart-ar-aging"
+  | "chart-facility-utilization"
   // Tables
   | "table-shipment-detail"
   | "table-waste-summary"
   | "table-cost-by-site"
+  | "table-route-margin"
+  | "table-vendor-risk"
+  | "table-quality-breakdown"
   // Content
   | "notes-block";
 

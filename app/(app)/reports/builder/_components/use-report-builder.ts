@@ -6,7 +6,7 @@ import type { ReportSection, SectionType, SectionConfig } from "@/lib/report-bui
 import type { SavedReport } from "@/lib/saved-reports";
 import { getWidgetDefinition } from "@/lib/report-builder-widgets";
 import { getAllShipments, getClients, getSites } from "@/lib/mock-data";
-import type { ShipmentFilters } from "@/lib/types";
+import type { ShipmentFilters, ServiceFrequency } from "@/lib/types";
 
 let nextId = 1;
 function generateId(): string {
@@ -38,6 +38,11 @@ export function useReportBuilder(initialState?: ReportBuilderInitialState | null
   );
   const [clientId, setClientId] = React.useState(initialState?.clientId ?? "");
   const [siteId, setSiteId] = React.useState(initialState?.siteId ?? "");
+  const [transporterName, setTransporterName] = React.useState("");
+  const [containerType, setContainerType] = React.useState("");
+  const [receivingState, setReceivingState] = React.useState("");
+  const [wasteCategory, setWasteCategory] = React.useState("");
+  const [serviceFrequency, setServiceFrequency] = React.useState("");
   const [isExporting, setIsExporting] = React.useState(false);
 
   const loadState = React.useCallback((saved: ReportBuilderInitialState | null) => {
@@ -47,6 +52,11 @@ export function useReportBuilder(initialState?: ReportBuilderInitialState | null
       setDateRange(undefined);
       setClientId("");
       setSiteId("");
+      setTransporterName("");
+      setContainerType("");
+      setReceivingState("");
+      setWasteCategory("");
+      setServiceFrequency("");
       return;
     }
     setTitle(saved.title);
@@ -66,8 +76,46 @@ export function useReportBuilder(initialState?: ReportBuilderInitialState | null
     if (siteId) filters.siteIds = [siteId];
     if (dateRange?.from) filters.dateFrom = dateRange.from.toISOString().slice(0, 10);
     if (dateRange?.to) filters.dateTo = dateRange.to.toISOString().slice(0, 10);
+    if (transporterName) filters.transporterName = transporterName;
+    if (containerType) filters.containerType = containerType;
+    if (receivingState) filters.receivingState = receivingState;
+    if (wasteCategory) filters.wasteCategory = wasteCategory as ShipmentFilters["wasteCategory"];
+    if (serviceFrequency) filters.serviceFrequency = serviceFrequency as ServiceFrequency;
     return getAllShipments(filters);
-  }, [clientId, siteId, dateRange]);
+  }, [clientId, siteId, dateRange, transporterName, containerType, receivingState, wasteCategory, serviceFrequency]);
+
+  /* Unique option lists */
+  const allShipmentsForOptions = React.useMemo(() => getAllShipments(), []);
+
+  const transporterOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    allShipmentsForOptions.forEach((s) => { if (s.transporterName) set.add(s.transporterName); });
+    return Array.from(set).sort();
+  }, [allShipmentsForOptions]);
+
+  const containerTypeOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    allShipmentsForOptions.forEach((s) => { if (s.containerType) set.add(s.containerType); });
+    return Array.from(set).sort();
+  }, [allShipmentsForOptions]);
+
+  const receivingStateOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    allShipmentsForOptions.forEach((s) => { if (s.receivingState) set.add(s.receivingState); });
+    return Array.from(set).sort();
+  }, [allShipmentsForOptions]);
+
+  const wasteCategoryOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    allShipmentsForOptions.forEach((s) => { if (s.wasteCategory) set.add(s.wasteCategory); });
+    return Array.from(set).sort();
+  }, [allShipmentsForOptions]);
+
+  const serviceFrequencyOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    allShipmentsForOptions.forEach((s) => { if (s.serviceFrequency) set.add(s.serviceFrequency); });
+    return Array.from(set).sort();
+  }, [allShipmentsForOptions]);
 
   const addSection = React.useCallback((type: SectionType) => {
     const def = getWidgetDefinition(type);
@@ -131,8 +179,13 @@ export function useReportBuilder(initialState?: ReportBuilderInitialState | null
       const site = allSites.find((s) => s.id === siteId);
       if (site) parts.push(site.name);
     }
+    if (transporterName) parts.push(transporterName);
+    if (containerType) parts.push(containerType);
+    if (receivingState) parts.push(receivingState);
+    if (wasteCategory) parts.push(wasteCategory);
+    if (serviceFrequency) parts.push(serviceFrequency);
     return parts.join(" \u00b7 ");
-  }, [dateRange, clientId, siteId, clients, allSites]);
+  }, [dateRange, clientId, siteId, clients, allSites, transporterName, containerType, receivingState, wasteCategory, serviceFrequency]);
 
   const snapshot = React.useMemo(
     () => ({
@@ -171,6 +224,23 @@ export function useReportBuilder(initialState?: ReportBuilderInitialState | null
     clients,
     filteredSites,
     filterSummary,
+    // Extended filters
+    transporterName,
+    setTransporterName: (v: string) => setTransporterName(v === "all" ? "" : v),
+    containerType,
+    setContainerType: (v: string) => setContainerType(v === "all" ? "" : v),
+    receivingState,
+    setReceivingState: (v: string) => setReceivingState(v === "all" ? "" : v),
+    wasteCategory,
+    setWasteCategory: (v: string) => setWasteCategory(v === "all" ? "" : v),
+    serviceFrequency,
+    setServiceFrequency: (v: string) => setServiceFrequency(v === "all" ? "" : v),
+    // Option lists
+    transporterOptions,
+    containerTypeOptions,
+    receivingStateOptions,
+    wasteCategoryOptions,
+    serviceFrequencyOptions,
     // Data
     shipments,
     // Export

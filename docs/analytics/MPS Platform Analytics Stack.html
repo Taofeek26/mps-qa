@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPS Analytics Guide — Microsoft Stack</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--c1:#121212;--c2:#191919;--bd:#2a2a2a;--tp:#fff;--ts:#f0f0f0;--tm:#7a7a7a;--ac:#fff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tp);-webkit-font-smoothing:antialiased;line-height:1.6;}
+.sidebar{width:260px;min-width:260px;background:var(--c1);border-right:1px solid var(--bd);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:10;}
+.sb-logo{padding:24px 22px 18px;border-bottom:1px solid var(--bd);}
+.sb-logo img{max-width:110px;filter:brightness(0) invert(1);}
+.sb-logo p{font-size:10px;color:var(--tm);margin-top:6px;font-weight:500;letter-spacing:0.5px;}
+.sb-head{padding:18px 22px 6px;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--tm);}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 22px;font-size:12px;font-weight:500;color:var(--tm);cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none;}
+.sb-item:hover,.sb-item.active{color:var(--tp);background:var(--c2);border-left-color:var(--ac);}
+.sb-dot{width:6px;height:6px;border-radius:50%;background:var(--tm);flex-shrink:0;}
+.sb-footer{margin-top:auto;padding:18px 22px;border-top:1px solid var(--bd);font-size:10px;color:var(--tm);line-height:1.7;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.05);border:1px solid var(--bd);color:var(--tm);font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
+.main{margin-left:260px;padding:0;}
+.hero{padding:64px 64px 48px;border-bottom:1px solid var(--bd);}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid var(--bd);color:var(--tm);font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;}
+.hero h1{font-size:36px;font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:12px;}
+.hero p{font-size:14px;color:var(--tm);max-width:600px;line-height:1.8;}
+.hero-stats{display:flex;gap:1px;background:var(--bd);border-radius:6px;overflow:hidden;margin-top:32px;width:fit-content;}
+.hs{background:var(--c1);padding:16px 28px;text-align:center;}
+.hs-n{font-size:24px;font-weight:700;line-height:1;}
+.hs-l{font-size:9px;color:var(--tm);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;font-weight:600;}
+.section{padding:56px 64px;border-bottom:1px solid var(--bd);}
+.section:last-child{border-bottom:none;}
+.sec-label{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--tm);margin-bottom:10px;}
+.sec-title{font-size:22px;font-weight:700;letter-spacing:-0.3px;margin-bottom:8px;}
+.sec-sub{font-size:13px;color:var(--tm);max-width:580px;line-height:1.7;margin-bottom:32px;}
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.tool-card{background:var(--c1);border:1px solid var(--bd);border-radius:8px;padding:24px;transition:border-color .2s;}
+.tool-card:hover{border-color:#444;}
+.tc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.tc-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--tm);margin-bottom:4px;}
+.tc-name{font-size:14px;font-weight:700;}
+.tc-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:0.5px;background:rgba(255,255,255,0.06);color:var(--tm);border:1px solid var(--bd);white-space:nowrap;flex-shrink:0;}
+.tc-desc{font-size:12px;color:var(--tm);line-height:1.7;margin-bottom:16px;}
+.tc-features{list-style:none;}
+.tc-features li{font-size:12px;color:var(--ts);padding:5px 0;border-bottom:1px solid #1c1c1c;display:flex;align-items:flex-start;gap:8px;}
+.tc-features li:last-child{border-bottom:none;}
+.tc-features li::before{content:"✓";color:var(--tp);font-weight:700;flex-shrink:0;font-size:11px;margin-top:1px;}
+.tc-cant{color:var(--tm) !important;}
+.tc-cant::before{content:"✗" !important;color:var(--tm) !important;}
+.comp-table{width:100%;border-collapse:collapse;font-size:12px;}
+.comp-table thead th{text-align:left;padding:12px 16px;font-size:9px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:1px;background:var(--c2);border-bottom:1px solid var(--bd);}
+.comp-table thead th.hl{color:var(--tp);}
+.comp-table tbody tr{border-bottom:1px solid #161616;}
+.comp-table tbody tr:hover{background:var(--c2);}
+.comp-table tbody td{padding:10px 16px;color:var(--ts);vertical-align:middle;}
+.comp-table tbody td:first-child{color:var(--tp);font-weight:500;}
+.c-yes{color:var(--tp);font-weight:600;}
+.c-no{color:var(--tm);}
+.c-part{color:var(--ts);}
+.c-win{background:rgba(255,255,255,0.03);}
+.cat-row td{padding:8px 16px !important;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tm) !important;background:var(--c2);}
+.flow{display:flex;align-items:center;gap:0;margin:24px 0;overflow-x:auto;padding-bottom:8px;flex-wrap:wrap;gap:12px;}
+.flow-box{background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:16px 20px;min-width:150px;text-align:center;flex-shrink:0;}
+.flow-box.hl{border-color:#444;}
+.fb-icon{font-size:22px;margin-bottom:6px;}
+.fb-name{font-size:11px;font-weight:700;color:var(--tp);}
+.fb-desc{font-size:10px;color:var(--tm);margin-top:3px;line-height:1.4;}
+.flow-arrow{font-size:18px;color:var(--bd);padding:0 8px;flex-shrink:0;align-self:center;}
+.kpi-track{width:100%;border-collapse:collapse;font-size:12px;margin-top:16px;}
+.kpi-track thead th{text-align:left;padding:10px 14px;font-size:9px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:1px;background:var(--c2);border-bottom:1px solid var(--bd);}
+.kpi-track tbody tr{border-bottom:1px solid #161616;}
+.kpi-track tbody tr:hover{background:var(--c2);}
+.kpi-track tbody td{padding:9px 14px;color:var(--ts);}
+.kpi-track tbody td:first-child{font-weight:600;color:var(--tp);}
+.event-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(255,255,255,0.06);color:var(--ts);font-family:monospace;border:1px solid var(--bd);}
+.steps{display:flex;flex-direction:column;gap:16px;margin-top:24px;}
+.step{display:flex;gap:20px;align-items:flex-start;}
+.step-num{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid var(--bd);color:var(--tp);font-size:13px;font-weight:700;flex-shrink:0;}
+.step-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.step-desc{font-size:12px;color:var(--tm);line-height:1.7;}
+.step-code{background:var(--c2);border:1px solid var(--bd);border-radius:4px;padding:12px 16px;margin-top:8px;font-family:monospace;font-size:11px;color:var(--ts);line-height:1.6;}
+.cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border-radius:6px;overflow:hidden;margin-top:20px;}
+.cost-card{background:var(--c2);padding:20px;}
+.cc-tool{font-size:9px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.cc-price{font-size:22px;font-weight:700;color:var(--tp);line-height:1;}
+.cc-note{font-size:10px;color:var(--tm);margin-top:6px;line-height:1.5;}
+.alert{background:rgba(255,255,255,0.03);border:1px solid var(--bd);border-radius:6px;padding:16px 20px;margin-top:20px;max-width:680px;}
+.alert-title{font-size:12px;font-weight:700;color:var(--tp);margin-bottom:4px;}
+.alert-body{font-size:12px;color:var(--tm);line-height:1.7;}
+.event-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px;}
+.event-card{background:var(--c2);border:1px solid var(--bd);border-radius:4px;padding:12px 14px;}
+.ec-label{font-size:9px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.ec-events{font-family:monospace;font-size:11px;color:var(--ts);line-height:2;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-logo">
+    <img src="https://www.mpsgrp.com/wp-content/uploads/2024/02/mps-group-logo.png" alt="MPS Group">
+    <p>Analytics Architecture Guide</p>
+  </div>
+  <div class="sb-head">Contents</div>
+  <a class="sb-item active" href="#overview">Overview</a>
+  <a class="sb-item" href="#tools">Tool Breakdown</a>
+  <a class="sb-item" href="#comparison">GA4 vs App Insights</a>
+  <a class="sb-item" href="#flow">Data Flow</a>
+  <a class="sb-item" href="#kpis">KPI Tracking Map</a>
+  <a class="sb-item" href="#implementation">Implementation</a>
+  <a class="sb-item" href="#cost">Cost Summary</a>
+  <div class="sb-head">Tools</div>
+  <a class="sb-item" href="#clarity"><span class="sb-dot"></span>Microsoft Clarity</a>
+  <a class="sb-item" href="#insights"><span class="sb-dot"></span>App Insights</a>
+  <a class="sb-item" href="#powerbi"><span class="sb-dot"></span>Power BI</a>
+  <a class="sb-item" href="#monitor"><span class="sb-dot"></span>Azure Monitor</a>
+  <a class="sb-item" href="#synapse"><span class="sb-dot"></span>Azure Synapse</a>
+  <div class="sb-footer">
+    MPS Analytics Stack<br>
+    Microsoft Azure · Power BI<br>
+    <span class="status-pill">In Progress</span>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- OVERVIEW -->
+  <div class="hero" id="overview">
+    <div class="hero-badge">📊 Analytics Architecture</div>
+    <h1>MPS Platform Analytics Stack</h1>
+    <p>A complete guide to the Microsoft analytics ecosystem — covering tool capabilities, data flow, KPI tracking, comparison with GA4, and implementation steps.</p>
+    <div class="hero-stats">
+      <div class="hs"><div class="hs-n">5</div><div class="hs-l">MS Tools</div></div>
+      <div class="hs"><div class="hs-n">$0</div><div class="hs-l">Clarity Cost</div></div>
+      <div class="hs"><div class="hs-n">28</div><div class="hs-l">KPIs Tracked</div></div>
+      <div class="hs"><div class="hs-n">6</div><div class="hs-l">Platform KPIs</div></div>
+    </div>
+    <div class="alert">
+      <div class="alert-title">Why Microsoft — Not Google Analytics?</div>
+      <div class="alert-body">MPS IT infrastructure runs on Microsoft Azure. GA4 requires Google Cloud, which enterprise IT departments frequently block. All tools here are native to the Azure ecosystem and integrate directly with existing Power BI dashboards — no cross-cloud data transfer required.</div>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="section" id="tools">
+    <div class="sec-label">Tool Breakdown</div>
+    <div class="sec-title">5 Microsoft Tools — What Each Does</div>
+    <div class="sec-sub">Each tool has a specific role. Together they form a complete analytics layer — behavioural tracking, performance monitoring, reporting, data warehousing, and real-time processing.</div>
+
+    <div class="tool-grid" id="clarity">
+      <div class="tool-card">
+        <div class="tc-header">
+          <div><div class="tc-label">Microsoft Clarity</div><div class="tc-name">User Behavior Analytics</div></div>
+          <span class="tc-badge">Free</span>
+        </div>
+        <div class="tc-desc">Visual session recording and heatmap tool. Shows exactly how real users interact with the MPS platform — where they click, scroll, and get confused.</div>
+        <ul class="tc-features">
+          <li>Session recordings — replay exact user journeys</li>
+          <li>Heatmaps — see most/least clicked areas</li>
+          <li>Rage click detection — identify UI frustration points</li>
+          <li>Dead click detection — broken buttons or links</li>
+          <li>AI-powered insights — auto-summarizes patterns</li>
+          <li>GDPR / CCPA compliant — auto-masks all PII</li>
+          <li>Works on internal enterprise apps</li>
+          <li>Power BI integration available</li>
+          <li class="tc-cant">Cannot track API response times</li>
+          <li class="tc-cant">Cannot track server-side errors</li>
+          <li class="tc-cant">Cannot do custom event analytics</li>
+        </ul>
+      </div>
+
+      <div class="tool-card" id="insights">
+        <div class="tc-header">
+          <div><div class="tc-label">Azure Application Insights</div><div class="tc-name">Application Telemetry & KPI Tracking</div></div>
+          <span class="tc-badge">Pay / GB</span>
+        </div>
+        <div class="tc-desc">The core analytics engine. Tracks every meaningful user action — shipment submissions, filter usage, page views, feature adoption — and monitors system performance.</div>
+        <ul class="tc-features">
+          <li>Custom event tracking — any user action becomes a tracked event</li>
+          <li>Active users (DAU / MAU) — daily and monthly counts</li>
+          <li>Funnel analysis — drop-off rates at each step</li>
+          <li>User flows and journey maps</li>
+          <li>Retention and cohort analysis</li>
+          <li>API response time and error rate monitoring</li>
+          <li>Failed request tracking — catches broken pipelines</li>
+          <li>Power BI compatible — direct export to dashboards</li>
+          <li>Near real-time data (seconds, not 30-min GA4 delay)</li>
+          <li class="tc-cant">Cannot show heatmaps or session replays</li>
+          <li class="tc-cant">Cannot track marketing channels or UTM sources</li>
+        </ul>
+      </div>
+
+      <div class="tool-card" id="powerbi">
+        <div class="tc-header">
+          <div><div class="tc-label">Microsoft Power BI</div><div class="tc-name">Reporting & Visualization</div></div>
+          <span class="tc-badge">Licensed</span>
+        </div>
+        <div class="tc-desc">The presentation layer. Transforms raw telemetry data from Application Insights into clean, interactive dashboards that leadership can read without opening Azure Portal.</div>
+        <ul class="tc-features">
+          <li>Native connector to App Insights</li>
+          <li>Embeddable in the MPS platform UI</li>
+          <li>Scheduled refresh — dashboards auto-update</li>
+          <li>Row-level security — control who sees what</li>
+          <li>Drag-and-drop report builder (Joseph's workflow)</li>
+          <li class="tc-cant">Not a tracking tool — only displays data</li>
+          <li class="tc-cant">Cannot detect user sessions directly</li>
+        </ul>
+      </div>
+
+      <div class="tool-card" id="monitor">
+        <div class="tc-header">
+          <div><div class="tc-label">Azure Monitor</div><div class="tc-name">Infrastructure & Health Monitoring</div></div>
+          <span class="tc-badge">Included</span>
+        </div>
+        <div class="tc-desc">The infrastructure watchdog. Monitors health of all Azure services — databases, APIs, servers — and triggers alerts when something breaks. Prevents broken-demo situations.</div>
+        <ul class="tc-features">
+          <li>Uptime and availability monitoring</li>
+          <li>Alert rules — notify team when API is down</li>
+          <li>Metrics dashboards for CPU, memory, query performance</li>
+          <li>Application Insights runs on top of Azure Monitor</li>
+          <li class="tc-cant">Not a user-facing analytics tool</li>
+          <li class="tc-cant">Cannot track user behavior or KPIs</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tool-card" id="synapse">
+      <div class="tc-header">
+        <div><div class="tc-label">Azure Synapse Analytics</div><div class="tc-name">Data Warehouse — Long-Term Storage</div></div>
+        <span class="tc-badge">Pay / Query</span>
+      </div>
+      <div class="tc-desc">The long-term memory of the analytics stack. Stores all historical KPI metrics and user telemetry. Enables trend analysis over months and years.</div>
+      <ul class="tc-features" style="display:grid;grid-template-columns:1fr 1fr;">
+        <li>Massive-scale data storage</li>
+        <li>SQL-compatible queries on historical data</li>
+        <li>Direct connector to Power BI</li>
+        <li>Combines KPI data + shipment data + user telemetry</li>
+        <li class="tc-cant">Phase 2 priority — not needed immediately</li>
+        <li class="tc-cant">Requires data engineering setup time</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- COMPARISON -->
+  <div class="section" id="comparison">
+    <div class="sec-label">Comparison</div>
+    <div class="sec-title">Azure Application Insights vs Google Analytics 4</div>
+    <div class="sec-sub">Both track 28 KPIs natively but in fundamentally different areas. For MPS — an internal enterprise platform on Azure — Application Insights is the correct choice.</div>
+
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th style="width:32%;">Feature / Capability</th>
+          <th>Google Analytics 4</th>
+          <th class="hl">Azure App Insights</th>
+          <th style="width:22%;">Winner for MPS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="cat-row"><td colspan="4">User & Traffic Analytics</td></tr>
+        <tr><td>Total / Active Users (DAU/MAU)</td><td class="c-yes">✓ Yes</td><td class="c-yes c-win">✓ Yes</td><td>Both</td></tr>
+        <tr><td>New vs Returning Users</td><td class="c-yes">✓ Yes</td><td class="c-yes c-win">✓ Yes</td><td>Both</td></tr>
+        <tr><td>Sessions & Duration</td><td class="c-yes">✓ Yes</td><td class="c-yes c-win">✓ Yes</td><td>Both</td></tr>
+        <tr><td>Custom Event Tracking</td><td class="c-yes">✓ Yes</td><td class="c-yes c-win">✓ Yes (more granular)</td><td class="c-yes">App Insights</td></tr>
+        <tr><td>Real-time data</td><td class="c-part">⚠ 30 min delay</td><td class="c-yes c-win">✓ Near real-time</td><td class="c-yes">App Insights</td></tr>
+        <tr class="cat-row"><td colspan="4">Behavioral Analysis</td></tr>
+        <tr><td>Funnel Analysis</td><td class="c-yes">✓ Yes</td><td class="c-yes c-win">✓ Yes</td><td>Both</td></tr>
+        <tr><td>User Flow / Journey Map</td><td class="c-yes">✓ Yes</td><td class="c-yes c-win">✓ Yes</td><td>Both</td></tr>
+        <tr><td>Retention / Cohort</td><td class="c-yes">✓ Yes</td><td class="c-yes c-win">✓ Yes</td><td>Both</td></tr>
+        <tr><td>Heatmaps & Session Recording</td><td class="c-no">✗ No (need Hotjar)</td><td class="c-no">✗ No (use Clarity)</td><td>Neither — use Clarity</td></tr>
+        <tr class="cat-row"><td colspan="4">Performance & Engineering (App Insights only)</td></tr>
+        <tr><td>Server / API Response Time</td><td class="c-no">✗ No</td><td class="c-yes c-win">✓ Yes</td><td class="c-yes">App Insights</td></tr>
+        <tr><td>Failed Request Tracking</td><td class="c-no">✗ No</td><td class="c-yes c-win">✓ Yes</td><td class="c-yes">App Insights</td></tr>
+        <tr><td>Error / Crash Detection</td><td class="c-no">✗ No</td><td class="c-yes c-win">✓ Yes</td><td class="c-yes">App Insights</td></tr>
+        <tr><td>Uptime / Availability %</td><td class="c-no">✗ No</td><td class="c-yes c-win">✓ Yes</td><td class="c-yes">App Insights</td></tr>
+        <tr class="cat-row"><td colspan="4">Integration & Ecosystem</td></tr>
+        <tr><td>Power BI Integration</td><td class="c-no">✗ No (Google ecosystem)</td><td class="c-yes c-win">✓ Native connector</td><td class="c-yes">App Insights</td></tr>
+        <tr><td>Azure Ecosystem Native</td><td class="c-no">✗ No</td><td class="c-yes c-win">✓ Yes</td><td class="c-yes">App Insights</td></tr>
+        <tr><td>Works behind enterprise firewall</td><td class="c-part">⚠ Often blocked by IT</td><td class="c-yes c-win">✓ Always allowed</td><td class="c-yes">App Insights</td></tr>
+        <tr class="cat-row"><td colspan="4">Marketing Features — Not needed for MPS</td></tr>
+        <tr><td>Traffic Source / UTM Attribution</td><td class="c-yes">✓ Yes</td><td class="c-no">✗ No</td><td style="color:var(--tm);">N/A for MPS</td></tr>
+        <tr><td>SEO & Audience Demographics</td><td class="c-yes">✓ Yes</td><td class="c-no">✗ No</td><td style="color:var(--tm);">N/A for MPS</td></tr>
+      </tbody>
+    </table>
+
+    <div class="alert">
+      <div class="alert-title">Verdict for MPS</div>
+      <div class="alert-body">App Insights wins on every metric that matters. GA4's advantages — marketing attribution, SEO, demographics — are irrelevant for an internal enterprise platform. App Insights covers everything MPS needs plus 8 additional performance KPIs GA4 cannot provide.</div>
+    </div>
+  </div>
+
+  <!-- DATA FLOW -->
+  <div class="section" id="flow">
+    <div class="sec-label">Architecture</div>
+    <div class="sec-title">Data Flow — How It All Connects</div>
+    <div class="sec-sub">Data originates in the MPS platform and flows through two parallel tracks before converging in Power BI for leadership dashboards.</div>
+
+    <div class="flow">
+      <div class="flow-box hl"><div class="fb-icon">🖥️</div><div class="fb-name">MPS Platform</div><div class="fb-desc">Web app (Azure hosted)<br>User actions happen here</div></div>
+      <div class="flow-arrow">→</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="flow-box"><div class="fb-icon">🎥</div><div class="fb-name">Microsoft Clarity</div><div class="fb-desc">Session recordings<br>Heatmaps · Rage clicks</div></div>
+        <div class="flow-box"><div class="fb-icon">📡</div><div class="fb-name">App Insights SDK</div><div class="fb-desc">Custom events fired<br>on every user action</div></div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><div class="fb-icon">☁️</div><div class="fb-name">Azure Monitor</div><div class="fb-desc">Collects all telemetry<br>Health · Alerts · Logs</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box hl"><div class="fb-icon">📊</div><div class="fb-name">Power BI</div><div class="fb-desc">KPI dashboards<br>for Joseph & Leadership</div></div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">Key Principle</div>
+      <div class="alert-body">Joseph and leadership never need to open Azure Portal or Clarity. All data surfaces automatically in Power BI — the same system used for waste management KPIs. Analytics is the 7th dashboard, not a separate tool.</div>
+    </div>
+
+    <div style="margin-top:36px;font-size:13px;font-weight:700;margin-bottom:16px;">What happens when a user submits a shipment:</div>
+    <div class="flow">
+      <div class="flow-box"><div class="fb-icon">👆</div><div class="fb-name">User clicks Submit</div><div class="fb-desc">In MPS shipment form</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box hl"><div class="fb-icon">📡</div><div class="fb-name">Event fires</div><div class="fb-desc" style="font-family:monospace;font-size:10px;">shipment_submitted</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><div class="fb-icon">⚡</div><div class="fb-name">App Insights logs it</div><div class="fb-desc">User, time, page, data</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><div class="fb-icon">💾</div><div class="fb-name">Azure Monitor stores it</div><div class="fb-desc">Retained 90 days default</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box hl"><div class="fb-icon">📊</div><div class="fb-name">Power BI updates</div><div class="fb-desc">Shipment count +1</div></div>
+    </div>
+  </div>
+
+  <!-- KPI MAP -->
+  <div class="section" id="kpis">
+    <div class="sec-label">KPI Mapping</div>
+    <div class="sec-title">6 Platform Analytics KPIs — How Each Gets Tracked</div>
+    <div class="sec-sub">Every Platform Analytics KPI in Domain 05 maps to a specific tool and event signal.</div>
+
+    <table class="kpi-track">
+      <thead>
+        <tr><th>KPI (Domain 05)</th><th>Tracked By</th><th>How It's Calculated</th><th>Event / Signal</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Daily / Monthly Active Users</td><td>App Insights</td><td>Distinct users with at least 1 event per day/month</td><td><span class="event-tag">user_session_start</span></td></tr>
+        <tr><td>Shipment Entries per User</td><td>App Insights</td><td>Total shipment_submitted events ÷ active users</td><td><span class="event-tag">shipment_submitted</span></td></tr>
+        <tr><td>Feature Usage Heatmap</td><td>App Insights + Clarity</td><td>Count of each custom event grouped by feature name</td><td><span class="event-tag">feature_used</span></td></tr>
+        <tr><td>Platform Adoption Rate (%)</td><td>App Insights</td><td>(Active users ÷ total registered users) × 100</td><td><span class="event-tag">user_session_start</span></td></tr>
+        <tr><td>User Interaction Events</td><td>App Insights</td><td>Total count of all custom events across all users</td><td>All events summed</td></tr>
+        <tr><td>System Utilization Index</td><td>App Insights + Azure Monitor</td><td>Composite: active users + events + uptime + response time</td><td>Multiple signals</td></tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:28px;font-size:13px;font-weight:700;margin-bottom:4px;">All events to track in MPS platform code:</div>
+    <div class="event-grid">
+      <div class="event-card"><div class="ec-label">Authentication</div><div class="ec-events">user_login<br>user_logout<br>session_timeout</div></div>
+      <div class="event-card"><div class="ec-label">Shipment Actions</div><div class="ec-events">form_opened<br>shipment_submitted<br>row_duplicated<br>shipment_edited</div></div>
+      <div class="event-card"><div class="ec-label">Reports & Dashboards</div><div class="ec-events">report_viewed<br>report_exported<br>filter_applied<br>kpi_card_clicked</div></div>
+    </div>
+  </div>
+
+  <!-- IMPLEMENTATION -->
+  <div class="section" id="implementation">
+    <div class="sec-label">Implementation Guide</div>
+    <div class="sec-title">5-Step Setup — Priority Order</div>
+    <div class="sec-sub">Steps 1 and 2 can be completed within hours. Steps 3–5 follow as the platform matures.</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Install Microsoft Clarity — 30 Minutes · Free</div>
+          <div class="step-desc">Add the Clarity JavaScript snippet to the MPS platform HTML head. Immediately starts recording sessions and generating heatmaps. No backend changes required.</div>
+          <div class="step-code">&lt;script&gt;<br>&nbsp;&nbsp;(function(c,l,a,r,i,t,y){<br>&nbsp;&nbsp;&nbsp;&nbsp;c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};<br>&nbsp;&nbsp;&nbsp;&nbsp;t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;<br>&nbsp;&nbsp;&nbsp;&nbsp;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);<br>&nbsp;&nbsp;})(window, document, "clarity", "script", "YOUR_PROJECT_ID");<br>&lt;/script&gt;</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Add Azure Application Insights SDK — 1–2 Hours</div>
+          <div class="step-desc">Install the App Insights SDK. Once connected, page views and sessions track automatically. Then add custom events for shipment submission, report usage, and filter clicks.</div>
+          <div class="step-code">// npm install @microsoft/applicationinsights-web<br><br>import { ApplicationInsights } from '@microsoft/applicationinsights-web';<br>const appInsights = new ApplicationInsights({<br>&nbsp;&nbsp;config: { connectionString: 'YOUR_CONNECTION_STRING' }<br>});<br>appInsights.loadAppInsights();<br>appInsights.trackPageView();<br><br>// Track shipment submission:<br>appInsights.trackEvent({ name: 'shipment_submitted' });</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Connect App Insights → Power BI — 2–4 Hours</div>
+          <div class="step-desc">Use the Azure Application Insights connector in Power BI Desktop. Build the 7th dashboard — Platform Analytics — showing all 6 Domain 05 KPIs. Set scheduled refresh to update every hour.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">Configure Azure Monitor Alerts — 1 Hour</div>
+          <div class="step-desc">Set alert rules: API response time &gt; 3 seconds, failed request rate &gt; 5%, availability &lt; 99%. Notifies engineering via email or Microsoft Teams before issues reach users.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div>
+          <div class="step-title">Azure Synapse for Long-Term Storage — Phase 2</div>
+          <div class="step-desc">After 3–6 months of data, set up Azure Synapse for historical KPI storage at scale. Enables year-over-year trends and contract renewal evidence. Not required for the immediate demo.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COST -->
+  <div class="section" id="cost">
+    <div class="sec-label">Cost Summary</div>
+    <div class="sec-title">Analytics Stack — Monthly Cost Estimate</div>
+    <div class="sec-sub">For an internal tool at MPS scale (10–50 users), the monthly analytics cost is extremely low.</div>
+
+    <div class="cost-grid">
+      <div class="cost-card"><div class="cc-tool">Microsoft Clarity</div><div class="cc-price">$0</div><div class="cc-note">Completely free. Unlimited sessions, recordings, and heatmaps.</div></div>
+      <div class="cost-card"><div class="cc-tool">Azure Application Insights</div><div class="cc-price">~$5–50</div><div class="cc-note">Pay per GB ingested. First 5 GB/month free. Very low at MPS scale.</div></div>
+      <div class="cost-card"><div class="cc-tool">Azure Monitor</div><div class="cc-price">$0</div><div class="cc-note">Included with Azure subscription. No additional cost.</div></div>
+      <div class="cost-card"><div class="cc-tool">Power BI</div><div class="cc-price">Already planned</div><div class="cc-note">Analytics becomes the 7th dashboard — no extra license needed.</div></div>
+      <div class="cost-card"><div class="cc-tool">Azure Synapse (Phase 2)</div><div class="cc-price">~$50–150</div><div class="cc-note">Pay per query and storage. Not required immediately.</div></div>
+      <div class="cost-card" style="border-left:2px solid var(--bd);"><div class="cc-tool">Total — Phase 1</div><div class="cc-price" style="font-size:28px;">$5–50</div><div class="cc-note">Full analytics stack for under $600/year.</div></div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">Status: In Progress</div>
+      <div class="alert-body">Tool selection confirmed. Microsoft Clarity and Azure Application Insights are ready to install. Engineering needs to embed the App Insights SDK into the MPS platform code. Estimated setup time: 4–6 hours for Steps 1–3.</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const items = document.querySelectorAll('.sb-item[href]');
+const sections = document.querySelectorAll('[id]');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      items.forEach(i => i.classList.remove('active'));
+      const t = document.querySelector('.sb-item[href="#'+e.target.id+'"]');
+      if(t) t.classList.add('active');
+    }
+  });
+},{threshold:0.15,rootMargin:'-60px 0px -60% 0px'});
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
