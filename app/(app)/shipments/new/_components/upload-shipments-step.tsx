@@ -11,6 +11,31 @@ import { createEmptyRow } from "./new-shipment-grid";
 /** Same label used everywhere when returning to the entry-option selection. */
 export const BACK_TO_ENTRY_OPTIONS_LABEL = "Back to entry options";
 
+/**
+ * Normalize a date value from XLSX (could be a JS Date, Excel serial number,
+ * or a date string in various formats) into a YYYY-MM-DD string.
+ */
+function normalizeDate(val: unknown): string {
+  // JS Date object (cellDates: true)
+  if (val instanceof Date && !isNaN(val.getTime())) {
+    return val.toISOString().slice(0, 10);
+  }
+  // Excel serial number (days since 1899-12-30)
+  if (typeof val === "number" && val > 0) {
+    const epoch = new Date(1899, 11, 30);
+    epoch.setDate(epoch.getDate() + val);
+    return epoch.toISOString().slice(0, 10);
+  }
+  // String — try parsing as-is
+  const str = String(val).trim();
+  const parsed = new Date(str + (str.includes("T") ? "" : "T00:00:00"));
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().slice(0, 10);
+  }
+  // Return raw string as fallback
+  return str;
+}
+
 const HEADER_MAP: Record<string, keyof ShipmentEntryRow> = {
   Site: "siteId",
   Client: "clientId",
@@ -46,7 +71,7 @@ export function UploadShipmentsStep({
     reader.onload = (evt) => {
       try {
         const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-        const workbook = read(data, { type: "array" });
+        const workbook = read(data, { type: "array", cellDates: true });
         const sheetName = workbook.SheetNames[0];
         if (!sheetName) {
           setError("The file has no sheets.");
@@ -67,6 +92,8 @@ export function UploadShipmentsStep({
             if (field === "weightValue" || field === "volumeValue") {
               const num = typeof val === "number" ? val : parseFloat(String(val));
               (row as Record<string, unknown>)[field] = isNaN(num) ? null : num;
+            } else if (field === "shipmentDate") {
+              (row as Record<string, unknown>)[field] = normalizeDate(val);
             } else {
               (row as Record<string, unknown>)[field] = String(val).trim();
             }

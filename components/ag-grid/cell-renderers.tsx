@@ -54,9 +54,15 @@ function DateCellRenderer({
   value,
   placeholder = "Select date...",
 }: DateCellRendererProps) {
-  const formatted = value
-    ? format(new Date(value + "T00:00:00"), "MMM d, yyyy")
-    : null;
+  let formatted: string | null = null;
+  if (value) {
+    try {
+      const d = new Date(value + "T00:00:00");
+      formatted = isNaN(d.getTime()) ? value : format(d, "MMM d, yyyy");
+    } catch {
+      formatted = value;
+    }
+  }
 
   return (
     <div className="flex items-center gap-2 w-full h-full">

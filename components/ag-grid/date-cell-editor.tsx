@@ -19,7 +19,8 @@ function DateCellEditor(props: CustomCellEditorProps) {
 
   const selectedDate = React.useMemo(() => {
     if (!value) return undefined;
-    return new Date(value + "T00:00:00");
+    const d = new Date(value + "T00:00:00");
+    return isNaN(d.getTime()) ? undefined : d;
   }, [value]);
 
   function handleSelect(date: Date | undefined) {
