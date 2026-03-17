@@ -13,13 +13,14 @@ import {
 import { useAuth } from "@/lib/auth-context";
 
 const ROLE_LABELS: Record<string, string> = {
-  system_admin: "System Admin",
-  admin: "Admin",
-  site_user: "Site User",
+  admin: "Administrator",
+  manager: "Manager",
+  operator: "Operator",
+  viewer: "Viewer",
 };
 
 export function UserMenu() {
-  const { user, setUser } = useAuth();
+  const { user, signOutUser } = useAuth();
   const router = useRouter();
 
   if (!user) return null;
@@ -31,8 +32,8 @@ export function UserMenu() {
     .slice(0, 2)
     .toUpperCase();
 
-  function handleSignOut() {
-    setUser(null);
+  async function handleSignOut() {
+    await signOutUser();
     router.push("/login");
   }
 

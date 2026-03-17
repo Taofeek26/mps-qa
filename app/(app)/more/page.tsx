@@ -26,12 +26,12 @@ interface MoreItem {
 
 const MORE_ITEMS: MoreItem[] = [
   { label: "Report Builder", description: "Build custom reports with drag-and-drop widgets", href: "/reports/builder", icon: FileBarChart, group: "Primary" },
-  { label: "Clients & Sites", description: "Manage client accounts and site locations", href: "/admin/clients", icon: Briefcase, group: "Administration", roles: ["system_admin"] },
-  { label: "Vendors", description: "Vendor profiles, qualifications, and risk levels", href: "/admin/vendors", icon: Building2, group: "Administration", roles: ["system_admin"] },
-  { label: "Reference Data", description: "Waste types, codes, and classification data", href: "/admin/reference-data", icon: FileText, group: "Administration", roles: ["system_admin"] },
-  { label: "Facilities & Transport", description: "Receiving facilities, transporters, and containers", href: "/admin/facilities", icon: Factory, group: "Administration", roles: ["system_admin"] },
-  { label: "Users", description: "User accounts, roles, and permissions", href: "/admin/users", icon: Users, group: "Administration", roles: ["system_admin"] },
-  { label: "Audit Log", description: "Activity history and change tracking", href: "/admin/audit-log", icon: ScrollText, group: "Administration", roles: ["admin", "system_admin"] },
+  { label: "Clients & Sites", description: "Manage client accounts and site locations", href: "/admin/clients", icon: Briefcase, group: "Administration", roles: ["admin"] },
+  { label: "Vendors", description: "Vendor profiles, qualifications, and risk levels", href: "/admin/vendors", icon: Building2, group: "Administration", roles: ["admin"] },
+  { label: "Reference Data", description: "Waste types, codes, and classification data", href: "/admin/reference-data", icon: FileText, group: "Administration", roles: ["admin"] },
+  { label: "Facilities & Transport", description: "Receiving facilities, transporters, and containers", href: "/admin/facilities", icon: Factory, group: "Administration", roles: ["admin"] },
+  { label: "Users", description: "User accounts, roles, and permissions", href: "/admin/users", icon: Users, group: "Administration", roles: ["admin"] },
+  { label: "Audit Log", description: "Activity history and change tracking", href: "/admin/audit-log", icon: ScrollText, group: "Administration", roles: ["admin", "manager"] },
 ];
 
 export default function MorePage() {

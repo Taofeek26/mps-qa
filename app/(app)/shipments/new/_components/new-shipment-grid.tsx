@@ -12,7 +12,7 @@ import {
 } from "@/components/ag-grid/cell-renderers";
 import { SelectCellEditor } from "@/components/ag-grid/select-cell-editor";
 import { DateCellEditor } from "@/components/ag-grid/date-cell-editor";
-import { getSites, getClients, getVendors, getWasteTypes } from "@/lib/mock-data";
+import { useSites, useClients, useVendors, useWasteTypes } from "@/lib/hooks/use-api-data";
 import type { ShipmentEntryRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ interface NewShipmentGridProps {
   onRowDataChange: (data: ShipmentEntryRow[]) => void;
   onImport?: (rows: Record<string, unknown>[]) => void;
   cellErrors: CellError[];
-  /** If set, only these sites are shown in the Site dropdown (for site_user role) */
+  /** If set, only these sites are shown in the Site dropdown (for non-admin roles) */
   allowedSiteIds?: string[];
   className?: string;
   /** Content rendered at the far right of the toolbar */
@@ -40,14 +40,16 @@ export function NewShipmentGrid({
   className,
   toolbarRight,
 }: NewShipmentGridProps) {
+  // Fetch reference data from API
+  const { sites: allSites } = useSites();
+  const { clients } = useClients();
+  const { vendors } = useVendors();
+  const { wasteTypes } = useWasteTypes();
+
   const sites = React.useMemo(() => {
-    const all = getSites();
-    if (allowedSiteIds) return all.filter((s) => allowedSiteIds.includes(s.id));
-    return all;
-  }, [allowedSiteIds]);
-  const clients = React.useMemo(() => getClients(), []);
-  const vendors = React.useMemo(() => getVendors(), []);
-  const wasteTypes = React.useMemo(() => getWasteTypes(), []);
+    if (allowedSiteIds) return allSites.filter((s) => allowedSiteIds.includes(s.id));
+    return allSites;
+  }, [allSites, allowedSiteIds]);
 
   const siteOptions = React.useMemo(
     () => sites.map((s) => ({ value: s.id, label: s.name })),

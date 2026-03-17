@@ -4,7 +4,7 @@ import * as React from "react";
 import { subMonths } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import type { DateRangePreset } from "@/components/ui/date-range-picker";
-import { getAllShipments, getClients, getSites } from "@/lib/mock-data";
+import { useShipments, useClients, useSites } from "@/lib/hooks/use-api-data";
 import type { ShipmentFilters, ServiceFrequency } from "@/lib/types";
 
 export const REPORT_PRESETS: DateRangePreset[] = [
@@ -20,8 +20,9 @@ interface UseReportFiltersOptions {
 export function useReportFilters(options: UseReportFiltersOptions = {}) {
   const { includeSite = true } = options;
 
-  const clients = React.useMemo(() => getClients(), []);
-  const allSites = React.useMemo(() => getSites(), []);
+  const { clients } = useClients();
+  const { sites: allSites } = useSites();
+  const { shipments: allShipments } = useShipments();
 
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
   const [clientId, setClientId] = React.useState("");
@@ -68,24 +69,47 @@ export function useReportFilters(options: UseReportFiltersOptions = {}) {
     setSiteId(val === "all" ? "" : val);
   }
 
+  // Filter shipments client-side based on current filter state
   const shipments = React.useMemo(() => {
-    const filters: ShipmentFilters = {};
-    if (clientId) filters.clientIds = [clientId];
-    if (includeSite && siteId) filters.siteIds = [siteId];
-    if (dateRange?.from) filters.dateFrom = dateRange.from.toISOString().slice(0, 10);
-    if (dateRange?.to) filters.dateTo = dateRange.to.toISOString().slice(0, 10);
-    if (transporterName) filters.transporterName = transporterName;
-    if (containerType) filters.containerType = containerType;
-    if (receivingState) filters.receivingState = receivingState;
-    if (receivingCompany) filters.receivingCompany = receivingCompany;
-    if (serviceFrequency) filters.serviceFrequency = serviceFrequency as ServiceFrequency;
-    if (wasteStreamName) filters.wasteStreamName = wasteStreamName;
-    return getAllShipments(filters);
-  }, [clientId, siteId, dateRange, includeSite, transporterName, containerType, receivingState, receivingCompany, serviceFrequency, wasteStreamName]);
+    let result = allShipments;
+
+    if (clientId) {
+      result = result.filter((s) => s.clientId === clientId);
+    }
+    if (includeSite && siteId) {
+      result = result.filter((s) => s.siteId === siteId);
+    }
+    if (dateRange?.from) {
+      const fromDate = dateRange.from.toISOString().slice(0, 10);
+      result = result.filter((s) => s.shipmentDate >= fromDate);
+    }
+    if (dateRange?.to) {
+      const toDate = dateRange.to.toISOString().slice(0, 10);
+      result = result.filter((s) => s.shipmentDate <= toDate);
+    }
+    if (transporterName) {
+      result = result.filter((s) => s.transporterName === transporterName);
+    }
+    if (containerType) {
+      result = result.filter((s) => s.containerType === containerType);
+    }
+    if (receivingState) {
+      result = result.filter((s) => s.receivingState === receivingState);
+    }
+    if (receivingCompany) {
+      result = result.filter((s) => s.receivingCompany === receivingCompany);
+    }
+    if (serviceFrequency) {
+      result = result.filter((s) => s.serviceFrequency === serviceFrequency);
+    }
+    if (wasteStreamName) {
+      result = result.filter((s) => s.wasteStreamName === wasteStreamName || s.wasteTypeName === wasteStreamName);
+    }
+
+    return result;
+  }, [allShipments, clientId, siteId, dateRange, includeSite, transporterName, containerType, receivingState, receivingCompany, serviceFrequency, wasteStreamName]);
 
   /* ── Unique option lists derived from full dataset ── */
-  const allShipments = React.useMemo(() => getAllShipments(), []);
-
   const transporterOptions = React.useMemo(() => {
     const set = new Set<string>();
     allShipments.forEach((s) => { if (s.transporterName) set.add(s.transporterName); });

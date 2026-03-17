@@ -68,12 +68,12 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Administration",
     items: [
-      { label: "Clients & Sites", href: "/admin/clients", icon: Briefcase, roles: ["system_admin"] },
-      { label: "Vendors", href: "/admin/vendors", icon: Building2, roles: ["system_admin"] },
-      { label: "Reference Data", href: "/admin/reference-data", icon: FileText, roles: ["system_admin"] },
-      { label: "Facilities & Transport", href: "/admin/facilities", icon: Factory, roles: ["system_admin"] },
-      { label: "Users", href: "/admin/users", icon: Users, roles: ["system_admin"] },
-      { label: "Audit Log", href: "/admin/audit-log", icon: ScrollText, roles: ["admin", "system_admin"] },
+      { label: "Clients & Sites", href: "/admin/clients", icon: Briefcase, roles: ["admin"] },
+      { label: "Vendors", href: "/admin/vendors", icon: Building2, roles: ["admin"] },
+      { label: "Reference Data", href: "/admin/reference-data", icon: FileText, roles: ["admin"] },
+      { label: "Facilities & Transport", href: "/admin/facilities", icon: Factory, roles: ["admin"] },
+      { label: "Users", href: "/admin/users", icon: Users, roles: ["admin"] },
+      { label: "Audit Log", href: "/admin/audit-log", icon: ScrollText, roles: ["admin", "manager"] },
     ],
   },
 ];

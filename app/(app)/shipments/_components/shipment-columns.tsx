@@ -75,7 +75,8 @@ export function getShipmentColumns(
       header: "Date",
       size: 110,
       cell: ({ getValue }) => {
-        const val = getValue() as string;
+        const val = getValue() as string | undefined;
+        if (!val) return <span className="text-text-muted">—</span>;
         return new Date(val + "T00:00:00").toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
@@ -135,11 +136,16 @@ export function getShipmentColumns(
       header: "Weight",
       size: 120,
       meta: { align: "center" },
-      cell: ({ row }) => (
-        <span>
-          {row.original.weightValue.toLocaleString()} {row.original.weightUnit}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const weight = row.original.weightValue;
+        const unit = row.original.weightUnit;
+        if (weight == null) return <span className="text-text-muted">—</span>;
+        return (
+          <span>
+            {weight.toLocaleString()} {unit ?? ""}
+          </span>
+        );
+      },
     },
     {
       accessorKey: "manifestNumber",
@@ -278,12 +284,11 @@ export function getShipmentColumns(
       size: 100,
       meta: { align: "center" },
       cell: ({ getValue }) => {
-        const status = getValue() as ShipmentStatus;
-        return (
-          <Badge variant={statusVariant[status]}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </Badge>
-        );
+        const status = getValue() as ShipmentStatus | string | undefined;
+        if (!status) return <span className="text-text-muted">—</span>;
+        const variant = statusVariant[status as ShipmentStatus] ?? "neutral";
+        const label = status.charAt(0).toUpperCase() + status.slice(1);
+        return <Badge variant={variant}>{label}</Badge>;
       },
     },
     {

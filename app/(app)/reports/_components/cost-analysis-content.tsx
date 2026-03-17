@@ -75,7 +75,7 @@ import {
   getNetTonMargin,
   getRecyclablesRevenuePerTon,
 } from "@/lib/report-utils";
-import { getInvoiceRecords } from "@/lib/mock-kpi-data";
+import { useInvoiceRecords } from "@/lib/hooks/use-api-data";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
@@ -301,6 +301,8 @@ export function CostAnalysisContent() {
     setWasteStreamName,
     wasteStreamOptions,
   } = useReportFilters();
+
+  const { invoiceRecords } = useInvoiceRecords();
 
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
@@ -631,11 +633,10 @@ export function CostAnalysisContent() {
   /* ---- AR Aging ---- */
 
   const arAgingData = React.useMemo(() => {
-    const invoices = getInvoiceRecords();
     const today = new Date();
     const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
 
-    invoices.forEach((inv) => {
+    invoiceRecords.forEach((inv) => {
       if (inv.paidDate) return; // Already paid
       const dueDate = new Date(inv.dueDate + "T00:00:00");
       const daysOutstanding = Math.max(0, Math.round((today.getTime() - dueDate.getTime()) / 86400000));
@@ -649,7 +650,7 @@ export function CostAnalysisContent() {
       bucket,
       amount: Math.round(amount),
     }));
-  }, []);
+  }, [invoiceRecords]);
 
   /* ---- Operational Cost Reduction % ---- */
 

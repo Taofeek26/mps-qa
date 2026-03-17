@@ -5,8 +5,8 @@ import type { DateRange } from "react-day-picker";
 import type { ReportSection, SectionType, SectionConfig } from "@/lib/report-builder-types";
 import type { SavedReport } from "@/lib/saved-reports";
 import { getWidgetDefinition } from "@/lib/report-builder-widgets";
-import { getAllShipments, getClients, getSites } from "@/lib/mock-data";
-import type { ShipmentFilters, ServiceFrequency } from "@/lib/types";
+import { useShipments, useClients, useSites } from "@/lib/hooks/use-api-data";
+import type { ServiceFrequency } from "@/lib/types";
 
 let nextId = 1;
 function generateId(): string {
@@ -66,56 +66,79 @@ export function useReportBuilder(initialState?: ReportBuilderInitialState | null
     setSiteId(saved.siteId ?? "");
   }, []);
 
-  const clients = React.useMemo(() => getClients(), []);
-  const allSites = React.useMemo(() => getSites(), []);
+  const { clients } = useClients();
+  const { sites: allSites } = useSites();
+  const { shipments: allShipments } = useShipments();
+
   const filteredSites = clientId ? allSites.filter((s) => s.clientId === clientId) : allSites;
 
+  // Filter shipments client-side
   const shipments = React.useMemo(() => {
-    const filters: ShipmentFilters = {};
-    if (clientId) filters.clientIds = [clientId];
-    if (siteId) filters.siteIds = [siteId];
-    if (dateRange?.from) filters.dateFrom = dateRange.from.toISOString().slice(0, 10);
-    if (dateRange?.to) filters.dateTo = dateRange.to.toISOString().slice(0, 10);
-    if (transporterName) filters.transporterName = transporterName;
-    if (containerType) filters.containerType = containerType;
-    if (receivingState) filters.receivingState = receivingState;
-    if (wasteCategory) filters.wasteCategory = wasteCategory as ShipmentFilters["wasteCategory"];
-    if (serviceFrequency) filters.serviceFrequency = serviceFrequency as ServiceFrequency;
-    return getAllShipments(filters);
-  }, [clientId, siteId, dateRange, transporterName, containerType, receivingState, wasteCategory, serviceFrequency]);
+    let result = allShipments;
+
+    if (clientId) {
+      result = result.filter((s) => s.clientId === clientId);
+    }
+    if (siteId) {
+      result = result.filter((s) => s.siteId === siteId);
+    }
+    if (dateRange?.from) {
+      const fromDate = dateRange.from.toISOString().slice(0, 10);
+      result = result.filter((s) => s.shipmentDate >= fromDate);
+    }
+    if (dateRange?.to) {
+      const toDate = dateRange.to.toISOString().slice(0, 10);
+      result = result.filter((s) => s.shipmentDate <= toDate);
+    }
+    if (transporterName) {
+      result = result.filter((s) => s.transporterName === transporterName);
+    }
+    if (containerType) {
+      result = result.filter((s) => s.containerType === containerType);
+    }
+    if (receivingState) {
+      result = result.filter((s) => s.receivingState === receivingState);
+    }
+    if (wasteCategory) {
+      result = result.filter((s) => s.wasteCategory === wasteCategory);
+    }
+    if (serviceFrequency) {
+      result = result.filter((s) => s.serviceFrequency === serviceFrequency);
+    }
+
+    return result;
+  }, [allShipments, clientId, siteId, dateRange, transporterName, containerType, receivingState, wasteCategory, serviceFrequency]);
 
   /* Unique option lists */
-  const allShipmentsForOptions = React.useMemo(() => getAllShipments(), []);
-
   const transporterOptions = React.useMemo(() => {
     const set = new Set<string>();
-    allShipmentsForOptions.forEach((s) => { if (s.transporterName) set.add(s.transporterName); });
+    allShipments.forEach((s) => { if (s.transporterName) set.add(s.transporterName); });
     return Array.from(set).sort();
-  }, [allShipmentsForOptions]);
+  }, [allShipments]);
 
   const containerTypeOptions = React.useMemo(() => {
     const set = new Set<string>();
-    allShipmentsForOptions.forEach((s) => { if (s.containerType) set.add(s.containerType); });
+    allShipments.forEach((s) => { if (s.containerType) set.add(s.containerType); });
     return Array.from(set).sort();
-  }, [allShipmentsForOptions]);
+  }, [allShipments]);
 
   const receivingStateOptions = React.useMemo(() => {
     const set = new Set<string>();
-    allShipmentsForOptions.forEach((s) => { if (s.receivingState) set.add(s.receivingState); });
+    allShipments.forEach((s) => { if (s.receivingState) set.add(s.receivingState); });
     return Array.from(set).sort();
-  }, [allShipmentsForOptions]);
+  }, [allShipments]);
 
   const wasteCategoryOptions = React.useMemo(() => {
     const set = new Set<string>();
-    allShipmentsForOptions.forEach((s) => { if (s.wasteCategory) set.add(s.wasteCategory); });
+    allShipments.forEach((s) => { if (s.wasteCategory) set.add(s.wasteCategory); });
     return Array.from(set).sort();
-  }, [allShipmentsForOptions]);
+  }, [allShipments]);
 
   const serviceFrequencyOptions = React.useMemo(() => {
     const set = new Set<string>();
-    allShipmentsForOptions.forEach((s) => { if (s.serviceFrequency) set.add(s.serviceFrequency); });
+    allShipments.forEach((s) => { if (s.serviceFrequency) set.add(s.serviceFrequency); });
     return Array.from(set).sort();
-  }, [allShipmentsForOptions]);
+  }, [allShipments]);
 
   const addSection = React.useCallback((type: SectionType) => {
     const def = getWidgetDefinition(type);

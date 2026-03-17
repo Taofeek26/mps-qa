@@ -24,7 +24,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "@/components/ui/toast";
 import type { SavedReport } from "@/lib/saved-reports";
 import { getSavedReports, deleteSavedReport, updateSavedReport } from "@/lib/saved-reports";
-import { getAllShipments } from "@/lib/mock-data";
+import { useShipments } from "@/lib/hooks/use-api-data";
 import { exportReportPdf } from "./pdf-export";
 import { cn } from "@/lib/utils";
 import { RenameReportDialog } from "./rename-report-dialog";
@@ -39,6 +39,8 @@ export function ReportList({ userId }: ReportListProps) {
   const [deleteTarget, setDeleteTarget] = React.useState<SavedReport | null>(null);
   const [renameTarget, setRenameTarget] = React.useState<SavedReport | null>(null);
   const [downloadingId, setDownloadingId] = React.useState<string | null>(null);
+
+  const { shipments: allShipments } = useShipments();
 
   const loadReports = React.useCallback(() => {
     setReports(getSavedReports(userId));
@@ -69,12 +71,20 @@ export function ReportList({ userId }: ReportListProps) {
   async function handleDownload(report: SavedReport) {
     setDownloadingId(report.id);
     try {
-      const filters: { dateFrom?: string; dateTo?: string; clientIds?: string[]; siteIds?: string[] } = {};
-      if (report.dateRange?.from) filters.dateFrom = report.dateRange.from;
-      if (report.dateRange?.to) filters.dateTo = report.dateRange.to;
-      if (report.clientId) filters.clientIds = [report.clientId];
-      if (report.siteId) filters.siteIds = [report.siteId];
-      const shipments = getAllShipments(filters);
+      // Filter shipments client-side based on report filters
+      let shipments = allShipments;
+      if (report.dateRange?.from) {
+        shipments = shipments.filter((s) => s.shipmentDate >= report.dateRange!.from!);
+      }
+      if (report.dateRange?.to) {
+        shipments = shipments.filter((s) => s.shipmentDate <= report.dateRange!.to!);
+      }
+      if (report.clientId) {
+        shipments = shipments.filter((s) => s.clientId === report.clientId);
+      }
+      if (report.siteId) {
+        shipments = shipments.filter((s) => s.siteId === report.siteId);
+      }
       const filterParts: string[] = [];
       if (report.dateRange?.from) filterParts.push(`${report.dateRange.from} – ${report.dateRange.to ?? "Present"}`);
       if (report.clientId) filterParts.push("Customer filtered");

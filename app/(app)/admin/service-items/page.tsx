@@ -19,51 +19,50 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getServiceItems,
-  getWasteTypes,
-  createServiceItem,
-  updateServiceItem,
-  deleteServiceItem,
-} from "@/lib/mock-data";
-import type { ServiceItem } from "@/lib/types";
+import { useServiceItems, useWasteTypes } from "@/lib/hooks/use-api-data";
+import { serviceItemsApi } from "@/lib/api-client";
+import type { ServiceItem, WasteType } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 /* ─── Columns ─── */
 
-const columns: ColumnDef<ServiceItem, unknown>[] = [
-  {
-    accessorKey: "serviceName",
-    header: "Service Name",
-    size: 250,
-  },
-  {
-    accessorKey: "defaultWasteTypeId",
-    header: "Default Waste Type",
-    size: 200,
-    cell: ({ getValue }) => {
-      const wasteTypeId = getValue() as string | undefined;
-      if (!wasteTypeId) return <span className="text-text-secondary">&mdash;</span>;
-      const wt = getWasteTypes().find((w) => w.id === wasteTypeId);
-      return (
-        <span className="text-text-secondary">{wt?.name ?? "\u2014"}</span>
-      );
+function buildColumns(wasteTypes: WasteType[]): ColumnDef<ServiceItem, unknown>[] {
+  const wasteTypeMap = new Map(wasteTypes.map((w) => [w.id, w.name]));
+
+  return [
+    {
+      accessorKey: "serviceName",
+      header: "Service Name",
+      size: 250,
     },
-  },
-  {
-    accessorKey: "activeFlag",
-    header: "Status",
-    size: 100,
-    cell: ({ getValue }) => {
-      const active = getValue() as boolean;
-      return (
-        <Badge variant={active ? "success" : "neutral"}>
-          {active ? "Active" : "Inactive"}
-        </Badge>
-      );
+    {
+      accessorKey: "defaultWasteTypeId",
+      header: "Default Waste Type",
+      size: 200,
+      cell: ({ getValue }) => {
+        const wasteTypeId = getValue() as string | undefined;
+        if (!wasteTypeId) return <span className="text-text-secondary">&mdash;</span>;
+        const name = wasteTypeMap.get(wasteTypeId);
+        return (
+          <span className="text-text-secondary">{name ?? "\u2014"}</span>
+        );
+      },
     },
-  },
-];
+    {
+      accessorKey: "activeFlag",
+      header: "Status",
+      size: 100,
+      cell: ({ getValue }) => {
+        const active = getValue() as boolean;
+        return (
+          <Badge variant={active ? "success" : "neutral"}>
+            {active ? "Active" : "Inactive"}
+          </Badge>
+        );
+      },
+    },
+  ];
+}
 
 /* ─── Form ─── */
 
@@ -71,19 +70,21 @@ function ServiceItemForm({
   item,
   onClose,
   onSaved,
+  wasteTypes,
 }: {
   item: ServiceItem | null;
   onClose: () => void;
   onSaved: () => void;
+  wasteTypes: WasteType[];
 }) {
-  const wasteTypes = React.useMemo(() => getWasteTypes(), []);
   const [serviceName, setServiceName] = React.useState(item?.serviceName ?? "");
   const [description, setDescription] = React.useState(item?.description ?? "");
   const [defaultWasteTypeId, setDefaultWasteTypeId] = React.useState(item?.defaultWasteTypeId ?? "");
   const [activeFlag, setActiveFlag] = React.useState(item?.activeFlag ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!serviceName.trim()) errs.serviceName = "Service name is required";
     if (Object.keys(errs).length > 0) {
@@ -91,23 +92,37 @@ function ServiceItemForm({
       return;
     }
 
+    setSaving(true);
     const data = {
-      serviceName: serviceName.trim(),
+      service_name: serviceName.trim(),
       description: description.trim() || undefined,
-      defaultWasteTypeId: defaultWasteTypeId || undefined,
-      activeFlag,
+      default_waste_type_id: defaultWasteTypeId || undefined,
+      is_active: activeFlag,
     };
 
-    if (item) {
-      updateServiceItem(item.id, data);
-      toast.success("Service item updated");
-    } else {
-      createServiceItem(data);
-      toast.success("Service item created");
+    try {
+      if (item) {
+        const result = await serviceItemsApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update service item", { description: result.error });
+          return;
+        }
+        toast.success("Service item updated");
+      } else {
+        const result = await serviceItemsApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create service item", { description: result.error });
+          return;
+        }
+        toast.success("Service item created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -154,11 +169,11 @@ function ServiceItemForm({
       </FormField>
 
       <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          {item ? "Save Changes" : "Create Service Item"}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : item ? "Save Changes" : "Create Service Item"}
         </Button>
       </div>
     </div>
@@ -185,11 +200,13 @@ function ServiceItemsContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
 
-  const allData = React.useMemo(() => getServiceItems(), [refreshKey]);
+  const { serviceItems: allData, loading, refetch } = useServiceItems();
+  const { wasteTypes } = useWasteTypes();
+
+  const columns = React.useMemo(() => buildColumns(wasteTypes), [wasteTypes]);
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -226,14 +243,18 @@ function ServiceItemsContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: ServiceItem) {
-    deleteServiceItem(item.id);
-    toast.success("Service item deleted");
-    refresh();
+  async function handleDelete(item: ServiceItem) {
+    try {
+      const result = await serviceItemsApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete service item", { description: result.error });
+        return;
+      }
+      toast.success("Service item deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete service item");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -288,8 +309,9 @@ function ServiceItemsContent() {
       emptyIcon={<Wrench className="h-10 w-10" />}
       emptyTitle="No service items found"
       emptyDescription="Add your first service item to get started."
+      loading={loading}
       formContent={({ item, onClose }) => (
-        <ServiceItemForm item={item} onClose={onClose} onSaved={refresh} />
+        <ServiceItemForm item={item} onClose={onClose} onSaved={refetch} wasteTypes={wasteTypes} />
       )}
     />
     </div>

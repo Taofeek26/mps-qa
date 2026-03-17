@@ -110,7 +110,7 @@ export function USStateMap({
               const d = dataMap.get(abbrev);
               return (
                 <Geography
-                  key={geo.rpiKey}
+                  key={geo.rsmKey || geo.id || fips}
                   geography={geo}
                   fill={getColor(abbrev)}
                   stroke="var(--color-bg-card)"

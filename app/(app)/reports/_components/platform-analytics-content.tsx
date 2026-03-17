@@ -39,8 +39,8 @@ import {
   TOOLTIP_STYLE,
   DonutChart,
 } from "@/components/charts";
+import { usePlatformUserActivity } from "@/lib/hooks/use-api-data";
 import {
-  getPlatformUserActivity,
   PLATFORM_MONTHLY_EVENTS,
   FEATURE_USAGE_MAP,
 } from "@/lib/mock-kpi-data";
@@ -61,6 +61,8 @@ export function PlatformAnalyticsContent() {
     shipments,
   } = useReportFilters({ includeSite: false });
 
+  const { platformUserActivities: users } = usePlatformUserActivity();
+
   const filterSummary =
     [clientId && "Customer filtered", dateRange?.from && "Date range applied"]
       .filter(Boolean)
@@ -72,7 +74,6 @@ export function PlatformAnalyticsContent() {
   );
 
   /* ─── Data ─── */
-  const users = React.useMemo(() => getPlatformUserActivity(), []);
   const monthlyEvents = PLATFORM_MONTHLY_EVENTS;
 
   /* ─── KPIs ─── */
@@ -342,8 +343,8 @@ export function PlatformAnalyticsContent() {
                       <tr key={u.userId} className="border-b border-border-default last:border-0">
                         <td className="py-2.5 pr-3 font-medium text-text-primary">{u.userName}</td>
                         <td className="py-2.5 px-3">
-                          <Badge variant={u.role === "system_admin" ? "warning" : u.role === "admin" ? "neutral" : "success"}>
-                            {u.role.replace("_", " ")}
+                          <Badge variant={u.role === "admin" ? "error" : u.role === "manager" ? "warning" : u.role === "operator" ? "info" : "neutral"}>
+                            {u.role}
                           </Badge>
                         </td>
                         <td className="py-2.5 px-3 text-right tabular-nums font-mono text-text-secondary">{u.shipmentsCreated}</td>

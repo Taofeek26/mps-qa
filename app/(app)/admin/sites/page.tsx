@@ -18,13 +18,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getSites,
-  getClients,
-  createSite,
-  updateSite,
-  deleteSite,
-} from "@/lib/mock-data";
+import { sitesApi } from "@/lib/api-client";
+import { useSites, useClients } from "@/lib/hooks/use-api-data";
 import type { Site } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
@@ -50,12 +45,13 @@ function SitesContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [clientFilter, setClientFilter] = React.useState("");
   const [regionFilter, setRegionFilter] = React.useState("");
 
-  const clients = React.useMemo(() => getClients(), [refreshKey]);
+  // Fetch data from API
+  const { sites: allData, refetch } = useSites();
+  const { clients } = useClients();
   const clientMap = React.useMemo(
     () => new Map(clients.map((c) => [c.id, c.name])),
     [clients]
@@ -137,7 +133,7 @@ function SitesContent() {
     [clientMap]
   );
 
-  const allData = React.useMemo(() => getSites(), [refreshKey]);
+  // allData is already from useSites() hook above
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -180,13 +176,21 @@ function SitesContent() {
   }
 
   function refresh() {
-    setRefreshKey((k) => k + 1);
+    refetch();
   }
 
-  function handleDelete(item: Site) {
-    deleteSite(item.id);
-    toast.success("Site deleted");
-    refresh();
+  async function handleDelete(item: Site) {
+    try {
+      const result = await sitesApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete", { description: result.error });
+        return;
+      }
+      toast.success("Site deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete site");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -302,7 +306,7 @@ function SiteForm({
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = "Name is required";
     if (!clientId) errs.clientId = "Client is required";
@@ -322,16 +326,27 @@ function SiteForm({
       active,
     };
 
-    if (item) {
-      updateSite(item.id, data);
-      toast.success("Site updated");
-    } else {
-      createSite(data);
-      toast.success("Site created");
+    try {
+      if (item) {
+        const result = await sitesApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update", { description: result.error });
+          return;
+        }
+        toast.success("Site updated");
+      } else {
+        const result = await sitesApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create", { description: result.error });
+          return;
+        }
+        toast.success("Site created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("Operation failed");
     }
-
-    onSaved();
-    onClose();
   }
 
   return (

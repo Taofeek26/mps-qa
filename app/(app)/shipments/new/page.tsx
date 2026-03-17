@@ -13,8 +13,9 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { toast } from "@/components/ui/toast";
 import type { CellError } from "@/components/ui/ag-grid-wrapper";
-import { insertShipments } from "@/lib/mock-data";
+import { shipmentsApi } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
+import { useSites, useClients, useVendors, useWasteTypes } from "@/lib/hooks/use-api-data";
 import type { ShipmentEntryRow } from "@/lib/types";
 import {
   NewShipmentGrid,
@@ -31,6 +32,20 @@ import {
 
 function generateRows(count: number): ShipmentEntryRow[] {
   return Array.from({ length: count }, () => createEmptyRow());
+}
+
+/** Check if a string looks like a UUID */
+function isUUID(str: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
+/** Check if a string looks like an ID (UUID or short ID like site-001, vendor-001) */
+function isLikelyId(str: string): boolean {
+  // Standard UUID
+  if (isUUID(str)) return true;
+  // Short IDs like site-001, vendor-001, cust-001, wtype-001
+  if (/^(site|vendor|cust|wtype|trans|fac)-\d+$/i.test(str)) return true;
+  return false;
 }
 
 type ViewMode = "choice" | "upload" | "manual";
@@ -275,7 +290,15 @@ export default function NewShipmentPage() {
   const router = useRouter();
   const { user } = useAuth();
   const allowedSiteIds =
-    user?.role === "site_user" ? user?.assignedSiteIds : undefined;
+    user?.role !== "admin" ? user?.assignedSiteIds : undefined;
+
+  // Fetch reference data for name-to-ID lookups during import
+  const { sites, loading: sitesLoading } = useSites();
+  const { clients, loading: clientsLoading } = useClients();
+  const { vendors, loading: vendorsLoading } = useVendors();
+  const { wasteTypes, loading: wasteTypesLoading } = useWasteTypes();
+
+  const referenceDataLoaded = !sitesLoading && !clientsLoading && !vendorsLoading && !wasteTypesLoading;
 
   const [viewMode, setViewMode] = React.useState<ViewMode>("choice");
   const [rowData, setRowData] = React.useState<ShipmentEntryRow[]>([]);
@@ -284,6 +307,82 @@ export default function NewShipmentPage() {
   const [importedBanner, setImportedBanner] = React.useState<number | null>(
     null
   );
+
+  /**
+   * Resolve entity names to IDs during import.
+   * This allows CSV files to use human-readable names instead of UUIDs.
+   */
+  const resolveNamesToIds = React.useCallback(
+    (rows: ShipmentEntryRow[]): ShipmentEntryRow[] => {
+      // Create case-insensitive lookup maps
+      const siteMap = new Map(sites.map((s) => [s.name.toLowerCase(), s.id]));
+      const clientMap = new Map(clients.map((c) => [c.name.toLowerCase(), c.id]));
+      const vendorMap = new Map(vendors.map((v) => [v.name.toLowerCase(), v.id]));
+      const wasteTypeMap = new Map(wasteTypes.map((w) => [w.name.toLowerCase(), w.id]));
+
+      console.log("[resolveNamesToIds] Reference data:", {
+        sites: sites.length,
+        clients: clients.length,
+        vendors: vendors.length,
+        wasteTypes: wasteTypes.length,
+      });
+
+      return rows.map((row, idx) => {
+        const resolved = { ...row };
+
+        // Resolve siteId - check if it's a name (not already an ID)
+        if (row.siteId && !isLikelyId(row.siteId)) {
+          const id = siteMap.get(row.siteId.toLowerCase());
+          console.log(`[Row ${idx}] Site: "${row.siteId}" -> "${id}"`);
+          resolved.siteId = id ?? "";
+        }
+
+        // Resolve clientId
+        if (row.clientId && !isLikelyId(row.clientId)) {
+          const id = clientMap.get(row.clientId.toLowerCase());
+          console.log(`[Row ${idx}] Client: "${row.clientId}" -> "${id}"`);
+          resolved.clientId = id ?? "";
+        }
+
+        // Resolve vendorId
+        if (row.vendorId && !isLikelyId(row.vendorId)) {
+          const id = vendorMap.get(row.vendorId.toLowerCase());
+          console.log(`[Row ${idx}] Vendor: "${row.vendorId}" -> "${id}"`);
+          resolved.vendorId = id ?? "";
+        }
+
+        // Resolve wasteTypeId
+        if (row.wasteTypeId && !isLikelyId(row.wasteTypeId)) {
+          const id = wasteTypeMap.get(row.wasteTypeId.toLowerCase());
+          console.log(`[Row ${idx}] WasteType: "${row.wasteTypeId}" -> "${id}"`);
+          resolved.wasteTypeId = id ?? "";
+        }
+
+        return resolved;
+      });
+    },
+    [sites, clients, vendors, wasteTypes]
+  );
+
+  // Re-resolve names when reference data becomes available
+  React.useEffect(() => {
+    if (referenceDataLoaded && rowData.length > 0) {
+      // Check if any rows have unresolved names (not IDs)
+      const hasUnresolvedNames = rowData.some(
+        (row) =>
+          (row.siteId && !isLikelyId(row.siteId)) ||
+          (row.clientId && !isLikelyId(row.clientId)) ||
+          (row.vendorId && !isLikelyId(row.vendorId)) ||
+          (row.wasteTypeId && !isLikelyId(row.wasteTypeId))
+      );
+
+      if (hasUnresolvedNames) {
+        console.log("[useEffect] Reference data loaded, resolving unresolved names");
+        const resolvedRows = resolveNamesToIds(rowData);
+        setRowData(resolvedRows);
+      }
+    }
+  }, [referenceDataLoaded, resolveNamesToIds]); // Don't include rowData to avoid infinite loop
 
   /* ─── Validation ─── */
   function validate(rows: ShipmentEntryRow[]): CellError[] {
@@ -346,7 +445,7 @@ export default function NewShipmentPage() {
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const errors = validate(rowData);
     setCellErrors(errors);
 
@@ -377,36 +476,47 @@ export default function NewShipmentPage() {
 
     setSubmitting(true);
 
-    setTimeout(() => {
-      const result = insertShipments(
-        validRows.map((r) => ({
-          siteId: r.siteId,
-          clientId: r.clientId,
-          vendorId: r.vendorId,
-          wasteTypeId: r.wasteTypeId,
-          shipmentDate: r.shipmentDate,
-          weightValue: r.weightValue!,
-          weightUnit: r.weightUnit,
-          volumeValue: r.volumeValue ?? undefined,
-          notes: r.notes || undefined,
-        }))
-      );
+    try {
+      const shipmentsToCreate = validRows.map((r) => ({
+        site_id: r.siteId,
+        customer_id: r.clientId,
+        vendor_id: r.vendorId,
+        waste_type_id: r.wasteTypeId,
+        shipment_date: r.shipmentDate,
+        weight_value: r.weightValue!,
+        weight_unit: r.weightUnit,
+        volume_value: r.volumeValue ?? undefined,
+        notes: r.notes || undefined,
+      }));
+
+      const response = await shipmentsApi.create({ shipments: shipmentsToCreate });
 
       setSubmitting(false);
+
+      if (response.error) {
+        toast.error("Failed to submit", { description: response.error });
+        return;
+      }
+
+      const result = response.data as { inserted?: number } | null;
+      const insertedCount = result?.inserted ?? validRows.length;
 
       if (errors.length > 0) {
         const remaining = rowData.filter((_, i) => errorRowIndices.has(i));
         setRowData(remaining.length > 0 ? remaining : generateRows(5));
         toast.warning("Partial submit", {
-          description: `${result.inserted} rows saved, ${errors.length} errors remain`,
+          description: `${insertedCount} rows saved, ${errors.length} errors remain`,
         });
       } else {
         toast.success("Shipments submitted", {
-          description: `${result.inserted} shipments created successfully`,
+          description: `${insertedCount} shipments created successfully`,
         });
         router.push("/shipments");
       }
-    }, 800);
+    } catch (err) {
+      setSubmitting(false);
+      toast.error("Failed to submit shipments");
+    }
   }
 
   function handleEntryChoose(mode: EntryMode) {
@@ -420,12 +530,28 @@ export default function NewShipmentPage() {
   }
 
   function handleUploadImported(rows: ShipmentEntryRow[]) {
-    setRowData(rows);
+    // Store raw rows first, then resolve when reference data is available
+    if (!referenceDataLoaded) {
+      console.warn("[handleUploadImported] Reference data not loaded yet, storing raw rows");
+      setRowData(rows);
+      setCellErrors([]);
+      setViewMode("manual");
+      setImportedBanner(rows.length);
+      toast.warning("File imported - resolving names", {
+        description: `${rows.length} rows imported. Entity names will be resolved when data loads.`,
+      });
+      return;
+    }
+
+    // Resolve entity names to IDs
+    console.log("[handleUploadImported] Resolving names with loaded reference data");
+    const resolvedRows = resolveNamesToIds(rows);
+    setRowData(resolvedRows);
     setCellErrors([]);
     setViewMode("manual");
-    setImportedBanner(rows.length);
+    setImportedBanner(resolvedRows.length);
     toast.success("File imported", {
-      description: `${rows.length} rows ready to review and submit`,
+      description: `${resolvedRows.length} rows ready to review and submit`,
     });
   }
 
@@ -516,11 +642,13 @@ export default function NewShipmentPage() {
                   }
                   return row;
                 });
-                setRowData(mapped);
+                // Resolve entity names to IDs
+                const resolved = resolveNamesToIds(mapped);
+                setRowData(resolved);
                 setCellErrors([]);
-                setImportedBanner(mapped.length);
+                setImportedBanner(resolved.length);
                 toast.success("Import complete", {
-                  description: `${mapped.length} rows imported`,
+                  description: `${resolved.length} rows imported`,
                 });
               }}
               cellErrors={cellErrors}

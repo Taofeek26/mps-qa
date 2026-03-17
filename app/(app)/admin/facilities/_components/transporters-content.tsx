@@ -18,13 +18,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getTransporters,
-  getVendors,
-  createTransporter,
-  updateTransporter,
-  deleteTransporter,
-} from "@/lib/mock-data";
+import { useTransporters, useVendors } from "@/lib/hooks/use-api-data";
+import { transportersApi } from "@/lib/api-client";
 import type { Transporter, Vendor } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
@@ -86,8 +81,9 @@ function TransporterForm({
   const [vendorId, setVendorId] = React.useState(item?.vendorId ?? "__none__");
   const [active, setActive] = React.useState(item?.activeFlag ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = "Name is required";
     if (Object.keys(errs).length > 0) {
@@ -95,22 +91,36 @@ function TransporterForm({
       return;
     }
 
+    setSaving(true);
     const data = {
-      transporterName: name.trim(),
-      vendorId: vendorId === "__none__" ? undefined : vendorId,
-      activeFlag: active,
+      transporter_name: name.trim(),
+      vendor_id: vendorId === "__none__" ? undefined : vendorId,
+      is_active: active,
     };
 
-    if (item) {
-      updateTransporter(item.id, data);
-      toast.success("Transporter updated");
-    } else {
-      createTransporter(data);
-      toast.success("Transporter created");
+    try {
+      if (item) {
+        const result = await transportersApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update transporter", { description: result.error });
+          return;
+        }
+        toast.success("Transporter updated");
+      } else {
+        const result = await transportersApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create transporter", { description: result.error });
+          return;
+        }
+        toast.success("Transporter created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -150,11 +160,11 @@ function TransporterForm({
       </FormField>
 
       <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          {item ? "Save Changes" : "Create Transporter"}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : item ? "Save Changes" : "Create Transporter"}
         </Button>
       </div>
     </div>
@@ -173,13 +183,12 @@ export function TransportersContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
 
-  const vendors = React.useMemo(() => getVendors(), [refreshKey]);
+  const { vendors } = useVendors();
+  const { transporters: allData, loading, refetch } = useTransporters();
   const columns = React.useMemo(() => makeColumns(vendors), [vendors]);
-  const allData = React.useMemo(() => getTransporters(), [refreshKey]);
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -218,14 +227,18 @@ export function TransportersContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: Transporter) {
-    deleteTransporter(item.id);
-    toast.success("Transporter deleted");
-    refresh();
+  async function handleDelete(item: Transporter) {
+    try {
+      const result = await transportersApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete transporter", { description: result.error });
+        return;
+      }
+      toast.success("Transporter deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete transporter");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -280,11 +293,12 @@ export function TransportersContent() {
       emptyIcon={<Truck className="h-10 w-10" />}
       emptyTitle="No transporters found"
       emptyDescription="Add your first transporter to get started."
+      loading={loading}
       formContent={({ item, onClose }) => (
         <TransporterForm
           item={item}
           onClose={onClose}
-          onSaved={refresh}
+          onSaved={refetch}
           vendors={vendors}
         />
       )}

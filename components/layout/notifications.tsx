@@ -9,8 +9,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
-import { getAuditLog } from "@/lib/mock-data";
-import type { AuditLogEntry } from "@/lib/types";
+import { useAuditLog } from "@/lib/hooks/use-api-data";
 
 function getRelativeTime(timestamp: string): string {
   const now = new Date();
@@ -28,10 +27,8 @@ function getRelativeTime(timestamp: string): string {
 }
 
 export function Notifications() {
-  const [entries] = React.useState<AuditLogEntry[]>(() => {
-    const result = getAuditLog(undefined, 1, 8);
-    return result.data;
-  });
+  const { logs } = useAuditLog();
+  const entries = logs.slice(0, 8);
 
   const unreadCount = Math.min(entries.length, 5);
 

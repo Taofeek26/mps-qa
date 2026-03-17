@@ -18,13 +18,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getSites,
-  getClients,
-  createSite,
-  updateSite,
-  deleteSite,
-} from "@/lib/mock-data";
+import { useSites, useClients } from "@/lib/hooks/use-api-data";
+import { sitesApi } from "@/lib/api-client";
 import type { Site } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
@@ -53,8 +48,9 @@ function SiteForm({
   const [zipCode, setZipCode] = React.useState(item?.zipCode ?? "");
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = "Name is required";
     if (!clientId) errs.clientId = "Client is required";
@@ -63,27 +59,41 @@ function SiteForm({
       return;
     }
 
+    setSaving(true);
     const data = {
       name: name.trim(),
-      clientId,
+      customer_id: clientId,
       region: region || undefined,
       address: address.trim() || undefined,
       city: city.trim() || undefined,
       state: state.trim() || undefined,
-      zipCode: zipCode.trim() || undefined,
-      active,
+      zip_code: zipCode.trim() || undefined,
+      is_active: active,
     };
 
-    if (item) {
-      updateSite(item.id, data);
-      toast.success("Site updated");
-    } else {
-      createSite(data);
-      toast.success("Site created");
+    try {
+      if (item) {
+        const result = await sitesApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update site", { description: result.error });
+          return;
+        }
+        toast.success("Site updated");
+      } else {
+        const result = await sitesApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create site", { description: result.error });
+          return;
+        }
+        toast.success("Site created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -170,11 +180,11 @@ function SiteForm({
       </FormField>
 
       <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          {item ? "Save Changes" : "Create Site"}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : item ? "Save Changes" : "Create Site"}
         </Button>
       </div>
     </div>
@@ -192,12 +202,12 @@ export function SitesContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [clientFilter, setClientFilter] = React.useState("");
   const [regionFilter, setRegionFilter] = React.useState("");
 
-  const clients = React.useMemo(() => getClients(), [refreshKey]);
+  const { sites: allData, loading, refetch } = useSites();
+  const { clients } = useClients();
   const clientMap = React.useMemo(
     () => new Map(clients.map((c) => [c.id, c.name])),
     [clients]
@@ -279,8 +289,6 @@ export function SitesContent() {
     [clientMap]
   );
 
-  const allData = React.useMemo(() => getSites(), [refreshKey]);
-
   const filtered = React.useMemo(() => {
     let result = allData;
     if (search) {
@@ -321,14 +329,18 @@ export function SitesContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: Site) {
-    deleteSite(item.id);
-    toast.success("Site deleted");
-    refresh();
+  async function handleDelete(item: Site) {
+    try {
+      const result = await sitesApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete site", { description: result.error });
+        return;
+      }
+      toast.success("Site deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete site");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -408,12 +420,13 @@ export function SitesContent() {
       emptyIcon={<MapPin className="h-10 w-10" />}
       emptyTitle="No sites found"
       emptyDescription="Add your first site to get started."
+      loading={loading}
       formContent={({ item, onClose }) => (
         <SiteForm
           item={item}
           clients={clients}
           onClose={onClose}
-          onSaved={refresh}
+          onSaved={refetch}
         />
       )}
     />

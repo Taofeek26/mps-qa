@@ -39,7 +39,7 @@ import {
   TOOLTIP_STYLE,
   DonutChart,
 } from "@/components/charts";
-import { getCustomerSurveys } from "@/lib/mock-kpi-data";
+import { useCustomerSurveys } from "@/lib/hooks/use-api-data";
 import { getMonthKey, formatMonthLabel } from "@/lib/report-utils";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
@@ -57,6 +57,8 @@ export function CustomerExperienceContent() {
     shipments,
   } = useReportFilters({ includeSite: false });
 
+  const { customerSurveys: allSurveys } = useCustomerSurveys();
+
   const filterSummary =
     [clientId && "Customer filtered", dateRange?.from && "Date range applied"]
       .filter(Boolean)
@@ -68,7 +70,6 @@ export function CustomerExperienceContent() {
   );
 
   /* ─── Survey Data ─── */
-  const allSurveys = React.useMemo(() => getCustomerSurveys(), []);
   const surveys = React.useMemo(() => {
     let filtered = allSurveys;
     if (clientId) filtered = filtered.filter((s) => s.clientId === clientId);

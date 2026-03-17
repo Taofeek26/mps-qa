@@ -46,11 +46,8 @@ import {
   getMonthKey,
   daysBetween,
 } from "@/lib/report-utils";
-import {
-  getSafetyIncidents,
-  getInspectionRecords,
-  SAFETY_TRAINING_DATA,
-} from "@/lib/mock-kpi-data";
+import { useSafetyIncidents, useInspectionRecords } from "@/lib/hooks/use-api-data";
+import { SAFETY_TRAINING_DATA } from "@/lib/mock-kpi-data";
 import type { Shipment } from "@/lib/types";
 import {
   FileText,
@@ -105,6 +102,9 @@ export function RegulatoryContent() {
     shipments,
   } = useReportFilters({ includeSite: false });
 
+  const { safetyIncidents } = useSafetyIncidents();
+  const { inspectionRecords } = useInspectionRecords();
+
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
@@ -158,9 +158,6 @@ export function RegulatoryContent() {
   }, [hazShipments]);
 
   /* New: Safety KPIs */
-  const safetyIncidents = React.useMemo(() => getSafetyIncidents(), []);
-  const inspectionRecords = React.useMemo(() => getInspectionRecords(), []);
-
   const totalIncidents = safetyIncidents.length;
   const resolvedIncidents = safetyIncidents.filter((i) => i.resolved).length;
   const trir = React.useMemo(() => {

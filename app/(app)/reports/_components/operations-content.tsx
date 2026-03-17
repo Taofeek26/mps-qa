@@ -57,12 +57,8 @@ import {
 } from "@/lib/report-utils";
 import { cn } from "@/lib/utils";
 import type { Shipment } from "@/lib/types";
-import {
-  getFacilityCapacities,
-  getCollectionEvents,
-  CLIENT_INDUSTRY_CODES,
-} from "@/lib/mock-kpi-data";
-import { getClients } from "@/lib/mock-data";
+import { useFacilityCapacities, useCollectionEvents } from "@/lib/hooks/use-api-data";
+import { CLIENT_INDUSTRY_CODES } from "@/lib/mock-kpi-data";
 
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
@@ -244,6 +240,9 @@ export function OperationsContent() {
     serviceFrequencyOptions,
   } = useReportFilters();
 
+  const { facilityCapacities } = useFacilityCapacities();
+  const { collectionEvents } = useCollectionEvents();
+
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
@@ -357,8 +356,7 @@ export function OperationsContent() {
   /* ─── Facility Utilization Data ─── */
 
   const facilityUtilization = React.useMemo(() => {
-    const capacities = getFacilityCapacities();
-    return capacities
+    return facilityCapacities
       .map((f) => ({
         name: f.facilityName,
         utilization:
@@ -371,13 +369,12 @@ export function OperationsContent() {
         capacity: Math.round(f.monthlyCapacityTons),
       }))
       .sort((a, b) => b.utilization - a.utilization);
-  }, []);
+  }, [facilityCapacities]);
 
   /* ─── Jobs/Stops per Day (monthly trend) ─── */
 
   const jobsPerDayTrend = React.useMemo(() => {
-    const events = getCollectionEvents();
-    const completed = events.filter((e) => e.status === "completed");
+    const completed = collectionEvents.filter((e) => e.status === "completed");
     const byMonth = new Map<string, number>();
     completed.forEach((e) => {
       if (e.actualDate) {
@@ -391,7 +388,7 @@ export function OperationsContent() {
         month: formatMonthLabel(month),
         completedJobs: count,
       }));
-  }, []);
+  }, [collectionEvents]);
 
   /* ─── Volume by Job Type (service frequency) ─── */
 
@@ -415,8 +412,7 @@ export function OperationsContent() {
   /* ─── Client Industry Codes ─── */
 
   const industryCodeData = React.useMemo(() => {
-    const allClients = getClients();
-    return allClients
+    return clients
       .map((c) => {
         const code = CLIENT_INDUSTRY_CODES[c.id];
         return {
@@ -426,7 +422,7 @@ export function OperationsContent() {
         };
       })
       .sort((a, b) => a.clientName.localeCompare(b.clientName));
-  }, []);
+  }, [clients]);
 
   /* ─── Site Leaderboard ─── */
 

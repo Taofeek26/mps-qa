@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import { SidebarNav } from "./sidebar-nav";
 import { Topbar } from "./topbar";
 import { MobileTabBar } from "./mobile-tab-bar";
@@ -23,10 +24,12 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="flex min-h-screen bg-bg-app">
       {/* Desktop sidebar */}
-      <SidebarNav
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
-      />
+      <Suspense fallback={null}>
+        <SidebarNav
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+        />
+      </Suspense>
 
       {/* Main content area */}
       <div className="flex flex-1 flex-col min-w-0">

@@ -10,15 +10,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { NAV_GROUPS } from "@/lib/navigation";
-import {
-  getAllShipments,
-  getClients,
-  getSites,
-  getVendors,
-  getWasteTypes,
-  getUsers,
-  CLIENTS,
-} from "@/lib/mock-data";
+import type {
+  Shipment,
+  Client,
+  Site,
+  Vendor,
+  WasteType,
+  User,
+} from "@/lib/types";
 
 /* ─── Types ─── */
 
@@ -61,8 +60,7 @@ const REPORT_TABS: SearchItem[] = [
 
 /* ─── Role helpers ─── */
 
-const ADMIN_ROLES = ["system_admin"];
-const ADMIN_AUDIT_ROLES = ["admin", "system_admin"];
+const ADMIN_ROLES = ["admin"];
 
 function hasRole(userRole: string | undefined, allowed: string[]): boolean {
   return !!userRole && allowed.includes(userRole);
@@ -76,14 +74,29 @@ function formatDate(dateStr: string): string {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  system_admin: "System Admin",
-  admin: "Admin",
-  site_user: "Site User",
+  admin: "Administrator",
+  manager: "Manager",
+  operator: "Operator",
+  viewer: "Viewer",
 };
+
+/* ─── Data interface for builder ─── */
+
+export interface SearchDataParams {
+  shipments: Shipment[];
+  clients: Client[];
+  sites: Site[];
+  vendors: Vendor[];
+  wasteTypes: WasteType[];
+  users: User[];
+}
 
 /* ─── Builder ─── */
 
-export function buildAllSearchItems(userRole?: string): SearchItem[] {
+export function buildAllSearchItems(
+  userRole?: string,
+  data?: SearchDataParams
+): SearchItem[] {
   const items: SearchItem[] = [];
 
   // 1. Navigation pages
@@ -106,9 +119,11 @@ export function buildAllSearchItems(userRole?: string): SearchItem[] {
   // 2. Report tabs
   items.push(...REPORT_TABS);
 
+  // If no data provided, return only navigation items
+  if (!data) return items;
+
   // 3. Shipments
-  const shipments = getAllShipments();
-  for (const s of shipments) {
+  for (const s of data.shipments) {
     items.push({
       id: `shipment-${s.id}`,
       label: `${s.id} · ${s.wasteTypeName}`,
@@ -126,8 +141,7 @@ export function buildAllSearchItems(userRole?: string): SearchItem[] {
   }
 
   // 4. Clients
-  const clients = getClients();
-  for (const c of clients) {
+  for (const c of data.clients) {
     items.push({
       id: `client-${c.id}`,
       label: c.name,
@@ -142,9 +156,8 @@ export function buildAllSearchItems(userRole?: string): SearchItem[] {
   }
 
   // 5. Sites
-  const clientMap = new Map(CLIENTS.map((c) => [c.id, c.name]));
-  const sites = getSites();
-  for (const s of sites) {
+  const clientMap = new Map(data.clients.map((c) => [c.id, c.name]));
+  for (const s of data.sites) {
     const clientName = clientMap.get(s.clientId) ?? "";
     items.push({
       id: `site-${s.id}`,
@@ -161,8 +174,7 @@ export function buildAllSearchItems(userRole?: string): SearchItem[] {
 
   // 6. Vendors (admin only)
   if (hasRole(userRole, ADMIN_ROLES)) {
-    const vendors = getVendors();
-    for (const v of vendors) {
+    for (const v of data.vendors) {
       items.push({
         id: `vendor-${v.id}`,
         label: v.name,
@@ -178,14 +190,13 @@ export function buildAllSearchItems(userRole?: string): SearchItem[] {
   }
 
   // 7. Waste Types
-  const wasteTypes = getWasteTypes();
-  for (const w of wasteTypes) {
+  for (const w of data.wasteTypes) {
     items.push({
       id: `waste-${w.id}`,
       label: w.name,
       description: [w.wasteCategory, w.defaultTreatmentMethod].filter(Boolean).join(" · ") || undefined,
       group: "Waste Types",
-      href: "/admin/waste-types",
+      href: "/admin/reference-data?tab=waste-types",
       icon: Package,
       color: "info",
       keywords: [w.name, w.wasteCategory ?? "", w.defaultTreatmentMethod ?? ""].map((k) => k.toLowerCase()),
@@ -195,8 +206,7 @@ export function buildAllSearchItems(userRole?: string): SearchItem[] {
 
   // 8. Users (admin only)
   if (hasRole(userRole, ADMIN_ROLES)) {
-    const users = getUsers();
-    for (const u of users) {
+    for (const u of data.users) {
       items.push({
         id: `user-${u.id}`,
         label: u.displayName,

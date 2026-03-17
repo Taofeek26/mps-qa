@@ -43,11 +43,7 @@ import {
   TOOLTIP_STYLE,
 } from "@/components/charts";
 import { totalMpsCost, downloadCsv } from "@/lib/report-utils";
-import {
-  getFuelRecords,
-  getRouteSchedules,
-  getTruckLoads,
-} from "@/lib/mock-kpi-data";
+import { useFuelRecords, useRouteSchedules, useTruckLoads } from "@/lib/hooks/use-api-data";
 import { cn } from "@/lib/utils";
 import { USStateMap } from "@/components/charts/us-state-map";
 
@@ -64,7 +60,7 @@ const STATE_NAMES: Record<string, string> = {
   TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington",
   WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
 };
-import { getSites, getReceivingFacilities } from "@/lib/mock-data";
+import { useSites, useReceivingFacilities } from "@/lib/hooks/use-api-data";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
@@ -141,6 +137,12 @@ export function LogisticsContent() {
     receivingCompanyOptions,
   } = useReportFilters();
 
+  const { sites } = useSites();
+  const { facilities } = useReceivingFacilities();
+  const { fuelRecords } = useFuelRecords();
+  const { routeSchedules } = useRouteSchedules();
+  const { truckLoads } = useTruckLoads();
+
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
@@ -202,8 +204,6 @@ export function LogisticsContent() {
       MI: [-84.54, 43.33], NC: [-79.80, 35.63], TX: [-99.36, 31.05],
       SC: [-80.95, 33.86],
     };
-    const sites = getSites();
-    const facilities = getReceivingFacilities();
 
     // Group by state: 1 site marker + 1 facility marker per state
     const bySite = new Map<string, string[]>();
@@ -216,7 +216,7 @@ export function LogisticsContent() {
 
     const byFac = new Map<string, string[]>();
     facilities.forEach((f) => {
-      const st = f.state;
+      const st = f.stateCode;
       if (!st) return;
       const list = byFac.get(st) ?? [];
       list.push(f.facilityName);
@@ -246,7 +246,7 @@ export function LogisticsContent() {
     });
 
     return markers;
-  }, []);
+  }, [sites, facilities]);
 
   /* ---- Distance Distribution Histogram ---- */
 
@@ -404,26 +404,24 @@ export function LogisticsContent() {
   /* ---- Fleet & Efficiency: Fuel Records ---- */
 
   const fuelData = React.useMemo(() => {
-    const records = getFuelRecords();
-    return records
+    return fuelRecords
       .map((r) => ({
         transporter: r.transporterName,
         mpg: Math.round(r.mpg * 10) / 10,
         costPerMile: Math.round(r.fuelCostPerMile * 100) / 100,
       }))
       .sort((a, b) => b.mpg - a.mpg);
-  }, []);
+  }, [fuelRecords]);
 
   /* ---- Fleet & Efficiency: Route Schedule Adherence ---- */
 
   const routeAdherence = React.useMemo(() => {
-    const schedules = getRouteSchedules();
-    const total = schedules.length;
-    const onTimeCount = schedules.filter((s) => s.onTime).length;
+    const total = routeSchedules.length;
+    const onTimeCount = routeSchedules.filter((s) => s.onTime).length;
     const onTimePct = total > 0 ? Math.round((onTimeCount / total) * 100) : 0;
 
     const bySite = new Map<string, { total: number; onTime: number }>();
-    schedules.forEach((s) => {
+    routeSchedules.forEach((s) => {
       const existing = bySite.get(s.siteName) ?? { total: 0, onTime: 0 };
       existing.total++;
       if (s.onTime) existing.onTime++;
@@ -440,20 +438,18 @@ export function LogisticsContent() {
       .sort((a, b) => b.pct - a.pct);
 
     return { onTimePct, totalRoutes: total, onTimeCount, siteBreakdown };
-  }, []);
+  }, [routeSchedules]);
 
   /* ---- Fleet & Efficiency: Truck Capacity Utilization ---- */
 
   const truckCapacity = React.useMemo(() => {
-    const loads = getTruckLoads();
-
     // Group by transporter, then list trucks
     const byTransporter = new Map<
       string,
       Array<{ truckId: string; utilization: number; loaded: number; max: number }>
     >();
 
-    loads.forEach((t) => {
+    truckLoads.forEach((t) => {
       const group = byTransporter.get(t.transporterName) ?? [];
       const utilization = Math.round((t.loadedWeightLbs / t.maxWeightLbs) * 100);
       group.push({
@@ -466,7 +462,7 @@ export function LogisticsContent() {
     });
 
     // Flatten for horizontal bar chart: label = "Transporter - TruckId"
-    const chartData = loads
+    const chartData = truckLoads
       .map((t) => ({
         label: `${t.transporterName.split(" ").slice(0, 2).join(" ")} - ${t.truckId}`,
         transporter: t.transporterName,
@@ -476,17 +472,17 @@ export function LogisticsContent() {
       .slice(0, 15);
 
     const avgUtil =
-      loads.length > 0
+      truckLoads.length > 0
         ? Math.round(
-            loads.reduce(
+            truckLoads.reduce(
               (sum, t) => sum + (t.loadedWeightLbs / t.maxWeightLbs) * 100,
               0
-            ) / loads.length
+            ) / truckLoads.length
           )
         : 0;
 
-    return { chartData, avgUtil, totalTrucks: loads.length };
-  }, []);
+    return { chartData, avgUtil, totalTrucks: truckLoads.length };
+  }, [truckLoads]);
 
   /* ---- CSV Export ---- */
 

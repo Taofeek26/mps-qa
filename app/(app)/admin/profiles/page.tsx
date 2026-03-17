@@ -18,68 +18,67 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getProfiles,
-  getClients,
-  getWasteTypes,
-  createProfile,
-  updateProfile,
-  deleteProfile,
-} from "@/lib/mock-data";
-import type { Profile } from "@/lib/types";
+import { useProfiles, useClients, useWasteTypes } from "@/lib/hooks/use-api-data";
+import { profilesApi } from "@/lib/api-client";
+import type { Profile, Client, WasteType } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 /* ─── Columns ─── */
 
-const columns: ColumnDef<Profile, unknown>[] = [
-  {
-    accessorKey: "profileNumber",
-    header: "Profile #",
-    size: 140,
-    cell: ({ getValue }) => (
-      <span className="font-mono">{getValue() as string}</span>
-    ),
-  },
-  {
-    accessorKey: "customerId",
-    header: "Customer",
-    size: 200,
-    cell: ({ getValue }) => {
-      const customerId = getValue() as string | undefined;
-      if (!customerId) return <span className="text-text-secondary">&mdash;</span>;
-      const client = getClients().find((c) => c.id === customerId);
-      return (
-        <span className="text-text-secondary">{client?.name ?? "\u2014"}</span>
-      );
+function buildColumns(clients: Client[], wasteTypes: WasteType[]): ColumnDef<Profile, unknown>[] {
+  const clientMap = new Map(clients.map((c) => [c.id, c.name]));
+  const wasteTypeMap = new Map(wasteTypes.map((w) => [w.id, w.name]));
+
+  return [
+    {
+      accessorKey: "profileNumber",
+      header: "Profile #",
+      size: 140,
+      cell: ({ getValue }) => (
+        <span className="font-mono">{getValue() as string}</span>
+      ),
     },
-  },
-  {
-    accessorKey: "wasteTypeId",
-    header: "Waste Type",
-    size: 200,
-    cell: ({ getValue }) => {
-      const wasteTypeId = getValue() as string | undefined;
-      if (!wasteTypeId) return <span className="text-text-secondary">&mdash;</span>;
-      const wt = getWasteTypes().find((w) => w.id === wasteTypeId);
-      return (
-        <span className="text-text-secondary">{wt?.name ?? "\u2014"}</span>
-      );
+    {
+      accessorKey: "customerId",
+      header: "Customer",
+      size: 200,
+      cell: ({ getValue }) => {
+        const customerId = getValue() as string | undefined;
+        if (!customerId) return <span className="text-text-secondary">&mdash;</span>;
+        const name = clientMap.get(customerId);
+        return (
+          <span className="text-text-secondary">{name ?? "\u2014"}</span>
+        );
+      },
     },
-  },
-  {
-    accessorKey: "activeFlag",
-    header: "Status",
-    size: 100,
-    cell: ({ getValue }) => {
-      const active = getValue() as boolean;
-      return (
-        <Badge variant={active ? "success" : "neutral"}>
-          {active ? "Active" : "Inactive"}
-        </Badge>
-      );
+    {
+      accessorKey: "wasteTypeId",
+      header: "Waste Type",
+      size: 200,
+      cell: ({ getValue }) => {
+        const wasteTypeId = getValue() as string | undefined;
+        if (!wasteTypeId) return <span className="text-text-secondary">&mdash;</span>;
+        const name = wasteTypeMap.get(wasteTypeId);
+        return (
+          <span className="text-text-secondary">{name ?? "\u2014"}</span>
+        );
+      },
     },
-  },
-];
+    {
+      accessorKey: "activeFlag",
+      header: "Status",
+      size: 100,
+      cell: ({ getValue }) => {
+        const active = getValue() as boolean;
+        return (
+          <Badge variant={active ? "success" : "neutral"}>
+            {active ? "Active" : "Inactive"}
+          </Badge>
+        );
+      },
+    },
+  ];
+}
 
 /* ─── Form ─── */
 
@@ -87,20 +86,23 @@ function ProfileForm({
   item,
   onClose,
   onSaved,
+  clients,
+  wasteTypes,
 }: {
   item: Profile | null;
   onClose: () => void;
   onSaved: () => void;
+  clients: Client[];
+  wasteTypes: WasteType[];
 }) {
-  const clients = React.useMemo(() => getClients(), []);
-  const wasteTypes = React.useMemo(() => getWasteTypes(), []);
   const [profileNumber, setProfileNumber] = React.useState(item?.profileNumber ?? "");
   const [customerId, setCustomerId] = React.useState(item?.customerId ?? "");
   const [wasteTypeId, setWasteTypeId] = React.useState(item?.wasteTypeId ?? "");
   const [activeFlag, setActiveFlag] = React.useState(item?.activeFlag ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!profileNumber.trim()) errs.profileNumber = "Profile number is required";
     if (Object.keys(errs).length > 0) {
@@ -108,23 +110,37 @@ function ProfileForm({
       return;
     }
 
+    setSaving(true);
     const data = {
-      profileNumber: profileNumber.trim(),
-      customerId: customerId || undefined,
-      wasteTypeId: wasteTypeId || undefined,
-      activeFlag,
+      profile_number: profileNumber.trim(),
+      customer_id: customerId || undefined,
+      waste_type_id: wasteTypeId || undefined,
+      is_active: activeFlag,
     };
 
-    if (item) {
-      updateProfile(item.id, data);
-      toast.success("Profile updated");
-    } else {
-      createProfile(data);
-      toast.success("Profile created");
+    try {
+      if (item) {
+        const result = await profilesApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update profile", { description: result.error });
+          return;
+        }
+        toast.success("Profile updated");
+      } else {
+        const result = await profilesApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create profile", { description: result.error });
+          return;
+        }
+        toast.success("Profile created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -178,11 +194,11 @@ function ProfileForm({
       </FormField>
 
       <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          {item ? "Save Changes" : "Create Profile"}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : item ? "Save Changes" : "Create Profile"}
         </Button>
       </div>
     </div>
@@ -209,11 +225,14 @@ function ProfilesContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
 
-  const allData = React.useMemo(() => getProfiles(), [refreshKey]);
+  const { profiles: allData, loading, refetch } = useProfiles();
+  const { clients } = useClients();
+  const { wasteTypes } = useWasteTypes();
+
+  const columns = React.useMemo(() => buildColumns(clients, wasteTypes), [clients, wasteTypes]);
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -250,14 +269,18 @@ function ProfilesContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: Profile) {
-    deleteProfile(item.id);
-    toast.success("Profile deleted");
-    refresh();
+  async function handleDelete(item: Profile) {
+    try {
+      const result = await profilesApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete profile", { description: result.error });
+        return;
+      }
+      toast.success("Profile deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete profile");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -312,8 +335,9 @@ function ProfilesContent() {
       emptyIcon={<FileText className="h-10 w-10" />}
       emptyTitle="No profiles found"
       emptyDescription="Add your first profile to get started."
+      loading={loading}
       formContent={({ item, onClose }) => (
-        <ProfileForm item={item} onClose={onClose} onSaved={refresh} />
+        <ProfileForm item={item} onClose={onClose} onSaved={refetch} clients={clients} wasteTypes={wasteTypes} />
       )}
     />
     </div>

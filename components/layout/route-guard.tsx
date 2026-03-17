@@ -8,17 +8,20 @@ import type { UserRole } from "@/lib/types";
 
 /** Route → required roles mapping. Routes not listed are accessible to all authenticated users. */
 const ROUTE_RULES: { prefix: string; roles: UserRole[] }[] = [
-  { prefix: "/admin/audit-log", roles: ["admin", "system_admin"] },
-  { prefix: "/admin/", roles: ["system_admin"] },
+  { prefix: "/admin/audit-log", roles: ["admin", "manager"] },
+  { prefix: "/admin/", roles: ["admin"] },
 ];
 
 export function RouteGuard({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [allowed, setAllowed] = React.useState(true);
 
   React.useEffect(() => {
+    // Wait for auth check to complete
+    if (loading) return;
+
     /* No user → redirect to login */
     if (!user) {
       router.replace("/login");
@@ -41,7 +44,16 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     }
 
     setAllowed(true);
-  }, [pathname, user, router]);
+  }, [pathname, user, loading, router]);
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+      </div>
+    );
+  }
 
   if (!user || !allowed) return null;
 

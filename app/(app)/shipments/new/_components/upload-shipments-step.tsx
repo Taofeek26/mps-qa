@@ -129,16 +129,18 @@ export function UploadShipmentsStep({
   function downloadDemoFile() {
     const headers = "Site,Client,Vendor,Waste Type,Date,Weight,Unit,Volume,Notes";
     const rows = [
-      "Main Site,Acme Corp,Waste Solutions Inc,Non Haz,2025-03-01,1200,lbs,,Demo shipment 1",
-      "Warehouse B,Acme Corp,Green Disposal,Recycling,2025-03-02,500,tons,,Demo shipment 2",
-      "Main Site,Acme Corp,Waste Solutions Inc,C&D,2025-03-03,800,lbs,,Demo shipment 3",
+      "Downtown Tower Project,Acme Corporation,Clean Waste Solutions,Non Haz,2026-03-15,2500,lbs,,Construction debris from floor 12",
+      "Main Distribution Center,Acme Corporation,Green Disposal Inc,Recycling,2026-03-15,1200,lbs,,Cardboard and paper recycling",
+      "Manufacturing Plant A,TechCorp Industries,EcoWaste Management,Hazardous Waste,2026-03-14,500,lbs,50,Used solvents and chemicals",
+      "Warehouse B,Acme Corporation,Clean Waste Solutions,C&D,2026-03-14,3500,tons,,Concrete and demolition materials",
+      "Office Complex,Global Services LLC,Green Disposal Inc,E-Waste,2026-03-13,150,lbs,,Old computers and electronics",
     ];
     const csv = [headers, ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "shipments-demo.csv";
+    a.download = "shipments-template.csv";
     a.click();
     URL.revokeObjectURL(url);
   }

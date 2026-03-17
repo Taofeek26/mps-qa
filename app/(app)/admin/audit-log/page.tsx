@@ -13,7 +13,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { getAuditLog, getUsers } from "@/lib/mock-data";
+import { useAuditLog, useUsers } from "@/lib/hooks/use-api-data";
 import type { AuditLogFilters } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
@@ -47,7 +47,7 @@ function AuditLogContent() {
   const [actionType, setActionType] = React.useState("");
   const [entityType, setEntityType] = React.useState("");
 
-  const users = React.useMemo(() => getUsers(), []);
+  const { users } = useUsers();
 
   const filters: AuditLogFilters = React.useMemo(() => {
     const f: AuditLogFilters = {};
@@ -63,10 +63,26 @@ function AuditLogContent() {
     return f;
   }, [dateFrom, dateTo, actorId, actionType, entityType]);
 
-  const result = React.useMemo(
-    () => getAuditLog(filters, page, pageSize),
-    [filters, page, pageSize]
-  );
+  // Convert filters to query params for API
+  const apiParams = React.useMemo(() => {
+    const params: Record<string, string> = {};
+    if (filters.dateFrom) params.date_from = filters.dateFrom;
+    if (filters.dateTo) params.date_to = filters.dateTo;
+    if (filters.actorId) params.actor_id = filters.actorId;
+    if (filters.actionType) params.action_type = filters.actionType;
+    if (filters.entityType) params.entity_type = filters.entityType;
+    return params;
+  }, [filters]);
+
+  const { logs, loading } = useAuditLog(apiParams);
+
+  // Apply pagination client-side (API should ideally support pagination)
+  const result = React.useMemo(() => {
+    const total = logs.length;
+    const start = (page - 1) * pageSize;
+    const data = logs.slice(start, start + pageSize);
+    return { data, total, page, pageSize };
+  }, [logs, page, pageSize]);
 
   /* ─── URL page helpers ─── */
   function pushPage(newPage: number) {
@@ -120,6 +136,7 @@ function AuditLogContent() {
     <div ref={tableRef}>
     <AuditLogTable
       data={result.data}
+      loading={loading}
       pagination={{
         page: result.page,
         pageSize: result.pageSize,

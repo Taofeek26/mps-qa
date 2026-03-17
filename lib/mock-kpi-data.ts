@@ -388,16 +388,16 @@ export const SERVICE_AGREEMENT_RATES = (() => {
    ════════════════════════════════════════════ */
 
 const PLATFORM_USER_ACTIVITY: PlatformUserActivity[] = [
-  { userId: "usr-1", userName: "Jane Cooper", role: "system_admin", lastActiveDate: "2024-12-14", shipmentsCreated: 342, features: ["shipments", "reports", "admin", "builder"], loginCount: 245, avgSessionMinutes: 38 },
-  { userId: "usr-2", userName: "Michael Chen", role: "admin", lastActiveDate: "2024-12-14", shipmentsCreated: 287, features: ["shipments", "reports", "vendors"], loginCount: 198, avgSessionMinutes: 32 },
-  { userId: "usr-3", userName: "Sarah Johnson", role: "site_user", lastActiveDate: "2024-12-13", shipmentsCreated: 156, features: ["shipments", "reports"], loginCount: 142, avgSessionMinutes: 22 },
-  { userId: "usr-4", userName: "David Kim", role: "site_user", lastActiveDate: "2024-12-12", shipmentsCreated: 198, features: ["shipments", "reports", "builder"], loginCount: 165, avgSessionMinutes: 28 },
-  { userId: "usr-5", userName: "Emily Rodriguez", role: "admin", lastActiveDate: "2024-12-14", shipmentsCreated: 245, features: ["shipments", "reports", "admin"], loginCount: 210, avgSessionMinutes: 35 },
-  { userId: "usr-6", userName: "Robert Taylor", role: "site_user", lastActiveDate: "2024-12-10", shipmentsCreated: 89, features: ["shipments"], loginCount: 78, avgSessionMinutes: 15 },
-  { userId: "usr-7", userName: "Lisa Wang", role: "site_user", lastActiveDate: "2024-12-14", shipmentsCreated: 167, features: ["shipments", "reports"], loginCount: 155, avgSessionMinutes: 25 },
-  { userId: "usr-8", userName: "James Brown", role: "site_user", lastActiveDate: "2024-12-09", shipmentsCreated: 72, features: ["shipments"], loginCount: 65, avgSessionMinutes: 12 },
-  { userId: "usr-9", userName: "Amanda Martinez", role: "admin", lastActiveDate: "2024-12-14", shipmentsCreated: 310, features: ["shipments", "reports", "admin", "vendors", "builder"], loginCount: 230, avgSessionMinutes: 42 },
-  { userId: "usr-10", userName: "Chris Lee", role: "site_user", lastActiveDate: "2024-12-11", shipmentsCreated: 134, features: ["shipments", "reports"], loginCount: 120, avgSessionMinutes: 20 },
+  { userId: "usr-1", userName: "Jane Cooper", role: "admin", lastActiveDate: "2024-12-14", shipmentsCreated: 342, features: ["shipments", "reports", "admin", "builder"], loginCount: 245, avgSessionMinutes: 38 },
+  { userId: "usr-2", userName: "Michael Chen", role: "manager", lastActiveDate: "2024-12-14", shipmentsCreated: 287, features: ["shipments", "reports", "vendors"], loginCount: 198, avgSessionMinutes: 32 },
+  { userId: "usr-3", userName: "Sarah Johnson", role: "operator", lastActiveDate: "2024-12-13", shipmentsCreated: 156, features: ["shipments", "reports"], loginCount: 142, avgSessionMinutes: 22 },
+  { userId: "usr-4", userName: "David Kim", role: "operator", lastActiveDate: "2024-12-12", shipmentsCreated: 198, features: ["shipments", "reports", "builder"], loginCount: 165, avgSessionMinutes: 28 },
+  { userId: "usr-5", userName: "Emily Rodriguez", role: "manager", lastActiveDate: "2024-12-14", shipmentsCreated: 245, features: ["shipments", "reports", "admin"], loginCount: 210, avgSessionMinutes: 35 },
+  { userId: "usr-6", userName: "Robert Taylor", role: "viewer", lastActiveDate: "2024-12-10", shipmentsCreated: 89, features: ["shipments"], loginCount: 78, avgSessionMinutes: 15 },
+  { userId: "usr-7", userName: "Lisa Wang", role: "operator", lastActiveDate: "2024-12-14", shipmentsCreated: 167, features: ["shipments", "reports"], loginCount: 155, avgSessionMinutes: 25 },
+  { userId: "usr-8", userName: "James Brown", role: "viewer", lastActiveDate: "2024-12-09", shipmentsCreated: 72, features: ["shipments"], loginCount: 65, avgSessionMinutes: 12 },
+  { userId: "usr-9", userName: "Amanda Martinez", role: "manager", lastActiveDate: "2024-12-14", shipmentsCreated: 310, features: ["shipments", "reports", "admin", "vendors", "builder"], loginCount: 230, avgSessionMinutes: 42 },
+  { userId: "usr-10", userName: "Chris Lee", role: "operator", lastActiveDate: "2024-12-11", shipmentsCreated: 134, features: ["shipments", "reports"], loginCount: 120, avgSessionMinutes: 20 },
 ];
 
 /* Monthly platform events (aggregated) */

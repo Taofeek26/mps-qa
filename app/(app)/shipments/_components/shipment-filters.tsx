@@ -27,13 +27,13 @@ import { TextInput } from "@/components/ui/text-input";
 import { PullToSearch } from "@/components/ui/pull-to-search";
 import { cn } from "@/lib/utils";
 import type { ShipmentFilters as Filters, ShipmentStatus, WasteCategory } from "@/lib/types";
-import { getSites, getClients, getVendors, getWasteTypes } from "@/lib/mock-data";
+import { useSites, useClients, useVendors, useWasteTypes } from "@/lib/hooks/use-api-data";
 
 interface ShipmentFiltersBarProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
   onReset: () => void;
-  /** If set, only these sites are shown in the Sites filter (for site_user role) */
+  /** If set, only these sites are shown in the Sites filter (for non-admin roles) */
   allowedSiteIds?: string[];
   /** Optional trailing content rendered in the compact bar (e.g. Columns picker) */
   trailing?: React.ReactNode;
@@ -49,14 +49,16 @@ export function ShipmentFiltersBar({
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
+  // Fetch reference data from API
+  const { sites: allSites } = useSites();
+  const { clients } = useClients();
+  const { vendors } = useVendors();
+  const { wasteTypes } = useWasteTypes();
+
   const sites = React.useMemo(() => {
-    const all = getSites();
-    if (allowedSiteIds) return all.filter((s) => allowedSiteIds.includes(s.id));
-    return all;
-  }, [allowedSiteIds]);
-  const clients = React.useMemo(() => getClients(), []);
-  const vendors = React.useMemo(() => getVendors(), []);
-  const wasteTypes = React.useMemo(() => getWasteTypes(), []);
+    if (allowedSiteIds) return allSites.filter((s) => allowedSiteIds.includes(s.id));
+    return allSites;
+  }, [allSites, allowedSiteIds]);
 
   const siteOptions: MultiSelectOption[] = sites.map((s) => ({ value: s.id, label: s.name }));
   const clientOptions: MultiSelectOption[] = clients.map((c) => ({ value: c.id, label: c.name }));

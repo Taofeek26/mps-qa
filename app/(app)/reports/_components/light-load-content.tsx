@@ -53,10 +53,7 @@ import { loadEfficiency, downloadCsv } from "@/lib/report-utils";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
 import { useTabPdfExport } from "./use-tab-pdf-export";
-import {
-  getCollectionEvents,
-  getContainerPlacements,
-} from "@/lib/mock-kpi-data";
+import { useCollectionEvents, useContainerPlacements } from "@/lib/hooks/use-api-data";
 import type { Shipment } from "@/lib/types";
 
 const THRESHOLD = 80; // % — shipments below this are "light loads"
@@ -80,6 +77,9 @@ export function LightLoadContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const { collectionEvents } = useCollectionEvents();
+  const { containerPlacements } = useContainerPlacements();
 
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
@@ -293,8 +293,6 @@ export function LightLoadContent() {
      DOMAIN 2: Collection & Containers Data
      ════════════════════════════════════════════ */
 
-  const collectionEvents = React.useMemo(() => getCollectionEvents(), []);
-  const containerPlacements = React.useMemo(() => getContainerPlacements(), []);
 
   /* ─── Filter container placements by containerType if set ─── */
 

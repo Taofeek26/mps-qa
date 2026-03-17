@@ -19,70 +19,9 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getContainerEntities,
-  getUnits,
-  createContainer,
-  updateContainer,
-  deleteContainer,
-} from "@/lib/mock-data";
-import type { ContainerEntity } from "@/lib/types";
-
-/* ─── Columns ─── */
-
-function CapacityCell({ row }: { row: { original: ContainerEntity } }) {
-  const { nominalCapacityValue, nominalCapacityUnitId } = row.original;
-  if (nominalCapacityValue == null) {
-    return <span className="text-text-secondary">&mdash;</span>;
-  }
-  const unit = nominalCapacityUnitId
-    ? getUnits().find((u) => u.id === nominalCapacityUnitId)
-    : undefined;
-  return (
-    <span className="text-text-primary">
-      {nominalCapacityValue}
-      {unit ? ` ${unit.unitName}` : ""}
-    </span>
-  );
-}
-
-const columns: ColumnDef<ContainerEntity, unknown>[] = [
-  {
-    accessorKey: "containerName",
-    header: "Container Name",
-    size: 200,
-  },
-  {
-    accessorKey: "containerFamily",
-    header: "Family",
-    size: 140,
-    cell: ({ getValue }) => {
-      const family = getValue() as string | undefined;
-      return (
-        <span className="text-text-secondary">{family || "\u2014"}</span>
-      );
-    },
-  },
-  {
-    id: "capacity",
-    header: "Capacity",
-    size: 130,
-    cell: ({ row }) => <CapacityCell row={row} />,
-  },
-  {
-    accessorKey: "activeFlag",
-    header: "Status",
-    size: 100,
-    cell: ({ getValue }) => {
-      const active = getValue() as boolean;
-      return (
-        <Badge variant={active ? "success" : "neutral"}>
-          {active ? "Active" : "Inactive"}
-        </Badge>
-      );
-    },
-  },
-];
+import { containersApi } from "@/lib/api-client";
+import { useContainers, useUnits } from "@/lib/hooks/use-api-data";
+import type { ContainerEntity, UnitEntity } from "@/lib/types";
 
 /* ─── Form ─── */
 
@@ -90,12 +29,13 @@ function ContainerForm({
   item,
   onClose,
   onSaved,
+  units,
 }: {
   item: ContainerEntity | null;
   onClose: () => void;
   onSaved: () => void;
+  units: UnitEntity[];
 }) {
-  const units = React.useMemo(() => getUnits(), []);
   const [containerName, setContainerName] = React.useState(item?.containerName ?? "");
   const [containerFamily, setContainerFamily] = React.useState(item?.containerFamily ?? "");
   const [nominalCapacityValue, setNominalCapacityValue] = React.useState<string>(
@@ -106,8 +46,9 @@ function ContainerForm({
   );
   const [activeFlag, setActiveFlag] = React.useState(item?.activeFlag ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!containerName.trim()) errs.containerName = "Container name is required";
     if (Object.keys(errs).length > 0) {
@@ -118,23 +59,35 @@ function ContainerForm({
     const capacityNum = nominalCapacityValue ? Number(nominalCapacityValue) : undefined;
 
     const data = {
-      containerName: containerName.trim(),
-      containerFamily: containerFamily.trim() || undefined,
-      nominalCapacityValue: capacityNum,
-      nominalCapacityUnitId: nominalCapacityUnitId || undefined,
-      activeFlag,
+      container_name: containerName.trim(),
+      container_family: containerFamily.trim() || undefined,
+      nominal_capacity_value: capacityNum,
+      nominal_capacity_unit_id: nominalCapacityUnitId || undefined,
+      is_active: activeFlag,
     };
 
-    if (item) {
-      updateContainer(item.id, data);
-      toast.success("Container updated");
-    } else {
-      createContainer(data);
-      toast.success("Container created");
+    setSaving(true);
+    try {
+      if (item) {
+        const result = await containersApi.update(item.id, data);
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Container updated");
+      } else {
+        const result = await containersApi.create(data);
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Container created");
+      }
+      onSaved();
+      onClose();
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -194,7 +147,7 @@ function ContainerForm({
         <Button variant="ghost" onClick={onClose}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
+        <Button onClick={handleSave} disabled={saving}>
           {item ? "Save Changes" : "Create Container"}
         </Button>
       </div>
@@ -204,9 +157,9 @@ function ContainerForm({
 
 /* ─── Content ─── */
 
-
 export function ContainersContent() {
-  const [refreshKey, setRefreshKey] = React.useState(0);
+  const { containers: allData, refetch } = useContainers();
+  const { units } = useUnits();
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [page, setPage] = React.useState(1);
@@ -214,7 +167,65 @@ export function ContainersContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const allData = React.useMemo(() => getContainerEntities(), [refreshKey]);
+  // Create lookup map for efficient column rendering
+  const unitsMap = React.useMemo(() => {
+    const map = new Map<string, UnitEntity>();
+    units.forEach((u) => map.set(u.id, u));
+    return map;
+  }, [units]);
+
+  // Define columns inside component to access lookup map
+  const columns: ColumnDef<ContainerEntity, unknown>[] = React.useMemo(() => [
+    {
+      accessorKey: "containerName",
+      header: "Container Name",
+      size: 200,
+    },
+    {
+      accessorKey: "containerFamily",
+      header: "Family",
+      size: 140,
+      cell: ({ getValue }) => {
+        const family = getValue() as string | undefined;
+        return (
+          <span className="text-text-secondary">{family || "\u2014"}</span>
+        );
+      },
+    },
+    {
+      id: "capacity",
+      header: "Capacity",
+      size: 130,
+      cell: ({ row }) => {
+        const { nominalCapacityValue, nominalCapacityUnitId } = row.original;
+        if (nominalCapacityValue == null) {
+          return <span className="text-text-secondary">&mdash;</span>;
+        }
+        const unit = nominalCapacityUnitId
+          ? unitsMap.get(nominalCapacityUnitId)
+          : undefined;
+        return (
+          <span className="text-text-primary">
+            {nominalCapacityValue}
+            {unit ? ` ${unit.unitName}` : ""}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "activeFlag",
+      header: "Status",
+      size: 100,
+      cell: ({ getValue }) => {
+        const active = getValue() as boolean;
+        return (
+          <Badge variant={active ? "success" : "neutral"}>
+            {active ? "Active" : "Inactive"}
+          </Badge>
+        );
+      },
+    },
+  ], [unitsMap]);
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -238,14 +249,14 @@ export function ContainersContent() {
     [filtered, safePage, pageSize]
   );
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: ContainerEntity) {
-    deleteContainer(item.id);
+  async function handleDelete(item: ContainerEntity) {
+    const result = await containersApi.delete(item.id);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
     toast.success("Container deleted");
-    refresh();
+    refetch();
   }
 
   function handleSearchChange(value: string) {
@@ -301,7 +312,12 @@ export function ContainersContent() {
       emptyTitle="No containers found"
       emptyDescription="Add your first container to get started."
       formContent={({ item, onClose }) => (
-        <ContainerForm item={item} onClose={onClose} onSaved={refresh} />
+        <ContainerForm
+          item={item}
+          onClose={onClose}
+          onSaved={refetch}
+          units={units}
+        />
       )}
     />
     </div>

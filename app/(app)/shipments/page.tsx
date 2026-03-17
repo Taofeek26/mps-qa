@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "@/components/ui/toast";
-import { getShipments, deleteShipment } from "@/lib/mock-data";
+import { shipmentsApi } from "@/lib/api-client";
+import { useShipments } from "@/lib/hooks/use-api-data";
 import { useAuth } from "@/lib/auth-context";
 import type { Shipment, ShipmentFilters } from "@/lib/types";
 import { getShipmentColumns, SHIPMENT_COLUMN_OPTIONS } from "./_components/shipment-columns";
@@ -41,8 +42,8 @@ function ShipmentsContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
 
-  const isSiteUser = user?.role === "site_user";
-  const allowedSiteIds = isSiteUser ? user?.assignedSiteIds : undefined;
+  const isLimitedRole = user?.role !== "admin";
+  const allowedSiteIds = isLimitedRole ? user?.assignedSiteIds : undefined;
 
   /* ─── Derive state from URL ─── */
   const page = Number(searchParams.get("page") ?? "1");
@@ -62,7 +63,7 @@ function ShipmentsContent() {
     [searchParams]
   );
 
-  /* Merge with site scoping for site_user */
+  /* Merge with site scoping for non-admin users */
   const filters: ShipmentFilters = React.useMemo(() => {
     if (!allowedSiteIds) return urlFilters;
     /* If user selected specific sites, intersect with allowed; otherwise use all allowed */
@@ -82,23 +83,47 @@ function ShipmentsContent() {
   const [exportOpen, setExportOpen] = React.useState(false);
   const [refreshKey, setRefreshKey] = React.useState(0);
 
-  /* ─── Fetch data ─── */
+  /* ─── Fetch data from API ─── */
   const sortParam = sorting[0]
     ? { field: sorting[0].id as keyof Shipment, direction: (sorting[0].desc ? "desc" : "asc") as "asc" | "desc" }
     : undefined;
 
-  const result = React.useMemo(
-    () => getShipments(filters, page, pageSize, sortParam),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(filters), page, pageSize, JSON.stringify(sortParam), refreshKey]
-  );
+  // Build query params for API
+  const apiParams = React.useMemo(() => {
+    const params: Record<string, string> = {
+      page: String(page),
+      pageSize: String(pageSize),
+    };
+    if (sortParam) {
+      params.sortField = sortParam.field;
+      params.sortDirection = sortParam.direction;
+    }
+    if (filters.search) params.search = filters.search;
+    if (filters.dateFrom) params.dateFrom = filters.dateFrom;
+    if (filters.dateTo) params.dateTo = filters.dateTo;
+    if (filters.siteIds?.length) params.siteIds = filters.siteIds.join(',');
+    if (filters.clientIds?.length) params.clientIds = filters.clientIds.join(',');
+    if (filters.vendorIds?.length) params.vendorIds = filters.vendorIds.join(',');
+    if (filters.wasteTypeIds?.length) params.wasteTypeIds = filters.wasteTypeIds.join(',');
+    return params;
+  }, [filters, page, pageSize, sortParam]);
 
-  /* All data for export (no pagination) */
-  const allData = React.useMemo(
-    () => getShipments(filters, 1, 99999, sortParam),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(filters), JSON.stringify(sortParam), refreshKey]
-  );
+  const { shipments, total, loading, refetch } = useShipments(apiParams);
+
+  const result = React.useMemo(() => ({
+    data: shipments,
+    total,
+    page,
+    pageSize,
+  }), [shipments, total, page, pageSize]);
+
+  /* All data for export - same as filtered data for now */
+  const allData = React.useMemo(() => ({
+    data: shipments,
+    total,
+    page: 1,
+    pageSize: total,
+  }), [shipments, total]);
 
   /* ─── URL state helpers ─── */
   function updateUrl(newFilters: ShipmentFilters, newPage = 1) {
@@ -128,17 +153,25 @@ function ShipmentsContent() {
   }
 
   function handleRefresh() {
-    setRefreshKey((k) => k + 1);
+    refetch();
   }
 
-  function handleDeleteConfirm() {
+  async function handleDeleteConfirm() {
     if (!deleteTarget) return;
-    deleteShipment(deleteTarget.id);
-    toast.success("Shipment deleted", {
-      description: `${deleteTarget.id} has been removed`,
-    });
+    try {
+      const result = await shipmentsApi.delete(deleteTarget.id);
+      if (result.error) {
+        toast.error("Failed to delete", { description: result.error });
+      } else {
+        toast.success("Shipment deleted", {
+          description: `${deleteTarget.id} has been removed`,
+        });
+        refetch();
+      }
+    } catch {
+      toast.error("Failed to delete shipment");
+    }
     setDeleteTarget(null);
-    handleRefresh();
   }
 
   /* ─── Columns ─── */

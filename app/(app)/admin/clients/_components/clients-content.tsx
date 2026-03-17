@@ -18,12 +18,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getClients,
-  createClient,
-  updateClient,
-  deleteClient,
-} from "@/lib/mock-data";
+import { useClients } from "@/lib/hooks/use-api-data";
+import { customersApi } from "@/lib/api-client";
 import type { Client } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
@@ -97,8 +93,9 @@ function ClientForm({
   const [zipCode, setZipCode] = React.useState(item?.zipCode ?? "");
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = "Name is required";
     if (Object.keys(errs).length > 0) {
@@ -106,28 +103,42 @@ function ClientForm({
       return;
     }
 
+    setSaving(true);
     const data = {
       name: name.trim(),
       industry: industry || undefined,
-      contactPerson: contactPerson.trim() || undefined,
+      contact_person: contactPerson.trim() || undefined,
       phone: phone.trim() || undefined,
       address: address.trim() || undefined,
       city: city.trim() || undefined,
       state: state.trim() || undefined,
-      zipCode: zipCode.trim() || undefined,
-      active,
+      zip_code: zipCode.trim() || undefined,
+      is_active: active,
     };
 
-    if (item) {
-      updateClient(item.id, data);
-      toast.success("Client updated");
-    } else {
-      createClient(data);
-      toast.success("Client created");
+    try {
+      if (item) {
+        const result = await customersApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update client", { description: result.error });
+          return;
+        }
+        toast.success("Client updated");
+      } else {
+        const result = await customersApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create client", { description: result.error });
+          return;
+        }
+        toast.success("Client created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -223,11 +234,11 @@ function ClientForm({
       </FormField>
 
       <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          {item ? "Save Changes" : "Create Client"}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : item ? "Save Changes" : "Create Client"}
         </Button>
       </div>
     </div>
@@ -246,11 +257,10 @@ export function ClientsContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [industryFilter, setIndustryFilter] = React.useState("");
 
-  const allData = React.useMemo(() => getClients(), [refreshKey]);
+  const { clients: allData, loading, refetch } = useClients();
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -285,14 +295,18 @@ export function ClientsContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: Client) {
-    deleteClient(item.id);
-    toast.success("Client deleted");
-    refresh();
+  async function handleDelete(item: Client) {
+    try {
+      const result = await customersApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete client", { description: result.error });
+        return;
+      }
+      toast.success("Client deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete client");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -350,8 +364,9 @@ export function ClientsContent() {
       emptyIcon={<Briefcase className="h-10 w-10" />}
       emptyTitle="No clients found"
       emptyDescription="Add your first client to get started."
+      loading={loading}
       formContent={({ item, onClose }) => (
-        <ClientForm item={item} onClose={onClose} onSaved={refresh} />
+        <ClientForm item={item} onClose={onClose} onSaved={refetch} />
       )}
     />
     </div>

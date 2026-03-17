@@ -18,13 +18,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getReceivingFacilityEntities,
-  getReceivingCompanies,
-  createReceivingFacility,
-  updateReceivingFacility,
-  deleteReceivingFacility,
-} from "@/lib/mock-data";
+import { useReceivingFacilities } from "@/lib/hooks/use-api-data";
+import { receivingFacilitiesApi, referenceDataApi } from "@/lib/api-client";
 import type { ReceivingFacilityEntity, ReceivingCompany } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
@@ -135,8 +130,9 @@ function ReceivingFacilityForm({
   );
   const [active, setActive] = React.useState(item?.activeFlag ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!facilityName.trim()) errs.facilityName = "Facility name is required";
     if (!receivingCompanyId)
@@ -146,27 +142,41 @@ function ReceivingFacilityForm({
       return;
     }
 
+    setSaving(true);
     const data = {
-      facilityName: facilityName.trim(),
-      receivingCompanyId,
-      addressLine1: address.trim() || undefined,
+      facility_name: facilityName.trim(),
+      receiving_company_id: receivingCompanyId,
+      address_line1: address.trim() || undefined,
       city: city.trim() || undefined,
-      stateCode: state.trim() || undefined,
-      postalCode: zipCode.trim() || undefined,
-      epaIdNumber: epaIdNumber.trim() || undefined,
-      activeFlag: active,
+      state_code: state.trim() || undefined,
+      postal_code: zipCode.trim() || undefined,
+      epa_id_number: epaIdNumber.trim() || undefined,
+      is_active: active,
     };
 
-    if (item) {
-      updateReceivingFacility(item.id, data);
-      toast.success("Receiving facility updated");
-    } else {
-      createReceivingFacility(data);
-      toast.success("Receiving facility created");
+    try {
+      if (item) {
+        const result = await receivingFacilitiesApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update facility", { description: result.error });
+          return;
+        }
+        toast.success("Receiving facility updated");
+      } else {
+        const result = await receivingFacilitiesApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create facility", { description: result.error });
+          return;
+        }
+        toast.success("Receiving facility created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -253,11 +263,11 @@ function ReceivingFacilityForm({
       </FormField>
 
       <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          {item ? "Save Changes" : "Create Facility"}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : item ? "Save Changes" : "Create Facility"}
         </Button>
       </div>
     </div>
@@ -276,18 +286,31 @@ export function ReceivingFacilitiesContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [companyFilter, setCompanyFilter] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
+  const [companies, setCompanies] = React.useState<ReceivingCompany[]>([]);
 
-  const companies = React.useMemo(() => getReceivingCompanies(), []);
+  const { facilities: allData, loading, refetch } = useReceivingFacilities();
   const columns = React.useMemo(() => buildColumns(companies), [companies]);
 
-  const allData = React.useMemo(
-    () => getReceivingFacilityEntities(),
-    [refreshKey]
-  );
+  // Fetch receiving companies on mount
+  React.useEffect(() => {
+    async function fetchCompanies() {
+      const result = await referenceDataApi.getReceivingCompanies();
+      if (result.data?.receiving_companies) {
+        // Transform snake_case to camelCase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const transformed = result.data.receiving_companies.map((rc: any) => ({
+          id: rc.id,
+          companyName: rc.company_name ?? rc.companyName ?? '',
+          activeFlag: rc.active ?? rc.activeFlag ?? true,
+        }));
+        setCompanies(transformed);
+      }
+    }
+    fetchCompanies();
+  }, []);
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -329,14 +352,18 @@ export function ReceivingFacilitiesContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: ReceivingFacilityEntity) {
-    deleteReceivingFacility(item.id);
-    toast.success("Receiving facility deleted");
-    refresh();
+  async function handleDelete(item: ReceivingFacilityEntity) {
+    try {
+      const result = await receivingFacilitiesApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete facility", { description: result.error });
+        return;
+      }
+      toast.success("Receiving facility deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete facility");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -413,11 +440,12 @@ export function ReceivingFacilitiesContent() {
       emptyIcon={<Factory className="h-10 w-10" />}
       emptyTitle="No receiving facilities found"
       emptyDescription="Add your first receiving facility to get started."
+      loading={loading}
       formContent={({ item, onClose }) => (
         <ReceivingFacilityForm
           item={item}
           onClose={onClose}
-          onSaved={refresh}
+          onSaved={refetch}
           companies={companies}
         />
       )}

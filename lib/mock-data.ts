@@ -237,16 +237,16 @@ export const WASTE_TYPES: WasteType[] = [
 /* ─── Users ─── */
 
 export const USERS: User[] = [
-  { id: "usr-1", email: "jane.cooper@mpsgrp.com", displayName: "Jane Cooper", role: "system_admin", active: true },
-  { id: "usr-2", email: "michael.chen@mpsgrp.com", displayName: "Michael Chen", role: "admin", active: true },
-  { id: "usr-3", email: "sarah.johnson@mpsgrp.com", displayName: "Sarah Johnson", role: "admin", active: true },
-  { id: "usr-4", email: "david.williams@mpsgrp.com", displayName: "David Williams", role: "site_user", active: true, assignedSiteIds: ["site-1", "site-2"] },
-  { id: "usr-5", email: "emily.martinez@mpsgrp.com", displayName: "Emily Martinez", role: "site_user", active: true, assignedSiteIds: ["site-3", "site-4"] },
-  { id: "usr-6", email: "james.brown@mpsgrp.com", displayName: "James Brown", role: "site_user", active: true, assignedSiteIds: ["site-5", "site-6"] },
-  { id: "usr-7", email: "k.hollins@mpsgrp.com", displayName: "K. Hollins", role: "admin", active: true },
-  { id: "usr-8", email: "j.hamill@mpsgrp.com", displayName: "J. Hamill", role: "site_user", active: true, assignedSiteIds: ["site-7", "site-8"] },
-  { id: "usr-9", email: "c.king@mpsgrp.com", displayName: "C. King", role: "admin", active: true },
-  { id: "usr-10", email: "j.plancon@mpsgrp.com", displayName: "J. Plancon", role: "site_user", active: true, assignedSiteIds: ["site-9", "site-10"] },
+  { id: "usr-1", email: "jane.cooper@mpsgrp.com", displayName: "Jane Cooper", role: "admin", active: true },
+  { id: "usr-2", email: "michael.chen@mpsgrp.com", displayName: "Michael Chen", role: "manager", active: true },
+  { id: "usr-3", email: "sarah.johnson@mpsgrp.com", displayName: "Sarah Johnson", role: "manager", active: true },
+  { id: "usr-4", email: "david.williams@mpsgrp.com", displayName: "David Williams", role: "operator", active: true, assignedSiteIds: ["site-1", "site-2"] },
+  { id: "usr-5", email: "emily.martinez@mpsgrp.com", displayName: "Emily Martinez", role: "operator", active: true, assignedSiteIds: ["site-3", "site-4"] },
+  { id: "usr-6", email: "james.brown@mpsgrp.com", displayName: "James Brown", role: "viewer", active: true, assignedSiteIds: ["site-5", "site-6"] },
+  { id: "usr-7", email: "k.hollins@mpsgrp.com", displayName: "K. Hollins", role: "manager", active: true },
+  { id: "usr-8", email: "j.hamill@mpsgrp.com", displayName: "J. Hamill", role: "operator", active: true, assignedSiteIds: ["site-7", "site-8"] },
+  { id: "usr-9", email: "c.king@mpsgrp.com", displayName: "C. King", role: "manager", active: true },
+  { id: "usr-10", email: "j.plancon@mpsgrp.com", displayName: "J. Plancon", role: "viewer", active: true, assignedSiteIds: ["site-9", "site-10"] },
 ];
 
 /* ════════════════════════════════════════════════════════════

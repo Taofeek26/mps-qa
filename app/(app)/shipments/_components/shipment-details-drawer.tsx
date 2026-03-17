@@ -28,21 +28,18 @@ import {
 import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
+import { shipmentsApi } from "@/lib/api-client";
 import {
-  getSites,
-  getClients,
-  getVendors,
-  getWasteTypes,
-  getTransporters,
-  getReceivingFacilityEntities,
-  getContainerLocations,
-  getShipmentLineItems,
-  getShipmentCostsInternal,
-  getShipmentCostsCustomer,
-  getShipmentExternalIdentifiers,
-  updateShipment,
-  deleteShipment,
-} from "@/lib/mock-data";
+  useSites,
+  useClients,
+  useVendors,
+  useWasteTypes,
+  useTransporters,
+  useReceivingFacilities,
+  useContainerLocationsBySite,
+  useShipmentLineItems,
+  useShipmentExternalIdentifiers,
+} from "@/lib/hooks/use-api-data";
 import { useAuth } from "@/lib/auth-context";
 import type {
   Shipment,
@@ -88,21 +85,29 @@ export function ShipmentDetailsDrawer({
 
   const canEditDelete =
     user?.role === "admin" ||
-    user?.role === "system_admin" ||
-    (user?.role === "site_user" && shipment?.createdBy === user?.id);
+    user?.role === "manager" ||
+    (shipment?.createdBy === user?.id);
 
   React.useEffect(() => {
     setIsEditing(false);
   }, [shipment?.id]);
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!shipment) return;
-    deleteShipment(shipment.id);
-    toast.success("Shipment deleted", {
-      description: `${shipment.id} has been removed`,
-    });
-    onClose();
-    onDeleted();
+    try {
+      const result = await shipmentsApi.delete(shipment.id);
+      if (result.error) {
+        toast.error("Failed to delete", { description: result.error });
+        return;
+      }
+      toast.success("Shipment deleted", {
+        description: `Shipment has been removed`,
+      });
+      onClose();
+      onDeleted();
+    } catch {
+      toast.error("Failed to delete shipment");
+    }
   }
 
   return (
@@ -241,14 +246,8 @@ function CostTable({ label, cost }: { label: string; cost?: CostBreakdown }) {
 /* ─── View Mode ─── */
 
 function ViewMode({ shipment }: { shipment: Shipment }) {
-  const lineItems = React.useMemo(
-    () => getShipmentLineItems(shipment.id),
-    [shipment.id]
-  );
-  const externalIds = React.useMemo(
-    () => getShipmentExternalIdentifiers(shipment.id),
-    [shipment.id]
-  );
+  const { lineItems } = useShipmentLineItems(shipment.id);
+  const { externalIdentifiers: externalIds } = useShipmentExternalIdentifiers(shipment.id);
 
   const mpsCostTotal = shipment.mpsCost
     ? shipment.mpsCost.haulCharge +
@@ -289,14 +288,14 @@ function ViewMode({ shipment }: { shipment: Shipment }) {
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
           <DetailField
             label="Date"
-            value={format(new Date(shipment.shipmentDate + "T00:00:00"), "MMM d, yyyy")}
+            value={shipment.shipmentDate ? format(new Date(shipment.shipmentDate + "T00:00:00"), "MMM d, yyyy") : "—"}
           />
           <DetailField label="Site" value={shipment.siteName} />
           <DetailField label="Client" value={shipment.clientName} />
           <DetailField label="Vendor" value={shipment.vendorName} />
           <DetailField
             label="Weight"
-            value={`${shipment.weightValue.toLocaleString()} ${shipment.weightUnit}`}
+            value={shipment.weightValue != null ? `${shipment.weightValue.toLocaleString()} ${shipment.weightUnit ?? ""}` : "—"}
           />
           {shipment.manifestNumber && (
             <DetailField label="Manifest #" value={shipment.manifestNumber} mono />
@@ -506,16 +505,16 @@ function ViewMode({ shipment }: { shipment: Shipment }) {
           </p>
           <div className="flex items-center gap-2 text-sm">
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-500">
-              {shipment.createdByName
+              {(shipment.createdByName ?? "U")
                 .split(" ")
-                .map((n) => n[0])
-                .join("")}
+                .map((n) => n[0] ?? "")
+                .join("") || "?"}
             </div>
-            <span className="text-text-primary">{shipment.createdByName}</span>
+            <span className="text-text-primary">{shipment.createdByName ?? "Unknown"}</span>
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-text-muted">
-            <span>Created: {format(new Date(shipment.createdAt), "MMM d, yyyy h:mm a")}</span>
-            <span>Updated: {format(new Date(shipment.updatedAt), "MMM d, yyyy h:mm a")}</span>
+            <span>Created: {shipment.createdAt ? format(new Date(shipment.createdAt), "MMM d, yyyy h:mm a") : "—"}</span>
+            <span>Updated: {shipment.updatedAt ? format(new Date(shipment.updatedAt), "MMM d, yyyy h:mm a") : "—"}</span>
           </div>
         </div>
       </div>
@@ -553,19 +552,20 @@ function EditMode({
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const sites = React.useMemo(() => getSites(), []);
-  const clients = React.useMemo(() => getClients(), []);
-  const vendors = React.useMemo(() => getVendors(), []);
-  const wasteTypes = React.useMemo(() => getWasteTypes(), []);
-  const transporters = React.useMemo(() => getTransporters(), []);
-  const facilities = React.useMemo(() => getReceivingFacilityEntities(), []);
+  const { sites } = useSites();
+  const { clients } = useClients();
+  const { vendors } = useVendors();
+  const { wasteTypes } = useWasteTypes();
+  const { transporters } = useTransporters();
+  const { facilities } = useReceivingFacilities();
+  const { containerLocations } = useContainerLocationsBySite(shipment.siteId);
 
   const [form, setForm] = React.useState({
     siteId: shipment.siteId,
     clientId: shipment.clientId,
     vendorId: shipment.vendorId,
     wasteTypeId: shipment.wasteTypeId,
-    shipmentDate: new Date(shipment.shipmentDate + "T00:00:00"),
+    shipmentDate: shipment.shipmentDate ? new Date(shipment.shipmentDate + "T00:00:00") : new Date(),
     weightValue: shipment.weightValue,
     weightUnit: shipment.weightUnit as string,
     volumeValue: shipment.volumeValue ?? null,
@@ -581,36 +581,43 @@ function EditMode({
     profileNumber: shipment.profileNumber ?? "",
   });
 
-  const containerLocations = React.useMemo(
-    () => getContainerLocations(form.siteId),
-    [form.siteId]
-  );
+  async function handleSave() {
+    try {
+      // Only include fields that have values - undefined fields will be filtered on backend
+      const updateData: Record<string, unknown> = {
+        site_id: form.siteId || undefined,
+        customer_id: form.clientId || undefined,
+        vendor_id: form.vendorId || undefined,
+        waste_type_id: form.wasteTypeId || undefined,
+        shipment_date: format(form.shipmentDate, "yyyy-MM-dd"),
+        quantity: form.weightValue,
+        quantity_unit: form.weightUnit,
+        notes: form.notes || undefined,
+        status: form.status,
+        manifest_number: form.manifestNumber || undefined,
+        carrier_name: form.transporterName || undefined,
+        facility_name: form.receivingFacility || undefined,
+        treatment_method: form.treatmentMethod || undefined,
+        waste_category: form.wasteCategory || undefined,
+      };
 
-  function handleSave() {
-    updateShipment(shipment.id, {
-      siteId: form.siteId,
-      clientId: form.clientId,
-      vendorId: form.vendorId,
-      wasteTypeId: form.wasteTypeId,
-      shipmentDate: format(form.shipmentDate, "yyyy-MM-dd"),
-      weightValue: form.weightValue,
-      weightUnit: form.weightUnit as WeightUnit,
-      volumeValue: form.volumeValue ?? undefined,
-      notes: form.notes || undefined,
-      status: form.status as ShipmentStatus,
-      manifestNumber: form.manifestNumber || undefined,
-      transporterName: form.transporterName || undefined,
-      receivingFacility: form.receivingFacility || undefined,
-      treatmentMethod: (form.treatmentMethod || undefined) as Shipment["treatmentMethod"],
-      wasteCategory: (form.wasteCategory || undefined) as Shipment["wasteCategory"],
-      serviceFrequency: (form.serviceFrequency || undefined) as Shipment["serviceFrequency"],
-      containerLocation: form.containerLocation || undefined,
-      profileNumber: form.profileNumber || undefined,
-    });
-    toast.success("Shipment updated", {
-      description: `${shipment.id} has been saved`,
-    });
-    onSave();
+      // Only add FK fields if they have valid values
+      if (form.serviceFrequency) updateData.service_frequency_id = form.serviceFrequency;
+      if (form.containerLocation) updateData.container_location_id = form.containerLocation;
+      if (form.profileNumber) updateData.profile_id = form.profileNumber;
+
+      const result = await shipmentsApi.update(shipment.id, updateData);
+      if (result.error) {
+        toast.error("Failed to update", { description: result.error });
+        return;
+      }
+      toast.success("Shipment updated", {
+        description: `Shipment has been saved`,
+      });
+      onSave();
+    } catch {
+      toast.error("Failed to update shipment");
+    }
   }
 
   const TREATMENT_METHODS = [

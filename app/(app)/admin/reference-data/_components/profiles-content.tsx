@@ -18,67 +18,9 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getProfiles,
-  getClients,
-  getWasteTypes,
-  createProfile,
-  updateProfile,
-  deleteProfile,
-} from "@/lib/mock-data";
-import type { Profile } from "@/lib/types";
-
-/* ─── Columns ─── */
-
-const columns: ColumnDef<Profile, unknown>[] = [
-  {
-    accessorKey: "profileNumber",
-    header: "Profile #",
-    size: 140,
-    cell: ({ getValue }) => (
-      <span className="font-mono">{getValue() as string}</span>
-    ),
-  },
-  {
-    accessorKey: "customerId",
-    header: "Customer",
-    size: 200,
-    cell: ({ getValue }) => {
-      const customerId = getValue() as string | undefined;
-      if (!customerId) return <span className="text-text-secondary">&mdash;</span>;
-      const client = getClients().find((c) => c.id === customerId);
-      return (
-        <span className="text-text-secondary">{client?.name ?? "\u2014"}</span>
-      );
-    },
-  },
-  {
-    accessorKey: "wasteTypeId",
-    header: "Waste Type",
-    size: 200,
-    cell: ({ getValue }) => {
-      const wasteTypeId = getValue() as string | undefined;
-      if (!wasteTypeId) return <span className="text-text-secondary">&mdash;</span>;
-      const wt = getWasteTypes().find((w) => w.id === wasteTypeId);
-      return (
-        <span className="text-text-secondary">{wt?.name ?? "\u2014"}</span>
-      );
-    },
-  },
-  {
-    accessorKey: "activeFlag",
-    header: "Status",
-    size: 100,
-    cell: ({ getValue }) => {
-      const active = getValue() as boolean;
-      return (
-        <Badge variant={active ? "success" : "neutral"}>
-          {active ? "Active" : "Inactive"}
-        </Badge>
-      );
-    },
-  },
-];
+import { profilesApi } from "@/lib/api-client";
+import { useProfiles, useClients, useWasteTypes } from "@/lib/hooks/use-api-data";
+import type { Profile, Client, WasteType } from "@/lib/types";
 
 /* ─── Form ─── */
 
@@ -86,20 +28,23 @@ function ProfileForm({
   item,
   onClose,
   onSaved,
+  clients,
+  wasteTypes,
 }: {
   item: Profile | null;
   onClose: () => void;
   onSaved: () => void;
+  clients: Client[];
+  wasteTypes: WasteType[];
 }) {
-  const clients = React.useMemo(() => getClients(), []);
-  const wasteTypes = React.useMemo(() => getWasteTypes(), []);
   const [profileNumber, setProfileNumber] = React.useState(item?.profileNumber ?? "");
   const [customerId, setCustomerId] = React.useState(item?.customerId ?? "");
   const [wasteTypeId, setWasteTypeId] = React.useState(item?.wasteTypeId ?? "");
   const [activeFlag, setActiveFlag] = React.useState(item?.activeFlag ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!profileNumber.trim()) errs.profileNumber = "Profile number is required";
     if (Object.keys(errs).length > 0) {
@@ -108,22 +53,34 @@ function ProfileForm({
     }
 
     const data = {
-      profileNumber: profileNumber.trim(),
-      customerId: customerId || undefined,
-      wasteTypeId: wasteTypeId || undefined,
-      activeFlag,
+      profile_number: profileNumber.trim(),
+      customer_id: customerId || undefined,
+      waste_type_id: wasteTypeId || undefined,
+      is_active: activeFlag,
     };
 
-    if (item) {
-      updateProfile(item.id, data);
-      toast.success("Profile updated");
-    } else {
-      createProfile(data);
-      toast.success("Profile created");
+    setSaving(true);
+    try {
+      if (item) {
+        const result = await profilesApi.update(item.id, data);
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Profile updated");
+      } else {
+        const result = await profilesApi.create(data);
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Profile created");
+      }
+      onSaved();
+      onClose();
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -180,7 +137,7 @@ function ProfileForm({
         <Button variant="ghost" onClick={onClose}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
+        <Button onClick={handleSave} disabled={saving}>
           {item ? "Save Changes" : "Create Profile"}
         </Button>
       </div>
@@ -190,9 +147,10 @@ function ProfileForm({
 
 /* ─── Content ─── */
 
-
 export function ProfilesContent() {
-  const [refreshKey, setRefreshKey] = React.useState(0);
+  const { profiles: allData, refetch } = useProfiles();
+  const { clients } = useClients();
+  const { wasteTypes } = useWasteTypes();
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [page, setPage] = React.useState(1);
@@ -200,7 +158,69 @@ export function ProfilesContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const allData = React.useMemo(() => getProfiles(), [refreshKey]);
+  // Create lookup maps for efficient column rendering
+  const clientsMap = React.useMemo(() => {
+    const map = new Map<string, Client>();
+    clients.forEach((c) => map.set(c.id, c));
+    return map;
+  }, [clients]);
+
+  const wasteTypesMap = React.useMemo(() => {
+    const map = new Map<string, WasteType>();
+    wasteTypes.forEach((wt) => map.set(wt.id, wt));
+    return map;
+  }, [wasteTypes]);
+
+  // Define columns inside component to access lookup maps
+  const columns: ColumnDef<Profile, unknown>[] = React.useMemo(() => [
+    {
+      accessorKey: "profileNumber",
+      header: "Profile #",
+      size: 140,
+      cell: ({ getValue }) => (
+        <span className="font-mono">{getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "customerId",
+      header: "Customer",
+      size: 200,
+      cell: ({ getValue }) => {
+        const customerId = getValue() as string | undefined;
+        if (!customerId) return <span className="text-text-secondary">&mdash;</span>;
+        const client = clientsMap.get(customerId);
+        return (
+          <span className="text-text-secondary">{client?.name ?? "\u2014"}</span>
+        );
+      },
+    },
+    {
+      accessorKey: "wasteTypeId",
+      header: "Waste Type",
+      size: 200,
+      cell: ({ getValue }) => {
+        const wasteTypeId = getValue() as string | undefined;
+        if (!wasteTypeId) return <span className="text-text-secondary">&mdash;</span>;
+        const wt = wasteTypesMap.get(wasteTypeId);
+        return (
+          <span className="text-text-secondary">{wt?.name ?? "\u2014"}</span>
+        );
+      },
+    },
+    {
+      accessorKey: "activeFlag",
+      header: "Status",
+      size: 100,
+      cell: ({ getValue }) => {
+        const active = getValue() as boolean;
+        return (
+          <Badge variant={active ? "success" : "neutral"}>
+            {active ? "Active" : "Inactive"}
+          </Badge>
+        );
+      },
+    },
+  ], [clientsMap, wasteTypesMap]);
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -224,14 +244,14 @@ export function ProfilesContent() {
     [filtered, safePage, pageSize]
   );
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: Profile) {
-    deleteProfile(item.id);
+  async function handleDelete(item: Profile) {
+    const result = await profilesApi.delete(item.id);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
     toast.success("Profile deleted");
-    refresh();
+    refetch();
   }
 
   function handleSearchChange(value: string) {
@@ -287,7 +307,13 @@ export function ProfilesContent() {
       emptyTitle="No profiles found"
       emptyDescription="Add your first profile to get started."
       formContent={({ item, onClose }) => (
-        <ProfileForm item={item} onClose={onClose} onSaved={refresh} />
+        <ProfileForm
+          item={item}
+          onClose={onClose}
+          onSaved={refetch}
+          clients={clients}
+          wasteTypes={wasteTypes}
+        />
       )}
     />
     </div>

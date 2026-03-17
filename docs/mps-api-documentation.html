@@ -1,0 +1,2670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPS Backend API Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #F9FAFB;
+            --bg-container: #FFFFFF;
+            --bg-code: #1E293B;
+            --accent: #00BD9D;
+            --accent-light: #E6FAF6;
+            --accent-dark: #009B80;
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --border-light: #F1F5F9;
+            --method-get: #10B981;
+            --method-post: #3B82F6;
+            --method-put: #F59E0B;
+            --method-delete: #EF4444;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --success: #10B981;
+            --info: #3B82F6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-page);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 32px;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        /* Header - Matching MPS Branded Style */
+        .table-container {
+            background: var(--bg-container);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            margin: 32px auto;
+            max-width: 1400px;
+        }
+
+        .header-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-section img {
+            max-height: 45px;
+            width: auto;
+        }
+
+        .header-text {
+            flex: 1;
+        }
+
+        .matrix-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .matrix-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .version-badge {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Navigation */
+        .nav-container {
+            background: var(--bg-container);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            max-width: 1400px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+        }
+
+        .nav {
+            padding: 0 24px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .nav-item {
+            padding: 16px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent-light);
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 32px;
+            background: var(--bg-container);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 80px;
+            height: fit-content;
+            max-height: calc(100vh - 240px);
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .sidebar-link .method {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        /* Content */
+        .content {
+            min-width: 0;
+        }
+
+        .section {
+            background: var(--bg-page);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .section-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* Endpoint Card */
+        .endpoint {
+            background: var(--bg-page);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-light);
+        }
+
+        .endpoint:last-child {
+            margin-bottom: 0;
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .method-badge {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .method-badge.get { background: #D1FAE5; color: #065F46; }
+        .method-badge.post { background: #DBEAFE; color: #1E40AF; }
+        .method-badge.put { background: #FEF3C7; color: #92400E; }
+        .method-badge.delete { background: #FEE2E2; color: #991B1B; }
+
+        .endpoint-path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .endpoint-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        /* Parameters Table */
+        .params-section {
+            margin-bottom: 20px;
+        }
+
+        .params-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .params-title::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .params-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--bg-container);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .params-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: top;
+        }
+
+        .params-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .param-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            color: var(--accent-dark);
+        }
+
+        .param-type {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--border-light);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .param-required {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .param-required.required {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .param-required.optional {
+            background: var(--border-light);
+            color: var(--text-muted);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-code);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-content {
+            padding: 16px;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #E2E8F0;
+            margin: 0;
+        }
+
+        .code-content .key { color: #7DD3FC; }
+        .code-content .string { color: #86EFAC; }
+        .code-content .number { color: #FCD34D; }
+        .code-content .boolean { color: #C4B5FD; }
+        .code-content .null { color: #F87171; }
+
+        /* Response Codes */
+        .response-codes {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .response-code {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .response-code.success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .response-code.error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .response-code.warning {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        /* Auth Section */
+        .auth-box {
+            background: linear-gradient(135deg, var(--accent-light) 0%, #E0F2FE 100%);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .auth-title {
+            font-weight: 600;
+            color: var(--accent-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .info-box-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .info-box-content {
+            font-size: 14px;
+            color: #1E40AF;
+            line-height: 1.6;
+        }
+
+        /* Category Badge */
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--accent-light);
+            color: var(--accent-dark);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-container);
+            border-top: 1px solid var(--border);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+
+            .main {
+                padding: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+        }
+
+        /* TOC Styles */
+        .toc-container {
+            background: var(--bg-container);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 1px solid var(--border);
+        }
+
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .toc-card {
+            background: var(--bg-page);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-light);
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .toc-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(0, 189, 157, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .toc-card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toc-card-count {
+            font-size: 12px;
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .toc-card-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="table-container" style="margin-bottom: 0; border-radius: 8px 8px 0 0;">
+        <div class="header-section">
+            <img src="https://www.mpsgrp.com/wp-content/uploads/2024/02/mps-group-logo.png" alt="MPS Logo">
+            <div class="header-text">
+                <div class="matrix-title">Backend API Documentation</div>
+                <div class="matrix-subtitle">MPS Waste Management Platform - RESTful API Reference for Frontend Integration</div>
+            </div>
+            <div class="version-badge">API v1.0</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav">
+            <a href="#overview" class="nav-item active">Overview</a>
+            <a href="#authentication" class="nav-item">Authentication</a>
+            <a href="#core-entities" class="nav-item">Core Entities</a>
+            <a href="#kpi-analytics" class="nav-item">KPI & Analytics</a>
+            <a href="#reference-data" class="nav-item">Reference Data</a>
+            <a href="#error-handling" class="nav-item">Error Handling</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Core Entities</div>
+                <a href="#shipments" class="sidebar-link">Shipments</a>
+                <a href="#customers" class="sidebar-link">Customers</a>
+                <a href="#sites" class="sidebar-link">Sites</a>
+                <a href="#vendors" class="sidebar-link">Vendors</a>
+                <a href="#waste-types" class="sidebar-link">Waste Types</a>
+                <a href="#transporters" class="sidebar-link">Transporters</a>
+                <a href="#receiving-facilities" class="sidebar-link">Receiving Facilities</a>
+                <a href="#containers" class="sidebar-link">Containers</a>
+                <a href="#profiles" class="sidebar-link">Profiles</a>
+                <a href="#service-items" class="sidebar-link">Service Items</a>
+                <a href="#users" class="sidebar-link">Users</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">KPI & Analytics</div>
+                <a href="#invoice-records" class="sidebar-link">Invoice Records</a>
+                <a href="#collection-events" class="sidebar-link">Collection Events</a>
+                <a href="#container-placements" class="sidebar-link">Container Placements</a>
+                <a href="#facility-capacities" class="sidebar-link">Facility Capacities</a>
+                <a href="#fuel-records" class="sidebar-link">Fuel Records</a>
+                <a href="#route-schedules" class="sidebar-link">Route Schedules</a>
+                <a href="#truck-loads" class="sidebar-link">Truck Loads</a>
+                <a href="#safety-incidents" class="sidebar-link">Safety Incidents</a>
+                <a href="#inspection-records" class="sidebar-link">Inspection Records</a>
+                <a href="#service-verifications" class="sidebar-link">Service Verifications</a>
+                <a href="#container-weight-records" class="sidebar-link">Container Weight Records</a>
+                <a href="#platform-user-activity" class="sidebar-link">Platform User Activity</a>
+                <a href="#customer-surveys" class="sidebar-link">Customer Surveys</a>
+                <a href="#analytics" class="sidebar-link">Analytics</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Reference Data</div>
+                <a href="#units" class="sidebar-link">Units</a>
+                <a href="#container-types" class="sidebar-link">Container Types</a>
+                <a href="#treatment-methods" class="sidebar-link">Treatment Methods</a>
+                <a href="#waste-codes" class="sidebar-link">Waste Codes</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">System</div>
+                <a href="#audit-log" class="sidebar-link">Audit Log</a>
+                <a href="#exports" class="sidebar-link">Exports</a>
+                <a href="#uploads" class="sidebar-link">File Uploads</a>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Overview Section -->
+            <section id="overview" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📚</div>
+                    <div>
+                        <h2 class="section-title">API Overview</h2>
+                        <p class="section-description">Welcome to the MPS Waste Management Platform API</p>
+                    </div>
+                </div>
+
+                <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.8;">
+                    This documentation provides comprehensive details for integrating with the MPS backend API.
+                    The API follows RESTful conventions and uses JSON for request and response bodies.
+                    All endpoints require authentication via AWS Cognito JWT tokens.
+                </p>
+
+                <div class="info-box">
+                    <span class="info-box-icon">ℹ️</span>
+                    <div class="info-box-content">
+                        <strong>Base URL:</strong> <code style="background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 4px;">https://h8fcclh73j.execute-api.us-east-1.amazonaws.com/prod</code><br>
+                        Production API Gateway endpoint (AWS API Gateway - US East 1).
+                    </div>
+                </div>
+
+                <!-- Table of Contents -->
+                <div class="toc-container" style="margin-top: 32px; background: var(--bg-page);">
+                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Quick Navigation</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px;">Jump to any API section</p>
+
+                    <div class="toc-grid">
+                        <a href="#shipments" class="toc-card">
+                            <div class="toc-card-title">
+                                📦 Shipments
+                                <span class="toc-card-count">5 endpoints</span>
+                            </div>
+                            <div class="toc-card-description">Manage waste shipment records, tracking, and status updates</div>
+                        </a>
+                        <a href="#customers" class="toc-card">
+                            <div class="toc-card-title">
+                                🏢 Customers
+                                <span class="toc-card-count">5 endpoints</span>
+                            </div>
+                            <div class="toc-card-description">Customer/client management and information</div>
+                        </a>
+                        <a href="#sites" class="toc-card">
+                            <div class="toc-card-title">
+                                📍 Sites
+                                <span class="toc-card-count">5 endpoints</span>
+                            </div>
+                            <div class="toc-card-description">Customer site locations and container placements</div>
+                        </a>
+                        <a href="#vendors" class="toc-card">
+                            <div class="toc-card-title">
+                                🤝 Vendors
+                                <span class="toc-card-count">5 endpoints</span>
+                            </div>
+                            <div class="toc-card-description">Vendor qualification and management</div>
+                        </a>
+                        <a href="#kpi-analytics" class="toc-card">
+                            <div class="toc-card-title">
+                                📊 KPI & Analytics
+                                <span class="toc-card-count">20+ endpoints</span>
+                            </div>
+                            <div class="toc-card-description">Performance metrics, reports, and business intelligence</div>
+                        </a>
+                        <a href="#reference-data" class="toc-card">
+                            <div class="toc-card-title">
+                                📋 Reference Data
+                                <span class="toc-card-count">10+ endpoints</span>
+                            </div>
+                            <div class="toc-card-description">System lookups, codes, and master data</div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Authentication Section -->
+            <section id="authentication" class="section">
+                <div class="section-header">
+                    <div class="section-icon">🔐</div>
+                    <div>
+                        <h2 class="section-title">Authentication</h2>
+                        <p class="section-description">Secure API access using AWS Cognito JWT tokens</p>
+                    </div>
+                </div>
+
+                <div class="auth-box">
+                    <div class="auth-title">
+                        🔑 Bearer Token Authentication
+                    </div>
+                    <div class="auth-description">
+                        All API requests must include a valid JWT token obtained from AWS Cognito in the Authorization header.
+                        The token is automatically retrieved using <code>fetchAuthSession()</code> from AWS Amplify.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="params-title">Request Headers</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Header</th>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">Authorization</span></td>
+                                <td><span class="param-type">Bearer {token}</span></td>
+                                <td>JWT ID token from AWS Cognito session</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">Content-Type</span></td>
+                                <td><span class="param-type">application/json</span></td>
+                                <td>Required for POST/PUT requests with body</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Example Request</span>
+                        </div>
+                        <div class="code-content">
+<pre>GET /shipments HTTP/1.1
+Host: api.mps-platform.com
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json</pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Core Entities: Shipments -->
+            <section id="shipments" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📦</div>
+                    <div>
+                        <h2 class="section-title">Shipments</h2>
+                        <p class="section-description">Manage waste shipment records and tracking</p>
+                    </div>
+                </div>
+
+                <!-- GET All Shipments -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/shipments</span>
+                    </div>
+                    <p class="endpoint-description">
+                        Retrieve a paginated list of all shipments. Supports filtering by date range, status, customer, site, and other criteria.
+                    </p>
+
+                    <div class="params-section">
+                        <div class="params-title">Query Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">page</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Page number for pagination (default: 1)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">page_size</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Number of records per page (default: 50, max: 500)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">date_from</span></td>
+                                    <td><span class="param-type">string (ISO date)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter shipments from this date</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">date_to</span></td>
+                                    <td><span class="param-type">string (ISO date)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter shipments up to this date</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">customer_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter by customer ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">site_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter by site ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">status</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter by status: submitted, pending, void</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">waste_category</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter by waste category</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="params-section">
+                        <div class="params-title">Response Body</div>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label">200 OK - Success Response</span>
+                            </div>
+                            <div class="code-content">
+<pre>{
+  <span class="key">"shipments"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid-string"</span>,
+      <span class="key">"customer_id"</span>: <span class="string">"uuid-string"</span>,
+      <span class="key">"customer_name"</span>: <span class="string">"Acme Corporation"</span>,
+      <span class="key">"site_id"</span>: <span class="string">"uuid-string"</span>,
+      <span class="key">"site_name"</span>: <span class="string">"Main Facility"</span>,
+      <span class="key">"vendor_id"</span>: <span class="string">"uuid-string"</span>,
+      <span class="key">"vendor_name"</span>: <span class="string">"Waste Solutions Inc"</span>,
+      <span class="key">"waste_type_id"</span>: <span class="string">"uuid-string"</span>,
+      <span class="key">"waste_description"</span>: <span class="string">"Industrial Waste"</span>,
+      <span class="key">"shipment_date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"quantity"</span>: <span class="number">2500</span>,
+      <span class="key">"quantity_unit"</span>: <span class="string">"lbs"</span>,
+      <span class="key">"standardized_weight_lb"</span>: <span class="number">2500</span>,
+      <span class="key">"standardized_weight_kg"</span>: <span class="number">1134</span>,
+      <span class="key">"status"</span>: <span class="string">"submitted"</span>,
+      <span class="key">"manifest_number"</span>: <span class="string">"MAN-2024-001234"</span>,
+      <span class="key">"waste_category"</span>: <span class="string">"Non Haz"</span>,
+      <span class="key">"treatment_method"</span>: <span class="string">"Landfill"</span>,
+      <span class="key">"container_type"</span>: <span class="string">"40 Yard Roll-Off"</span>,
+      <span class="key">"receiving_facility_id"</span>: <span class="string">"uuid-string"</span>,
+      <span class="key">"facility_name"</span>: <span class="string">"Regional Landfill"</span>,
+      <span class="key">"carrier_name"</span>: <span class="string">"ABC Transport"</span>,
+      <span class="key">"distance_miles"</span>: <span class="number">45.5</span>,
+      <span class="key">"mps_total_cost"</span>: <span class="number">1250.00</span>,
+      <span class="key">"customer_total_cost"</span>: <span class="number">1500.00</span>,
+      <span class="key">"created_by"</span>: <span class="string">"user-uuid"</span>,
+      <span class="key">"created_at"</span>: <span class="string">"2024-01-15T10:30:00Z"</span>,
+      <span class="key">"updated_at"</span>: <span class="string">"2024-01-15T14:20:00Z"</span>
+    }
+  ],
+  <span class="key">"total"</span>: <span class="number">1250</span>,
+  <span class="key">"page"</span>: <span class="number">1</span>,
+  <span class="key">"page_size"</span>: <span class="number">50</span>
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                        <span class="response-code error">500 Server Error</span>
+                    </div>
+                </div>
+
+                <!-- GET Single Shipment -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/shipments/{id}</span>
+                    </div>
+                    <p class="endpoint-description">
+                        Retrieve a single shipment by its unique identifier. Returns full shipment details including line items, costs, and external identifiers.
+                    </p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Unique shipment identifier</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <!-- POST Create Shipment -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/shipments</span>
+                    </div>
+                    <p class="endpoint-description">
+                        Create a new shipment record. The shipment will be created with status "pending" and can be later submitted for processing.
+                    </p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">customer_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Customer/Client ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">site_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Site location ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">waste_type_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Waste type classification ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">shipment_date</span></td>
+                                    <td><span class="param-type">string (ISO date)</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Date of shipment (YYYY-MM-DD)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">quantity</span></td>
+                                    <td><span class="param-type">number</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Quantity value</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">quantity_unit</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Unit of measure (lbs, tons, kg, gal)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">vendor_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Vendor ID for disposal</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">transporter_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Transporter/carrier ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">receiving_facility_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Receiving facility ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">manifest_number</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Manifest tracking number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">container_type</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Type of container used</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">notes</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Additional notes or comments</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Example Request Body</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"customer_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="key">"site_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440001"</span>,
+  <span class="key">"waste_type_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440002"</span>,
+  <span class="key">"shipment_date"</span>: <span class="string">"2024-01-20"</span>,
+  <span class="key">"quantity"</span>: <span class="number">5000</span>,
+  <span class="key">"quantity_unit"</span>: <span class="string">"lbs"</span>,
+  <span class="key">"vendor_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440003"</span>,
+  <span class="key">"manifest_number"</span>: <span class="string">"MAN-2024-005678"</span>,
+  <span class="key">"notes"</span>: <span class="string">"Regular weekly pickup"</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <!-- PUT Update Shipment -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/shipments/{id}</span>
+                    </div>
+                    <p class="endpoint-description">
+                        Update an existing shipment. Only non-submitted shipments can be modified. All fields are optional - only provided fields will be updated.
+                    </p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <!-- DELETE Shipment -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/shipments/{id}</span>
+                    </div>
+                    <p class="endpoint-description">
+                        Delete a shipment record. Only shipments with status "pending" or "void" can be deleted. Submitted shipments must be voided first.
+                    </p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <!-- GET Shipment Line Items -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/shipments/{id}/line-items</span>
+                    </div>
+                    <p class="endpoint-description">
+                        Retrieve all line items associated with a shipment. Line items contain detailed waste stream information, quantities, and classification codes.
+                    </p>
+
+                    <div class="params-section">
+                        <div class="params-title">Response Body - Line Item Fields</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Unique line item identifier</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">shipment_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Parent shipment ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">line_number</span></td>
+                                    <td><span class="param-type">integer</span></td>
+                                    <td>Line item sequence number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">unit_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Unit of measure ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">quantity_value</span></td>
+                                    <td><span class="param-type">number</span></td>
+                                    <td>Quantity amount</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">standardized_weight_lb</span></td>
+                                    <td><span class="param-type">number</span></td>
+                                    <td>Weight converted to pounds</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">waste_type_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Waste type classification</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">waste_code_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>EPA/State waste code</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">treatment_method_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Treatment/disposal method</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                    </div>
+                </div>
+
+                <!-- GET Shipment External Identifiers -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/shipments/{id}/external-identifiers</span>
+                    </div>
+                    <p class="endpoint-description">
+                        Retrieve external system identifiers linked to a shipment (e.g., manifest numbers, PO numbers, tracking IDs from external systems).
+                    </p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Example</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"external_identifiers"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"shipment_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"identifier_type"</span>: <span class="string">"MANIFEST"</span>,
+      <span class="key">"identifier_value"</span>: <span class="string">"MAN-2024-001234"</span>,
+      <span class="key">"source_system"</span>: <span class="string">"EPA_MANIFEST"</span>
+    },
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"shipment_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"identifier_type"</span>: <span class="string">"PO_NUMBER"</span>,
+      <span class="key">"identifier_value"</span>: <span class="string">"PO-98765"</span>,
+      <span class="key">"source_system"</span>: <span class="string">"SAP"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Customers Section -->
+            <section id="customers" class="section">
+                <div class="section-header">
+                    <div class="section-icon">🏢</div>
+                    <div>
+                        <h2 class="section-title">Customers</h2>
+                        <p class="section-description">Customer/Client management endpoints</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/customers</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all customers/clients in the system.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"customers"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"name"</span>: <span class="string">"Customer Name"</span>,
+      <span class="key">"industry"</span>: <span class="string">"Manufacturing"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>,
+      <span class="key">"contact_person"</span>: <span class="string">"John Smith"</span>,
+      <span class="key">"phone"</span>: <span class="string">"(555) 123-4567"</span>,
+      <span class="key">"address_line1"</span>: <span class="string">"123 Main St"</span>,
+      <span class="key">"city"</span>: <span class="string">"Detroit"</span>,
+      <span class="key">"state"</span>: <span class="string">"MI"</span>,
+      <span class="key">"postal_code"</span>: <span class="string">"48201"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/customers/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve a single customer by ID.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/customers</span>
+                    </div>
+                    <p class="endpoint-description">Create a new customer record.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body Fields</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Customer/Company name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">industry</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Industry classification</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">contact_person</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Primary contact name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">phone</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Contact phone number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">address_line1</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Street address</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">city</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>City name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">state</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>State code (2 letters)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">postal_code</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>ZIP/Postal code</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/customers/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing customer record.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/customers/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a customer record (soft delete - marks as inactive).</p>
+                </div>
+            </section>
+
+            <!-- Sites Section -->
+            <section id="sites" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📍</div>
+                    <div>
+                        <h2 class="section-title">Sites</h2>
+                        <p class="section-description">Customer site/location management</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/sites</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all sites across all customers.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"sites"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"customer_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"name"</span>: <span class="string">"Main Manufacturing Plant"</span>,
+      <span class="key">"address_line1"</span>: <span class="string">"456 Industrial Blvd"</span>,
+      <span class="key">"city"</span>: <span class="string">"Cleveland"</span>,
+      <span class="key">"state"</span>: <span class="string">"OH"</span>,
+      <span class="key">"postal_code"</span>: <span class="string">"44101"</span>,
+      <span class="key">"region"</span>: <span class="string">"Midwest"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/sites/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve a single site by ID.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/sites/{id}/container-locations</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all container placement locations for a specific site.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"container_locations"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"site_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"location_name"</span>: <span class="string">"Loading Dock A"</span>,
+      <span class="key">"location_code"</span>: <span class="string">"LD-A"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/sites</span>
+                    </div>
+                    <p class="endpoint-description">Create a new site for a customer.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/sites/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing site record.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/sites/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a site (soft delete).</p>
+                </div>
+            </section>
+
+            <!-- Vendors Section -->
+            <section id="vendors" class="section">
+                <div class="section-header">
+                    <div class="section-icon">🤝</div>
+                    <div>
+                        <h2 class="section-title">Vendors</h2>
+                        <p class="section-description">Vendor qualification and management</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/vendors</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all vendors including qualification status and risk levels.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"vendors"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"name"</span>: <span class="string">"Waste Solutions Inc"</span>,
+      <span class="key">"vendor_type"</span>: <span class="string">"Disposal"</span>,
+      <span class="key">"city"</span>: <span class="string">"Chicago"</span>,
+      <span class="key">"state"</span>: <span class="string">"IL"</span>,
+      <span class="key">"phone"</span>: <span class="string">"(555) 987-6543"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>,
+      <span class="key">"vendor_code"</span>: <span class="string">"VND-001"</span>,
+      <span class="key">"completion_status"</span>: <span class="string">"Complete"</span>,
+      <span class="key">"dbe_flag"</span>: <span class="boolean">false</span>,
+      <span class="key">"commodities"</span>: [<span class="string">"Industrial Waste"</span>, <span class="string">"Hazardous"</span>],
+      <span class="key">"risk_level"</span>: <span class="string">"Level 3 - Low"</span>,
+      <span class="key">"vendor_status"</span>: <span class="string">"Active"</span>,
+      <span class="key">"expiration_date"</span>: <span class="string">"2025-12-31"</span>,
+      <span class="key">"reviewed_by"</span>: <span class="string">"Jane Doe"</span>,
+      <span class="key">"date_reviewed"</span>: <span class="string">"2024-01-15"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/vendors/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve a single vendor with full qualification details.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/vendors</span>
+                    </div>
+                    <p class="endpoint-description">Create a new vendor record.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/vendors/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update vendor information and qualification status.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/vendors/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a vendor record.</p>
+                </div>
+            </section>
+
+            <!-- Waste Types Section -->
+            <section id="waste-types" class="section">
+                <div class="section-header">
+                    <div class="section-icon">♻️</div>
+                    <div>
+                        <h2 class="section-title">Waste Types</h2>
+                        <p class="section-description">Waste classification and categorization</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/waste-types</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all waste type classifications.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"waste_types"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"name"</span>: <span class="string">"Industrial Waste - Non-Hazardous"</span>,
+      <span class="key">"hazardous_flag"</span>: <span class="boolean">false</span>,
+      <span class="key">"description"</span>: <span class="string">"General industrial solid waste"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>,
+      <span class="key">"waste_category"</span>: <span class="string">"Non Haz"</span>,
+      <span class="key">"default_treatment_method"</span>: <span class="string">"Landfill"</span>,
+      <span class="key">"default_waste_codes"</span>: <span class="string">"D001"</span>,
+      <span class="key">"default_source_code"</span>: <span class="string">"G61"</span>,
+      <span class="key">"default_form_code"</span>: <span class="string">"W001"</span>,
+      <span class="key">"default_treatment_code"</span>: <span class="string">"H040"</span>,
+      <span class="key">"default_ewc_number"</span>: <span class="string">"17 01 07"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-box-icon">📋</span>
+                    <div class="info-box-content">
+                        <strong>Waste Categories:</strong> Non Haz, Hazardous Waste, Recycling, C&D, E-Waste, Universal Waste, Special Waste, Medical, Liquid, Fuel, Alternative Reuse, Gas
+                    </div>
+                </div>
+            </section>
+
+            <!-- KPI & Analytics Section -->
+            <section id="kpi-analytics" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📊</div>
+                    <div>
+                        <h2 class="section-title">KPI & Analytics</h2>
+                        <p class="section-description">Performance metrics and business intelligence endpoints</p>
+                    </div>
+                </div>
+
+                <!-- Invoice Records -->
+                <div id="invoice-records" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/invoice-records</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve invoice records for financial KPI calculations (DSO, A/R aging, etc.).</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"invoice_records"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"client_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"invoice_date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"due_date"</span>: <span class="string">"2024-02-14"</span>,
+      <span class="key">"amount"</span>: <span class="number">15000.00</span>,
+      <span class="key">"paid_date"</span>: <span class="string">"2024-02-10"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collection Events -->
+                <div id="collection-events" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/collection-events</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve collection/pickup events for service performance metrics.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"collection_events"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"site_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"scheduled_date"</span>: <span class="string">"2024-01-20"</span>,
+      <span class="key">"actual_date"</span>: <span class="string">"2024-01-20"</span>,
+      <span class="key">"status"</span>: <span class="string">"completed"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📌</span>
+                        <div class="info-box-content">
+                            <strong>Status Values:</strong> completed, missed, late
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container Placements -->
+                <div id="container-placements" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/container-placements</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve container placement records for utilization metrics.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"container_placements"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"container_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"container_type"</span>: <span class="string">"40 Yard Roll-Off"</span>,
+      <span class="key">"site_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"placed_date"</span>: <span class="string">"2024-01-01"</span>,
+      <span class="key">"removed_date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"fill_percentage"</span>: <span class="number">85</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Facility Capacities -->
+                <div id="facility-capacities" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/facility-capacities</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve receiving facility capacity and utilization data.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"facility_capacities"</span>: [
+    {
+      <span class="key">"facility_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"facility_name"</span>: <span class="string">"Regional Landfill"</span>,
+      <span class="key">"monthly_capacity_tons"</span>: <span class="number">50000</span>,
+      <span class="key">"monthly_processed_tons"</span>: <span class="number">42500</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fuel Records -->
+                <div id="fuel-records" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/fuel-records</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve fuel consumption records for fleet efficiency metrics.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"fuel_records"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"vehicle_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"gallons"</span>: <span class="number">85.5</span>,
+      <span class="key">"cost"</span>: <span class="number">320.50</span>,
+      <span class="key">"odometer"</span>: <span class="number">125430</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Route Schedules -->
+                <div id="route-schedules" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/route-schedules</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve route scheduling data for route optimization metrics.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"route_schedules"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"route_name"</span>: <span class="string">"Route A-12"</span>,
+      <span class="key">"scheduled_date"</span>: <span class="string">"2024-01-20"</span>,
+      <span class="key">"planned_stops"</span>: <span class="number">15</span>,
+      <span class="key">"actual_stops"</span>: <span class="number">14</span>,
+      <span class="key">"status"</span>: <span class="string">"completed"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Truck Loads -->
+                <div id="truck-loads" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/truck-loads</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve truck load records for fleet utilization metrics.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"truck_loads"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"vehicle_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"weight_tons"</span>: <span class="number">12.5</span>,
+      <span class="key">"max_capacity_tons"</span>: <span class="number">15.0</span>,
+      <span class="key">"utilization_pct"</span>: <span class="number">83.3</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Safety Incidents -->
+                <div id="safety-incidents" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/safety-incidents</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve safety incident records for compliance and safety metrics.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"safety_incidents"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"date"</span>: <span class="string">"2024-01-10"</span>,
+      <span class="key">"type"</span>: <span class="string">"vehicle"</span>,
+      <span class="key">"severity"</span>: <span class="string">"minor"</span>,
+      <span class="key">"resolved"</span>: <span class="boolean">true</span>,
+      <span class="key">"site_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"description"</span>: <span class="string">"Minor vehicle backing incident"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">⚠️</span>
+                        <div class="info-box-content">
+                            <strong>Incident Types:</strong> vehicle, chemical, slip-fall, equipment, ergonomic<br>
+                            <strong>Severity Levels:</strong> minor, moderate, serious
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inspection Records -->
+                <div id="inspection-records" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/inspection-records</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve vehicle and equipment inspection records for compliance tracking.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"inspection_records"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"vehicle_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"inspection_date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"inspection_type"</span>: <span class="string">"pre-trip"</span>,
+      <span class="key">"passed"</span>: <span class="boolean">true</span>,
+      <span class="key">"inspector_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"notes"</span>: <span class="string">"All systems operational"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">🔍</span>
+                        <div class="info-box-content">
+                            <strong>Inspection Types:</strong> pre-trip, post-trip, annual, quarterly, DOT
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Verifications -->
+                <div id="service-verifications" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/service-verifications</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve service verification records for proof-of-service metrics.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"service_verifications"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"service_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"verification_date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"verification_type"</span>: <span class="string">"photo"</span>,
+      <span class="key">"verified"</span>: <span class="boolean">true</span>,
+      <span class="key">"driver_id"</span>: <span class="string">"uuid"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container Weight Records -->
+                <div id="container-weight-records" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/container-weight-records</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve container weight records for tonnage and diversion tracking.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"container_weight_records"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"container_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"weigh_date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"gross_weight_lbs"</span>: <span class="number">8500</span>,
+      <span class="key">"tare_weight_lbs"</span>: <span class="number">1200</span>,
+      <span class="key">"net_weight_lbs"</span>: <span class="number">7300</span>,
+      <span class="key">"waste_type_id"</span>: <span class="string">"uuid"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform User Activity -->
+                <div id="platform-user-activity" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/platform-user-activity</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve platform user activity data for adoption and engagement metrics.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"platform_user_activity"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"user_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"activity_date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"logins"</span>: <span class="number">3</span>,
+      <span class="key">"page_views"</span>: <span class="number">25</span>,
+      <span class="key">"actions"</span>: <span class="number">12</span>,
+      <span class="key">"session_minutes"</span>: <span class="number">45</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Surveys -->
+                <div id="customer-surveys" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/customer-surveys</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve customer satisfaction survey responses for CSAT, NPS calculations.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"customer_surveys"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"client_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"client_name"</span>: <span class="string">"Acme Corp"</span>,
+      <span class="key">"date"</span>: <span class="string">"2024-01-15"</span>,
+      <span class="key">"csat"</span>: <span class="number">4.5</span>,
+      <span class="key">"nps"</span>: <span class="number">9</span>,
+      <span class="key">"fcr_resolved"</span>: <span class="boolean">true</span>,
+      <span class="key">"response_time_hrs"</span>: <span class="number">2.5</span>,
+      <span class="key">"has_complaint"</span>: <span class="boolean">false</span>,
+      <span class="key">"complaint_category"</span>: <span class="null">null</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Endpoints -->
+                <div id="analytics" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/analytics/*</span>
+                    </div>
+                    <p class="endpoint-description">Aggregated analytics endpoints for dashboard KPIs.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Available Analytics Endpoints</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Endpoint</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">/analytics/client-industry-codes</span></td>
+                                    <td>Client distribution by industry classification</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">/analytics/safety-training</span></td>
+                                    <td>Safety training completion and compliance data</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">/analytics/route-progress</span></td>
+                                    <td>Route completion and efficiency metrics</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">/analytics/yard-turnaround</span></td>
+                                    <td>Yard turnaround time statistics</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">/analytics/service-agreement-rates</span></td>
+                                    <td>Service agreement pricing and rate analysis</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">/analytics/platform-monthly-events</span></td>
+                                    <td>Monthly platform activity and event counts</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">/analytics/feature-usage</span></td>
+                                    <td>Platform feature adoption and usage statistics</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reference Data Section -->
+            <section id="reference-data" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📋</div>
+                    <div>
+                        <h2 class="section-title">Reference Data</h2>
+                        <p class="section-description">System lookups and master data (read-only)</p>
+                    </div>
+                </div>
+
+                <div id="units" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/units</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all units of measure with conversion factors.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"units"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"unit_code"</span>: <span class="string">"LBS"</span>,
+      <span class="key">"unit_name"</span>: <span class="string">"Pounds"</span>,
+      <span class="key">"unit_family"</span>: <span class="string">"weight"</span>,
+      <span class="key">"conversion_to_lb_factor"</span>: <span class="number">1.0</span>,
+      <span class="key">"conversion_to_kg_factor"</span>: <span class="number">0.453592</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📏</span>
+                        <div class="info-box-content">
+                            <strong>Unit Families:</strong> weight, volume, count, container, service
+                        </div>
+                    </div>
+                </div>
+
+                <div id="container-types" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/container-types</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve available container types and specifications.</p>
+                </div>
+
+                <div id="treatment-methods" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/treatment-methods</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve waste treatment/disposal method options.</p>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">🏭</span>
+                        <div class="info-box-content">
+                            <strong>Treatment Methods:</strong> Landfill, Recycling, Incineration, Fuel Blending, Reuse, WWTP, MSW Landfill, HAZ Landfill, WTE
+                        </div>
+                    </div>
+                </div>
+
+                <div id="waste-codes" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/ewc-codes</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve European Waste Catalogue (EWC) codes.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/source-codes</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve waste source/generator codes.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/form-codes</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve EPA form codes for waste characterization.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/treatment-codes</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve EPA treatment codes.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/service-frequencies</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve service frequency options for scheduling.</p>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📅</span>
+                        <div class="info-box-content">
+                            <strong>Frequencies:</strong> On Call, 1x Week, 2x Week, 3x Week, 4x Week, 5x Week, Once a Month, Every 4 Weeks, Other
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Endpoints -->
+            <section id="audit-log" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📝</div>
+                    <div>
+                        <h2 class="section-title">Audit Log</h2>
+                        <p class="section-description">System activity and change tracking</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/audit-log</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve audit log entries for system activity tracking and compliance.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Query Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">date_from</span></td>
+                                    <td><span class="param-type">string (ISO date)</span></td>
+                                    <td>Filter entries from this date</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">date_to</span></td>
+                                    <td><span class="param-type">string (ISO date)</span></td>
+                                    <td>Filter entries up to this date</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">entity_type</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Filter by entity type (shipment, vendor, customer, etc.)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">action</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Filter by action type (create, update, delete)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"audit_log"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"created_at"</span>: <span class="string">"2024-01-15T10:30:00Z"</span>,
+      <span class="key">"created_by"</span>: <span class="string">"user-uuid"</span>,
+      <span class="key">"action"</span>: <span class="string">"update"</span>,
+      <span class="key">"entity_type"</span>: <span class="string">"shipment"</span>,
+      <span class="key">"entity_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"old_values"</span>: { <span class="key">"status"</span>: <span class="string">"pending"</span> },
+      <span class="key">"new_values"</span>: { <span class="key">"status"</span>: <span class="string">"submitted"</span> }
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users" class="section">
+                <div class="section-header">
+                    <div class="section-icon">👥</div>
+                    <div>
+                        <h2 class="section-title">Users</h2>
+                        <p class="section-description">User management and authentication</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/users</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all system users (admin only).</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"users"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"email"</span>: <span class="string">"user@example.com"</span>,
+      <span class="key">"display_name"</span>: <span class="string">"John Doe"</span>,
+      <span class="key">"role"</span>: <span class="string">"manager"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>,
+      <span class="key">"assigned_site_ids"</span>: [<span class="string">"uuid1"</span>, <span class="string">"uuid2"</span>]
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">🔒</span>
+                        <div class="info-box-content">
+                            <strong>User Roles:</strong> admin, manager, operator, viewer
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/users/profile</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve the current authenticated user's profile.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/users/profile</span>
+                    </div>
+                    <p class="endpoint-description">Update the current user's profile information.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/users/{userId}/sites</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve sites assigned to a specific user.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/roles</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve available user roles for assignment.</p>
+                </div>
+            </section>
+
+            <!-- Exports Section -->
+            <section id="exports" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📤</div>
+                    <div>
+                        <h2 class="section-title">Exports</h2>
+                        <p class="section-description">Data export and report generation</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/exports</span>
+                    </div>
+                    <p class="endpoint-description">Generate a new data export (async operation).</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Request Body</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"export_type"</span>: <span class="string">"shipments"</span>,
+  <span class="key">"format"</span>: <span class="string">"csv"</span>,
+  <span class="key">"filters"</span>: {
+    <span class="key">"date_from"</span>: <span class="string">"2024-01-01"</span>,
+    <span class="key">"date_to"</span>: <span class="string">"2024-01-31"</span>
+  }
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"export_id"</span>: <span class="string">"exp-uuid-12345"</span>
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/exports/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Check the status of an export and get download URL when complete.</p>
+                </div>
+            </section>
+
+            <!-- File Uploads Section -->
+            <section id="uploads" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📁</div>
+                    <div>
+                        <h2 class="section-title">File Uploads</h2>
+                        <p class="section-description">File upload handling with S3 pre-signed URLs</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/uploads/url</span>
+                    </div>
+                    <p class="endpoint-description">Get a pre-signed URL for uploading a file to S3.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Request Body</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"filename"</span>: <span class="string">"shipment-data.csv"</span>,
+  <span class="key">"content_type"</span>: <span class="string">"text/csv"</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"upload_url"</span>: <span class="string">"https://s3.amazonaws.com/..."</span>,
+  <span class="key">"file_key"</span>: <span class="string">"uploads/2024/01/abc123.csv"</span>
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/uploads/process</span>
+                    </div>
+                    <p class="endpoint-description">Trigger processing of an uploaded file.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Request Body</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"file_key"</span>: <span class="string">"uploads/2024/01/abc123.csv"</span>,
+  <span class="key">"file_type"</span>: <span class="string">"shipment_import"</span>
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/uploads/jobs/{jobId}</span>
+                    </div>
+                    <p class="endpoint-description">Check the status of a file processing job.</p>
+                </div>
+            </section>
+
+            <!-- Error Handling Section -->
+            <section id="error-handling" class="section">
+                <div class="section-header">
+                    <div class="section-icon">⚠️</div>
+                    <div>
+                        <h2 class="section-title">Error Handling</h2>
+                        <p class="section-description">API error responses and status codes</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="params-section">
+                        <div class="params-title">HTTP Status Codes</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Status</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="response-code success">200</span></td>
+                                    <td>OK</td>
+                                    <td>Request successful</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="response-code success">201</span></td>
+                                    <td>Created</td>
+                                    <td>Resource successfully created</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="response-code warning">400</span></td>
+                                    <td>Bad Request</td>
+                                    <td>Invalid request body or parameters</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="response-code error">401</span></td>
+                                    <td>Unauthorized</td>
+                                    <td>Missing or invalid authentication token</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="response-code error">403</span></td>
+                                    <td>Forbidden</td>
+                                    <td>Insufficient permissions for this action</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="response-code warning">404</span></td>
+                                    <td>Not Found</td>
+                                    <td>Requested resource does not exist</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="response-code warning">409</span></td>
+                                    <td>Conflict</td>
+                                    <td>Resource conflict (e.g., duplicate entry)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="response-code error">500</span></td>
+                                    <td>Server Error</td>
+                                    <td>Internal server error</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Error Response Format</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"error"</span>: {
+    <span class="key">"code"</span>: <span class="string">"VALIDATION_ERROR"</span>,
+    <span class="key">"message"</span>: <span class="string">"The request body contains invalid data"</span>,
+    <span class="key">"details"</span>: [
+      {
+        <span class="key">"field"</span>: <span class="string">"shipment_date"</span>,
+        <span class="key">"message"</span>: <span class="string">"Must be a valid ISO date format"</span>
+      }
+    ]
+  }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p><strong>MPS Waste Management Platform</strong> - API Documentation v1.0</p>
+            <p style="margin-top: 8px;">Last updated: January 2024 | For support, contact the development team</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Active navigation state
+        const navItems = document.querySelectorAll('.nav-item');
+        const sections = document.querySelectorAll('section[id]');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === '#' + current) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -18,12 +18,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getWasteTypes,
-  createWasteType,
-  updateWasteType,
-  deleteWasteType,
-} from "@/lib/mock-data";
+import { wasteTypesApi } from "@/lib/api-client";
+import { useWasteTypes } from "@/lib/hooks/use-api-data";
 import {
   SOURCE_CODES,
   FORM_CODES,
@@ -178,7 +174,7 @@ function WasteTypeForm({
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = "Name is required";
     if (Object.keys(errs).length > 0) {
@@ -200,16 +196,27 @@ function WasteTypeForm({
       active,
     };
 
-    if (item) {
-      updateWasteType(item.id, data);
-      toast.success("Waste type updated");
-    } else {
-      createWasteType(data);
-      toast.success("Waste type created");
+    try {
+      if (item) {
+        const result = await wasteTypesApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update", { description: result.error });
+          return;
+        }
+        toast.success("Waste type updated");
+      } else {
+        const result = await wasteTypesApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create", { description: result.error });
+          return;
+        }
+        toast.success("Waste type created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("Operation failed");
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -380,11 +387,11 @@ function WasteTypeForm({
 /* ─── Page ─── */
 
 export default function WasteTypesPage() {
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("");
 
-  const allData = React.useMemo(() => getWasteTypes(), [refreshKey]);
+  // Fetch data from API
+  const { wasteTypes: allData, refetch } = useWasteTypes();
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -406,13 +413,21 @@ export default function WasteTypesPage() {
   }, [allData, search, categoryFilter]);
 
   function refresh() {
-    setRefreshKey((k) => k + 1);
+    refetch();
   }
 
-  function handleDelete(item: WasteType) {
-    deleteWasteType(item.id);
-    toast.success("Waste type deleted");
-    refresh();
+  async function handleDelete(item: WasteType) {
+    try {
+      const result = await wasteTypesApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete", { description: result.error });
+        return;
+      }
+      toast.success("Waste type deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete waste type");
+    }
   }
 
   return (

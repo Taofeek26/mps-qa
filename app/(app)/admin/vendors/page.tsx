@@ -20,12 +20,8 @@ import {
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getVendors,
-  createVendor,
-  updateVendor,
-  deleteVendor,
-} from "@/lib/mock-data";
+import { vendorsApi } from "@/lib/api-client";
+import { useVendors } from "@/lib/hooks/use-api-data";
 import type { Vendor, VendorRiskLevel, VendorCompletionStatus, VendorQualStatus } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
@@ -183,8 +179,10 @@ function VendorForm({
   const [expirationDate, setExpirationDate] = React.useState(item?.expirationDate ?? "");
   const [reviewedBy, setReviewedBy] = React.useState(item?.reviewedBy ?? "");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
+    if (saving) return;
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = "Name is required";
     if (!vendorType) errs.vendorType = "Type is required";
@@ -195,34 +193,48 @@ function VendorForm({
 
     const commodities = [commodity1, commodity2].filter(Boolean);
     const data = {
-      name: name.trim(),
-      vendorType,
+      vendor_name: name.trim(),
+      vendor_type: vendorType,
       city: city.trim() || undefined,
       state: state.trim() || undefined,
       phone: phone.trim() || undefined,
-      active,
-      dbeFlag: dbe,
-      riskLevel: (riskLevel || undefined) as VendorRiskLevel | undefined,
-      vendorStatus: (qualificationStatus || undefined) as VendorQualStatus | undefined,
-      completionStatus: (completionStatus || undefined) as VendorCompletionStatus | undefined,
+      is_active: active,
+      dbe_flag: dbe,
+      risk_level: (riskLevel || undefined) as VendorRiskLevel | undefined,
+      vendor_status: (qualificationStatus || undefined) as VendorQualStatus | undefined,
+      completion_status: (completionStatus || undefined) as VendorCompletionStatus | undefined,
       commodities: commodities.length > 0 ? commodities : undefined,
-      supplierForm: supplierForm.trim() || undefined,
-      dateEntered: dateEntered || undefined,
-      dateReviewed: dateReviewed || undefined,
-      expirationDate: expirationDate || undefined,
-      reviewedBy: reviewedBy.trim() || undefined,
+      supplier_form: supplierForm.trim() || undefined,
+      date_entered: dateEntered || undefined,
+      date_reviewed: dateReviewed || undefined,
+      expiration_date: expirationDate || undefined,
+      reviewed_by: reviewedBy.trim() || undefined,
     };
 
-    if (item) {
-      updateVendor(item.id, data);
-      toast.success("Vendor updated");
-    } else {
-      createVendor(data);
-      toast.success("Vendor created");
+    setSaving(true);
+    try {
+      if (item) {
+        const result = await vendorsApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update", { description: result.error });
+          return;
+        }
+        toast.success("Vendor updated");
+      } else {
+        const result = await vendorsApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create", { description: result.error });
+          return;
+        }
+        toast.success("Vendor created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("Operation failed");
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -402,11 +414,11 @@ function VendorForm({
       </FormField>
 
       <div className="flex justify-end gap-2 pt-4 border-t border-border-default">
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>
-          {item ? "Save Changes" : "Create Vendor"}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : item ? "Save Changes" : "Create Vendor"}
         </Button>
       </div>
     </div>
@@ -433,13 +445,13 @@ function VendorsContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [riskFilter, setRiskFilter] = React.useState("");
 
-  const allData = React.useMemo(() => getVendors(), [refreshKey]);
+  // Fetch vendors from API
+  const { vendors: allData, loading, refetch } = useVendors();
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -487,13 +499,21 @@ function VendorsContent() {
   }
 
   function refresh() {
-    setRefreshKey((k) => k + 1);
+    refetch();
   }
 
-  function handleDelete(item: Vendor) {
-    deleteVendor(item.id);
-    toast.success("Vendor deleted");
-    refresh();
+  async function handleDelete(item: Vendor) {
+    try {
+      const result = await vendorsApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete", { description: result.error });
+        return;
+      }
+      toast.success("Vendor deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete vendor");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -590,6 +610,7 @@ function VendorsContent() {
       emptyIcon={<Building2 className="h-10 w-10" />}
       emptyTitle="No vendors found"
       emptyDescription="Add your first vendor to get started."
+      loading={loading}
       formContent={({ item, onClose }) => (
         <VendorForm item={item} onClose={onClose} onSaved={refresh} />
       )}

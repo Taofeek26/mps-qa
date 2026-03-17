@@ -6,58 +6,36 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { TextInput } from "@/components/ui/text-input";
 import { useAuth } from "@/lib/auth-context";
-import { getUsers } from "@/lib/mock-data";
-import type { User } from "@/lib/types";
-
-function MicrosoftIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 21 21"
-      className={className}
-      aria-hidden="true"
-    >
-      <rect x="1" y="1" width="9" height="9" fill="#f25022" />
-      <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
-      <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
-      <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
-    </svg>
-  );
-}
-
-const ROLE_LABELS: Record<string, string> = {
-  system_admin: "System Admin",
-  admin: "Admin",
-  site_user: "Site User",
-};
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUser } = useAuth();
-  const [loading, setLoading] = React.useState(false);
+  const { signInWithCredentials, loading, error, user } = useAuth();
+  const [email, setEmail] = React.useState("testadmin@mps.com");
+  const [password, setPassword] = React.useState("Password123");
+  const [localError, setLocalError] = React.useState<string | null>(null);
 
-  const activeUsers = React.useMemo(
-    () => getUsers().filter((u) => u.active),
-    []
-  );
-  const [selectedUserId, setSelectedUserId] = React.useState("usr-1");
-
-  function handleSignIn() {
-    const user = activeUsers.find((u) => u.id === selectedUserId);
-    if (!user) return;
-    setLoading(true);
-    setTimeout(() => {
-      setUser(user);
+  // Redirect if already logged in
+  React.useEffect(() => {
+    if (user) {
       router.push("/dashboard");
-    }, 1000);
+    }
+  }, [user, router]);
+
+  async function handleSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    setLocalError(null);
+
+    if (!email || !password) {
+      setLocalError("Please enter email and password");
+      return;
+    }
+
+    const success = await signInWithCredentials(email, password);
+    if (success) {
+      router.push("/dashboard");
+    }
   }
 
   return (
@@ -77,44 +55,62 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text-primary">
-              Sign in as
-            </label>
-            <Select
-              value={selectedUserId}
-              onValueChange={setSelectedUserId}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select user" />
-              </SelectTrigger>
-              <SelectContent>
-                {activeUsers.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.displayName} ({ROLE_LABELS[u.role] ?? u.role})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div className="space-y-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-text-primary"
+              >
+                Email
+              </label>
+              <TextInput
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                autoComplete="email"
+              />
+            </div>
 
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleSignIn}
-            loading={loading}
-          >
-            <MicrosoftIcon className="h-4 w-4" />
-            Sign in with Microsoft
-          </Button>
+            <div className="space-y-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-text-primary"
+              >
+                Password
+              </label>
+              <TextInput
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                autoComplete="current-password"
+              />
+            </div>
+
+            {(error || localError) && (
+              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+                {error || localError}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={loading}
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
+          </form>
 
           <div className="border-t border-border-default pt-5 space-y-1.5">
-            <p className="text-xs text-text-muted">
-              MPS Platform v1.0
-            </p>
-            <p className="text-xs text-text-muted/80">
-              Powered by MPS Group
-            </p>
+            <p className="text-xs text-text-muted">MPS Platform v1.0 (QA)</p>
+            <p className="text-xs text-text-muted/80">Powered by MPS Group</p>
             <p className="text-xs text-text-muted/80">
               Designed and built by{" "}
               <Link

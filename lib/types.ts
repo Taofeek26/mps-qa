@@ -6,7 +6,7 @@
 
 export type WeightUnit = "lbs" | "tons" | "kg";
 export type VolumeUnit = "gal" | "L" | "m3";
-export type UserRole = "site_user" | "admin" | "system_admin";
+export type UserRole = "admin" | "manager" | "operator" | "viewer";
 export type ShipmentStatus = "submitted" | "pending" | "void";
 
 export type WasteCategory =

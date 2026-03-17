@@ -18,12 +18,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getWasteTypes,
-  createWasteType,
-  updateWasteType,
-  deleteWasteType,
-} from "@/lib/mock-data";
+import { wasteTypesApi } from "@/lib/api-client";
+import { useWasteTypes } from "@/lib/hooks/use-api-data";
 import {
   SOURCE_CODES,
   FORM_CODES,
@@ -177,8 +173,9 @@ function WasteTypeForm({
   );
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = "Name is required";
     if (Object.keys(errs).length > 0) {
@@ -188,28 +185,40 @@ function WasteTypeForm({
 
     const data = {
       name: name.trim(),
-      hazardousFlag: hazardous,
+      hazardous_flag: hazardous,
       description: description.trim() || undefined,
-      wasteCategory: wasteCategory || undefined,
-      defaultTreatmentMethod: defaultTreatmentMethod || undefined,
-      defaultWasteCodes: wasteCodes.trim() || undefined,
-      defaultSourceCode: sourceCode || undefined,
-      defaultFormCode: formCode || undefined,
-      defaultTreatmentCode: treatmentCode || undefined,
-      defaultEwcNumber: ewcNumber.trim() || undefined,
-      active,
+      waste_category: wasteCategory || undefined,
+      default_treatment_method: defaultTreatmentMethod || undefined,
+      default_waste_codes: wasteCodes.trim() || undefined,
+      default_source_code: sourceCode || undefined,
+      default_form_code: formCode || undefined,
+      default_treatment_code: treatmentCode || undefined,
+      default_ewc_number: ewcNumber.trim() || undefined,
+      is_active: active,
     };
 
-    if (item) {
-      updateWasteType(item.id, data);
-      toast.success("Waste type updated");
-    } else {
-      createWasteType(data);
-      toast.success("Waste type created");
+    setSaving(true);
+    try {
+      if (item) {
+        const result = await wasteTypesApi.update(item.id, data);
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Waste type updated");
+      } else {
+        const result = await wasteTypesApi.create(data);
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Waste type created");
+      }
+      onSaved();
+      onClose();
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -380,11 +389,9 @@ function WasteTypeForm({
 /* ─── Content ─── */
 
 export function WasteTypesContent() {
-  const [refreshKey, setRefreshKey] = React.useState(0);
+  const { wasteTypes: allData, refetch } = useWasteTypes();
   const [search, setSearch] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("");
-
-  const allData = React.useMemo(() => getWasteTypes(), [refreshKey]);
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -405,14 +412,14 @@ export function WasteTypesContent() {
     return result;
   }, [allData, search, categoryFilter]);
 
-  function refresh() {
-    setRefreshKey((k) => k + 1);
-  }
-
-  function handleDelete(item: WasteType) {
-    deleteWasteType(item.id);
+  async function handleDelete(item: WasteType) {
+    const result = await wasteTypesApi.delete(item.id);
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
     toast.success("Waste type deleted");
-    refresh();
+    refetch();
   }
 
   return (
@@ -455,7 +462,7 @@ export function WasteTypesContent() {
       emptyTitle="No waste types found"
       emptyDescription="Add your first waste type to get started."
       formContent={({ item, onClose }) => (
-        <WasteTypeForm item={item} onClose={onClose} onSaved={refresh} />
+        <WasteTypeForm item={item} onClose={onClose} onSaved={refetch} />
       )}
     />
   );

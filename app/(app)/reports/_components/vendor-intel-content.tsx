@@ -37,8 +37,7 @@ import {
   Cell,
 } from "recharts";
 import { ChartContainer, CATEGORY_COLORS, CHART_COLORS, TOOLTIP_STYLE, DonutChart, ProgressList } from "@/components/charts";
-import { getVendors } from "@/lib/mock-data";
-import { getServiceVerifications, getRouteSchedules } from "@/lib/mock-kpi-data";
+import { useVendors, useServiceVerifications, useRouteSchedules } from "@/lib/hooks/use-api-data";
 import { totalMpsCost, downloadCsv } from "@/lib/report-utils";
 import { cn } from "@/lib/utils";
 import type { Vendor } from "@/lib/types";
@@ -65,7 +64,9 @@ export function VendorIntelContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const vendors = React.useMemo(() => getVendors(), []);
+  const { vendors } = useVendors();
+  const { serviceVerifications } = useServiceVerifications();
+  const { routeSchedules } = useRouteSchedules();
   const [compliancePage, setCompliancePage] = React.useState(1);
 
   /* ── Vendor-to-shipment mapping (uses filtered shipments) ── */
@@ -308,8 +309,6 @@ export function VendorIntelContent() {
   };
 
   /* ── Service Quality KPIs (new) ── */
-  const serviceVerifications = React.useMemo(() => getServiceVerifications(), []);
-  const routeSchedules = React.useMemo(() => getRouteSchedules(), []);
 
   const verificationRate = React.useMemo(() => {
     if (serviceVerifications.length === 0) return 100;

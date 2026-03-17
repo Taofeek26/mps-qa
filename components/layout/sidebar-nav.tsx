@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, ChevronDown, LogOut, User } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS, type NavItem } from "@/lib/navigation";
@@ -30,7 +30,7 @@ function filterItems(items: NavItem[], userRole?: string): NavItem[] {
 export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, signOutUser } = useAuth();
   const navRef = React.useRef<HTMLElement>(null);
   const itemRefs = React.useRef<Map<string, HTMLAnchorElement>>(new Map());
   const [indicator, setIndicator] = React.useState<{
@@ -257,6 +257,54 @@ export function SidebarNav({ collapsed, onToggleCollapse }: SidebarNavProps) {
           </div>
         ))}
       </nav>
+
+      {/* User section */}
+      {user && (
+        <div className={cn(
+          "shrink-0 border-t border-border-default",
+          collapsed ? "p-2" : "p-3"
+        )}>
+          {collapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={signOutUser}
+                  className="flex items-center justify-center w-full h-9 rounded-md text-text-muted hover:text-red-600 hover:bg-red-50 transition-colors duration-150 ease-out cursor-pointer"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={8}>
+                Sign out ({user.email})
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 px-2">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-600">
+                  <User className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-text-primary truncate">
+                    {user.displayName}
+                  </p>
+                  <p className="text-xs text-text-muted truncate">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={signOutUser}
+                className="flex items-center gap-2 w-full px-2 h-9 rounded-md text-text-muted hover:text-red-600 hover:bg-red-50 transition-colors duration-150 ease-out cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="text-xs font-medium">Sign out</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Collapse toggle */}
       <div className="shrink-0 p-3">

@@ -56,14 +56,7 @@ import {
   ParetoChart,
   TimelineHeatmap,
 } from "@/components/charts";
-import {
-  getShipments,
-  getAllShipments,
-  getSites,
-  getClients,
-  getVendors,
-  getAuditLog,
-} from "@/lib/mock-data";
+import { useDashboardData, useAuditLog } from "@/lib/hooks/use-api-data";
 import { useAuth } from "@/lib/auth-context";
 import type { Shipment, ShipmentStatus, AuditLogEntry } from "@/lib/types";
 
@@ -142,7 +135,7 @@ const recentShipmentColumns: ColumnDef<Shipment, unknown>[] = [
     header: "Weight",
     size: 100,
     cell: ({ row }) => (
-      <span>{row.original.weightValue.toLocaleString()} lbs</span>
+      <span>{(row.original.weightValue ?? 0).toLocaleString()} lbs</span>
     ),
   },
   {
@@ -195,12 +188,14 @@ function RegionalChart({ data }: { data: { state: string; revenue: number; cost:
 /* ─── Activity Feed Item ─── */
 
 function ActivityItem({ entry }: { entry: AuditLogEntry }) {
-  const initials = entry.actor.name
+  const actorName = entry.actor?.name ?? "Unknown";
+  const initials = actorName
     .split(" ")
-    .map((n) => n[0])
+    .map((n) => n[0] ?? "")
     .join("")
     .slice(0, 2)
-    .toUpperCase();
+    .toUpperCase() || "??";
+
 
   const timeAgo = getRelativeTime(entry.timestamp);
 
@@ -236,7 +231,8 @@ function getRelativeTime(timestamp: string): string {
 
 /* ─── Data Aggregation Helpers ─── */
 
-function getMonthKey(dateStr: string): string {
+function getMonthKey(dateStr: string | undefined | null): string {
+  if (!dateStr) return "unknown";
   return dateStr.slice(0, 7);
 }
 
@@ -276,6 +272,7 @@ function computeTotalCustomerCost(s: Shipment): number {
 function filterByDateRange(shipments: Shipment[], from?: Date, to?: Date): Shipment[] {
   if (!from) return shipments;
   return shipments.filter((s) => {
+    if (!s.shipmentDate) return false;
     const d = new Date(s.shipmentDate + "T00:00:00");
     if (from && d < from) return false;
     if (to && d > to) return false;
@@ -287,64 +284,59 @@ function filterByDateRange(shipments: Shipment[], from?: Date, to?: Date): Shipm
 
 export default function DashboardPage() {
   const { user, hasRole } = useAuth();
-  const isSiteUser = user?.role === "site_user";
+  const isLimitedRole = user?.role !== "admin";
   const assignedSiteIds = user?.assignedSiteIds;
 
   const [selectedClientId, setSelectedClientId] = React.useState<string>("");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
   const [regionalOpen, setRegionalOpen] = React.useState(false);
 
-  const siteFilter = React.useMemo(() => {
-    const f: { siteIds?: string[]; clientIds?: string[] } = {};
-    if (isSiteUser && assignedSiteIds) {
-      f.siteIds = assignedSiteIds;
+  // Fetch data from API
+  const { shipments: allShipmentsRaw, sites: allSites, clients, vendors, loading: dataLoading } = useDashboardData();
+  const { logs: auditLogs } = useAuditLog();
+
+  // Filter shipments based on site access and client selection
+  const filteredShipmentsRaw = React.useMemo(() => {
+    let filtered = allShipmentsRaw;
+    if (isLimitedRole && assignedSiteIds) {
+      filtered = filtered.filter((s) => assignedSiteIds.includes(s.siteId));
     }
     if (selectedClientId) {
-      f.clientIds = [selectedClientId];
+      filtered = filtered.filter((s) => s.clientId === selectedClientId);
     }
-    return Object.keys(f).length > 0 ? f : undefined;
-  }, [isSiteUser, assignedSiteIds, selectedClientId]);
-
-  // All shipments (unfiltered by date — used for prior-period comparison)
-  const allShipmentsRaw = React.useMemo(
-    () => getAllShipments(siteFilter),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user?.id, selectedClientId]
-  );
+    return filtered;
+  }, [allShipmentsRaw, isLimitedRole, assignedSiteIds, selectedClientId]);
 
   // Current-period shipments (filtered by date range)
   const allShipments = React.useMemo(
-    () => filterByDateRange(allShipmentsRaw, dateRange?.from, dateRange?.to),
-    [allShipmentsRaw, dateRange?.from, dateRange?.to]
+    () => filterByDateRange(filteredShipmentsRaw, dateRange?.from, dateRange?.to),
+    [filteredShipmentsRaw, dateRange?.from, dateRange?.to]
   );
 
-
-  const clients = React.useMemo(() => getClients(), []);
-  const vendors = React.useMemo(() => getVendors(), []);
+  // Filter sites based on access
   const sites = React.useMemo(() => {
-    const all = getSites();
-    if (isSiteUser && assignedSiteIds) {
-      return all.filter((s) => assignedSiteIds.includes(s.id));
+    if (isLimitedRole && assignedSiteIds) {
+      return allSites.filter((s) => assignedSiteIds.includes(s.id));
     }
     if (selectedClientId) {
-      return all.filter((s) => s.clientId === selectedClientId);
+      return allSites.filter((s) => s.clientId === selectedClientId);
     }
-    return all;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, selectedClientId]);
+    return allSites;
+  }, [allSites, isLimitedRole, assignedSiteIds, selectedClientId]);
 
-  const recentShipments = React.useMemo(
-    () =>
-      getShipments(siteFilter, 1, 10, {
-        field: "shipmentDate",
-        direction: "desc",
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user?.id, selectedClientId]
-  );
+  // Recent shipments (sorted by date, limited to 10)
+  const recentShipments = React.useMemo(() => {
+    const sorted = [...filteredShipmentsRaw]
+      .filter((s) => s.shipmentDate) // Filter out shipments without dates for sorting
+      .sort(
+        (a, b) => new Date(b.shipmentDate).getTime() - new Date(a.shipmentDate).getTime()
+      );
+    return { data: sorted.slice(0, 10), total: filteredShipmentsRaw.length, page: 1, pageSize: 10 };
+  }, [filteredShipmentsRaw]);
+
   const recentActivity = React.useMemo(
-    () => getAuditLog(undefined, 1, 10),
-    []
+    () => ({ data: auditLogs.slice(0, 10), total: auditLogs.length, page: 1, pageSize: 10 }),
+    [auditLogs]
   );
 
   /* ─── KPI Computations (current period) ─── */
@@ -382,6 +374,8 @@ export default function DashboardPage() {
     >();
 
     allShipments.forEach((s) => {
+      // Skip shipments without a valid date
+      if (!s.shipmentDate) return;
       const key = getMonthKey(s.shipmentDate);
       const existing = byMonth.get(key) || {
         volume: 0,
@@ -389,7 +383,7 @@ export default function DashboardPage() {
         custCost: 0,
         shipments: 0,
       };
-      existing.volume += s.weightValue;
+      existing.volume += s.weightValue ?? 0;
       existing.mpsCost += computeTotalMpsCost(s);
       existing.custCost += computeTotalCustomerCost(s);
       existing.shipments += 1;
@@ -508,7 +502,7 @@ export default function DashboardPage() {
       .sort((a, b) => b.revenue - a.revenue);
   }, [allShipments, sites]);
 
-  const canViewAuditLog = hasRole(["admin", "system_admin"]);
+  const canViewAuditLog = hasRole(["admin", "manager"]);
 
   const hasData = allShipments.length > 0;
 
@@ -524,7 +518,7 @@ export default function DashboardPage() {
           placeholder="All time"
           className="w-full sm:w-[220px]"
         />
-        {!isSiteUser && (
+        {!isLimitedRole && (
           <Select
             value={selectedClientId || "all"}
             onValueChange={(val) =>

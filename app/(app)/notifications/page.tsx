@@ -3,8 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { MobileBackButton } from "@/components/ui/mobile-back-button";
-import { getAuditLog } from "@/lib/mock-data";
-import type { AuditLogEntry } from "@/lib/types";
+import { useAuditLog } from "@/lib/hooks/use-api-data";
 
 function getRelativeTime(timestamp: string): string {
   const now = new Date();
@@ -22,10 +21,8 @@ function getRelativeTime(timestamp: string): string {
 }
 
 export default function NotificationsPage() {
-  const [entries] = React.useState<AuditLogEntry[]>(() => {
-    const result = getAuditLog(undefined, 1, 20);
-    return result.data;
-  });
+  const { logs: entries } = useAuditLog();
+  const displayEntries = entries.slice(0, 20);
 
   const unreadCount = 5;
 
@@ -43,8 +40,8 @@ export default function NotificationsPage() {
 
       {/* Notification list */}
       <div className="-mx-4 bg-bg-card">
-        {entries.length > 0 ? (
-          entries.map((entry, idx) => {
+        {displayEntries.length > 0 ? (
+          displayEntries.map((entry, idx) => {
             const initials = entry.actor.name
               .split(" ")
               .map((n) => n[0])
@@ -52,7 +49,7 @@ export default function NotificationsPage() {
               .slice(0, 2)
               .toUpperCase();
 
-            const isLast = idx === entries.length - 1;
+            const isLast = idx === displayEntries.length - 1;
 
             return (
               <div

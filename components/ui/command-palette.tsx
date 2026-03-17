@@ -20,6 +20,14 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { buildAllSearchItems, COLOR_CLASSES, type SearchItem, type SearchItemColor } from "@/lib/search-items";
 import { NAV_GROUPS } from "@/lib/navigation";
+import {
+  useShipments,
+  useClients,
+  useSites,
+  useVendors,
+  useWasteTypes,
+  useUsers,
+} from "@/lib/hooks/use-api-data";
 
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = React.useState(false);
@@ -98,9 +106,24 @@ export function CommandPalette() {
   const router = useRouter();
   const { user } = useAuth();
 
+  // Load search data from API
+  const { shipments } = useShipments();
+  const { clients } = useClients();
+  const { sites } = useSites();
+  const { vendors } = useVendors();
+  const { wasteTypes } = useWasteTypes();
+  const { users } = useUsers();
+
   const allItems = React.useMemo(
-    () => buildAllSearchItems(user?.role),
-    [user?.role]
+    () => buildAllSearchItems(user?.role, {
+      shipments,
+      clients,
+      sites,
+      vendors,
+      wasteTypes,
+      users,
+    }),
+    [user?.role, shipments, clients, sites, vendors, wasteTypes, users]
   );
 
   // Quick links: main nav pages only (not admin, not reports tabs)
@@ -125,10 +148,10 @@ export function CommandPalette() {
     return counts;
   }, [allItems]);
 
-  const isMac = React.useMemo(
-    () => typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent),
-    []
-  );
+  const [isMac, setIsMac] = React.useState(false);
+  React.useEffect(() => {
+    setIsMac(/Mac|iPod|iPhone|iPad/.test(navigator.userAgent));
+  }, []);
 
   React.useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {

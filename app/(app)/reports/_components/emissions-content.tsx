@@ -36,8 +36,8 @@ import {
   TOOLTIP_STYLE,
 } from "@/components/charts";
 import { getMonthKey, formatMonthLabel, downloadCsv } from "@/lib/report-utils";
+import { useContainerWeightRecords } from "@/lib/hooks/use-api-data";
 import {
-  getContainerWeightRecords,
   ROUTE_PROGRESS_DATA,
   YARD_TURNAROUND_DATA,
   SERVICE_AGREEMENT_RATES,
@@ -79,6 +79,8 @@ export function EmissionsContent() {
     resetFilters,
     shipments,
   } = useReportFilters();
+
+  const { containerWeightRecords: containerWeights } = useContainerWeightRecords();
 
   const hasData = shipments.length > 0;
 
@@ -179,7 +181,6 @@ export function EmissionsContent() {
   }, [shipments]);
 
   /* Container Weight Records */
-  const containerWeights = React.useMemo(() => getContainerWeightRecords(), []);
   const totalDeductionWeight = React.useMemo(
     () => containerWeights.reduce((sum, cw) => sum + cw.tareWeightLbs, 0),
     [containerWeights]

@@ -2,24 +2,25 @@
 
 import { User, Mail, Shield, Building2, MapPin } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useSites } from "@/lib/hooks/use-api-data";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getSites } from "@/lib/mock-data";
 
 const ROLE_LABELS: Record<string, string> = {
-  system_admin: "System Admin",
-  admin: "Admin",
-  site_user: "Site User",
+  admin: "Administrator",
+  manager: "Manager",
+  operator: "Operator",
+  viewer: "Viewer",
 };
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const { sites: allSites } = useSites();
 
   if (!user) return null;
 
-  const allSites = getSites();
   const assignedSites =
-    user.role === "admin" || user.role === "system_admin"
+    user.role === "admin"
       ? allSites
       : allSites.filter((s) => user.assignedSiteIds?.includes(s.id));
 

@@ -19,32 +19,30 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 import { CrudTable } from "@/components/patterns/crud-table";
-import {
-  getUsers,
-  getSites,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "@/lib/mock-data";
+import { usersApi } from "@/lib/api-client";
+import { useUsers, useSites } from "@/lib/hooks/use-api-data";
 import type { User, UserRole } from "@/lib/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 const ROLES: { value: UserRole; label: string }[] = [
-  { value: "site_user", label: "Site User" },
-  { value: "admin", label: "Admin" },
-  { value: "system_admin", label: "System Admin" },
+  { value: "admin", label: "Administrator" },
+  { value: "manager", label: "Manager" },
+  { value: "operator", label: "Operator" },
+  { value: "viewer", label: "Viewer" },
 ];
 
 const roleBadgeVariant: Record<UserRole, BadgeVariant> = {
-  system_admin: "error",
-  admin: "warning",
-  site_user: "info",
+  admin: "error",
+  manager: "warning",
+  operator: "info",
+  viewer: "neutral",
 };
 
 const roleLabel: Record<UserRole, string> = {
-  system_admin: "System Admin",
-  admin: "Admin",
-  site_user: "Site User",
+  admin: "Administrator",
+  manager: "Manager",
+  operator: "Operator",
+  viewer: "Viewer",
 };
 
 /* ─── Page ─── */
@@ -67,12 +65,13 @@ function UsersContent() {
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
 
-  const [refreshKey, setRefreshKey] = React.useState(0);
   const [search, setSearch] = React.useState("");
   const [roleFilter, setRoleFilter] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
 
-  const sites = React.useMemo(() => getSites(), [refreshKey]);
+  // Fetch data from API
+  const { users: allData, refetch } = useUsers();
+  const { sites } = useSites();
   const siteMap = React.useMemo(
     () => new Map(sites.map((s) => [s.id, s.name])),
     [sites]
@@ -175,7 +174,7 @@ function UsersContent() {
     [siteMap]
   );
 
-  const allData = React.useMemo(() => getUsers(), [refreshKey]);
+  // allData is from useUsers() hook above
 
   const filtered = React.useMemo(() => {
     let result = allData;
@@ -220,13 +219,21 @@ function UsersContent() {
   }
 
   function refresh() {
-    setRefreshKey((k) => k + 1);
+    refetch();
   }
 
-  function handleDelete(item: User) {
-    deleteUser(item.id);
-    toast.success("User deleted");
-    refresh();
+  async function handleDelete(item: User) {
+    try {
+      const result = await usersApi.delete(item.id);
+      if (result.error) {
+        toast.error("Failed to delete", { description: result.error });
+        return;
+      }
+      toast.success("User deleted");
+      refetch();
+    } catch {
+      toast.error("Failed to delete user");
+    }
   }
 
   function handleSearchChange(value: string) {
@@ -338,7 +345,7 @@ function UserForm({
   const [active, setActive] = React.useState(item?.active ?? true);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
-  function handleSave() {
+  async function handleSave() {
     const errs: Record<string, string> = {};
     if (!email.trim()) errs.email = "Email is required";
     if (!displayName.trim()) errs.displayName = "Display name is required";
@@ -348,24 +355,35 @@ function UserForm({
       return;
     }
 
-    const data: Omit<User, "id"> = {
+    const data = {
       email: email.trim(),
-      displayName: displayName.trim(),
+      name: displayName.trim(),
       role: role as UserRole,
-      active,
-      assignedSiteIds: role === "site_user" ? assignedSiteIds : undefined,
+      is_active: active,
+      assigned_site_ids: role !== "admin" ? assignedSiteIds : undefined,
     };
 
-    if (item) {
-      updateUser(item.id, data);
-      toast.success("User updated");
-    } else {
-      createUser(data);
-      toast.success("User created");
+    try {
+      if (item) {
+        const result = await usersApi.update(item.id, data);
+        if (result.error) {
+          toast.error("Failed to update", { description: result.error });
+          return;
+        }
+        toast.success("User updated");
+      } else {
+        const result = await usersApi.create(data);
+        if (result.error) {
+          toast.error("Failed to create", { description: result.error });
+          return;
+        }
+        toast.success("User created");
+      }
+      onSaved();
+      onClose();
+    } catch {
+      toast.error("Operation failed");
     }
-
-    onSaved();
-    onClose();
   }
 
   return (
@@ -404,7 +422,7 @@ function UserForm({
         </Select>
       </FormField>
 
-      {role === "site_user" && (
+      {role && role !== "admin" && (
         <FormField label="Assigned Sites">
           <MultiSelect
             options={siteOptions}
