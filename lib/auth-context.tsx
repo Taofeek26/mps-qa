@@ -136,6 +136,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       console.log("[Auth] Initiating Microsoft sign-in...");
 
+      // Sign out any existing user first to avoid "already signed in" error
+      try {
+        await signOut();
+        setUserState(null);
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Ignore sign out errors - user might not be signed in
+      }
+
       // Use the OIDC provider name as configured in Cognito
       await signInWithRedirect({
         provider: {
