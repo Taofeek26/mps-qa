@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   signIn,
   signOut,
+  signInWithRedirect,
   getCurrentUser,
   fetchUserAttributes,
   fetchAuthSession,
@@ -16,6 +17,7 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   signInWithCredentials: (email: string, password: string) => Promise<boolean>;
+  signInWithMicrosoft: () => Promise<void>;
   signOutUser: () => Promise<void>;
   /** Check if user has one of the required roles */
   hasRole: (roles: UserRole[]) => boolean;
@@ -128,6 +130,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function signInWithMicrosoft(): Promise<void> {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log("[Auth] Initiating Microsoft sign-in...");
+
+      await signInWithRedirect({
+        provider: {
+          custom: 'Microsoft'
+        }
+      });
+    } catch (err) {
+      console.error("[Auth] Microsoft sign-in error:", err);
+      const message = err instanceof Error ? err.message : "Microsoft sign-in failed";
+      setError(message);
+      setLoading(false);
+    }
+  }
+
   async function signOutUser() {
     try {
       await signOut();
@@ -155,6 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       signInWithCredentials,
+      signInWithMicrosoft,
       signOutUser,
       hasRole,
       canAccessSite,

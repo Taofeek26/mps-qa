@@ -797,16 +797,267 @@
 
                 <div class="auth-box">
                     <div class="auth-title">
-                        🔑 Bearer Token Authentication
+                        🔑 Microsoft SSO Authentication (Recommended)
                     </div>
                     <div class="auth-description">
-                        All API requests must include a valid JWT token obtained from AWS Cognito in the Authorization header.
-                        The token is automatically retrieved using <code>fetchAuthSession()</code> from AWS Amplify.
+                        Users authenticate via Microsoft Single Sign-On (SSO). Click "Sign in with Microsoft" and authenticate with your Microsoft account (personal, work, or school).
+                        JWT tokens are automatically issued by AWS Cognito after successful Microsoft authentication.
                     </div>
                 </div>
 
+                <!-- Microsoft SSO Sign In -->
                 <div class="endpoint">
-                    <div class="params-title">Request Headers</div>
+                    <div class="endpoint-header">
+                        <span class="method-badge post" style="background: #0078D4;">SSO</span>
+                        <span class="endpoint-path">Sign In with Microsoft</span>
+                    </div>
+                    <p class="endpoint-description">Initiate Microsoft OAuth sign-in flow. Users are redirected to Microsoft login and back to the app with tokens.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">JavaScript - Microsoft SSO with Amplify</span>
+                        </div>
+                        <div class="code-content">
+<pre><span class="key">import</span> { signInWithRedirect } <span class="key">from</span> <span class="string">'aws-amplify/auth'</span>;
+
+<span class="key">async function</span> signInWithMicrosoft() {
+  <span class="key">await</span> signInWithRedirect({
+    provider: {
+      custom: <span class="string">'Microsoft'</span>
+    }
+  });
+  <span class="comment">// User is redirected to Microsoft login page</span>
+  <span class="comment">// After auth, user returns to /auth/callback with tokens</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">💡</span>
+                        <div class="info-box-content">
+                            <strong>Flow:</strong> User clicks button → Redirect to Microsoft → User signs in → Redirect back to app → JWT tokens issued automatically
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cognito Configuration -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get" style="background: #8B5CF6;">CONFIG</span>
+                        <span class="endpoint-path">AWS Amplify Configuration (with OAuth)</span>
+                    </div>
+                    <p class="endpoint-description">Configure AWS Amplify with Cognito and Microsoft OAuth settings.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Cognito Settings</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Setting</th>
+                                    <th>Value</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">Region</span></td>
+                                    <td><span class="param-type">us-east-1</span></td>
+                                    <td>AWS Region for Cognito User Pool</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">User Pool ID</span></td>
+                                    <td><span class="param-type">us-east-1_23veUlUUb</span></td>
+                                    <td>Cognito User Pool identifier</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">Client ID</span></td>
+                                    <td><span class="param-type">5o8a25t8ki8b2uo6ckponfg4t9</span></td>
+                                    <td>App Client ID (no secret required)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">OAuth Domain</span></td>
+                                    <td><span class="param-type">mps-prod-639787407261.auth.us-east-1.amazoncognito.com</span></td>
+                                    <td>Cognito Hosted UI domain</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">API Base URL</span></td>
+                                    <td><span class="param-type">https://h8fcclh73j.execute-api.us-east-1.amazonaws.com/prod</span></td>
+                                    <td>API Gateway endpoint</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">JavaScript - Amplify Configuration with OAuth</span>
+                        </div>
+                        <div class="code-content">
+<pre><span class="comment">// Install: npm install aws-amplify</span>
+<span class="key">import</span> { Amplify } <span class="key">from</span> <span class="string">'aws-amplify'</span>;
+
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: <span class="string">'us-east-1_23veUlUUb'</span>,
+      userPoolClientId: <span class="string">'5o8a25t8ki8b2uo6ckponfg4t9'</span>,
+      loginWith: {
+        oauth: {
+          domain: <span class="string">'mps-prod-639787407261.auth.us-east-1.amazoncognito.com'</span>,
+          scopes: [<span class="string">'openid'</span>, <span class="string">'email'</span>, <span class="string">'profile'</span>],
+          redirectSignIn: [<span class="string">'https://your-app.com/auth/callback'</span>],
+          redirectSignOut: [<span class="string">'https://your-app.com/login'</span>],
+          responseType: <span class="string">'code'</span>,
+          providers: [<span class="string">'Microsoft'</span>],
+        },
+      },
+    },
+  },
+});</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legacy Sign In (Optional) -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">AUTH</span>
+                        <span class="endpoint-path">Sign In with Email/Password (Legacy)</span>
+                    </div>
+                    <p class="endpoint-description">Alternative authentication with email and password. Microsoft SSO is recommended.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">JavaScript - Sign In with Credentials</span>
+                        </div>
+                        <div class="code-content">
+<pre><span class="key">import</span> { signIn } <span class="key">from</span> <span class="string">'aws-amplify/auth'</span>;
+
+<span class="key">async function</span> login(email, password) {
+  <span class="key">try</span> {
+    <span class="key">const</span> result = <span class="key">await</span> signIn({
+      username: email,
+      password: password,
+    });
+
+    <span class="key">if</span> (result.isSignedIn) {
+      console.log(<span class="string">'Login successful!'</span>);
+      <span class="key">return true</span>;
+    }
+
+    <span class="comment">// Handle challenges (e.g., NEW_PASSWORD_REQUIRED)</span>
+    <span class="key">if</span> (result.nextStep?.signInStep === <span class="string">'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'</span>) {
+      console.log(<span class="string">'Password change required'</span>);
+    }
+
+    <span class="key">return false</span>;
+  } <span class="key">catch</span> (error) {
+    console.error(<span class="string">'Login failed:'</span>, error.message);
+    <span class="key">throw</span> error;
+  }
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">cURL - Direct Cognito API (Alternative)</span>
+                        </div>
+                        <div class="code-content">
+<pre>curl -X POST https://cognito-idp.us-east-1.amazonaws.com/ \
+  -H <span class="string">"Content-Type: application/x-amz-json-1.1"</span> \
+  -H <span class="string">"X-Amz-Target: AWSCognitoIdentityProviderService.InitiateAuth"</span> \
+  -d <span class="string">'{
+    "AuthFlow": "USER_PASSWORD_AUTH",
+    "ClientId": "5o8a25t8ki8b2uo6ckponfg4t9",
+    "AuthParameters": {
+      "USERNAME": "user@example.com",
+      "PASSWORD": "YourPassword123"
+    }
+  }'</span></pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">💡</span>
+                        <div class="info-box-content">
+                            <strong>Response:</strong> On success, you receive <code>IdToken</code>, <code>AccessToken</code>, and <code>RefreshToken</code>. Use the <code>IdToken</code> for API requests.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Get Token for API Calls -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">TOKEN</span>
+                        <span class="endpoint-path">Retrieve Token for API Calls</span>
+                    </div>
+                    <p class="endpoint-description">After sign-in, retrieve the JWT token to use in API requests.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">JavaScript - Get Auth Token</span>
+                        </div>
+                        <div class="code-content">
+<pre><span class="key">import</span> { fetchAuthSession } <span class="key">from</span> <span class="string">'aws-amplify/auth'</span>;
+
+<span class="key">async function</span> getAuthToken() {
+  <span class="key">const</span> session = <span class="key">await</span> fetchAuthSession();
+  <span class="key">const</span> token = session.tokens?.idToken?.toString();
+
+  <span class="key">if</span> (!token) {
+    <span class="key">throw new</span> Error(<span class="string">'No valid session'</span>);
+  }
+
+  <span class="key">return</span> token;
+}
+
+<span class="comment">// Use token in API calls</span>
+<span class="key">async function</span> fetchShipments() {
+  <span class="key">const</span> token = <span class="key">await</span> getAuthToken();
+
+  <span class="key">const</span> response = <span class="key">await</span> fetch(
+    <span class="string">'https://h8fcclh73j.execute-api.us-east-1.amazonaws.com/prod/shipments'</span>,
+    {
+      headers: {
+        <span class="string">'Authorization'</span>: <span class="string">`Bearer </span>${token}<span class="string">`</span>,
+        <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>,
+      },
+    }
+  );
+
+  <span class="key">return</span> response.json();
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sign Out -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">AUTH</span>
+                        <span class="endpoint-path">Sign Out</span>
+                    </div>
+                    <p class="endpoint-description">End the user session and clear tokens.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">JavaScript - Sign Out</span>
+                        </div>
+                        <div class="code-content">
+<pre><span class="key">import</span> { signOut } <span class="key">from</span> <span class="string">'aws-amplify/auth'</span>;
+
+<span class="key">async function</span> logout() {
+  <span class="key">await</span> signOut();
+  console.log(<span class="string">'Logged out successfully'</span>);
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Request Headers -->
+                <div class="endpoint">
+                    <div class="params-title">Required Request Headers</div>
                     <table class="params-table">
                         <thead>
                             <tr>
@@ -818,8 +1069,8 @@
                         <tbody>
                             <tr>
                                 <td><span class="param-name">Authorization</span></td>
-                                <td><span class="param-type">Bearer {token}</span></td>
-                                <td>JWT ID token from AWS Cognito session</td>
+                                <td><span class="param-type">Bearer {idToken}</span></td>
+                                <td>JWT ID token from Cognito session (required for all endpoints)</td>
                             </tr>
                             <tr>
                                 <td><span class="param-name">Content-Type</span></td>
@@ -831,15 +1082,46 @@
 
                     <div class="code-block">
                         <div class="code-header">
-                            <span class="code-label">Example Request</span>
+                            <span class="code-label">Example API Request</span>
                         </div>
                         <div class="code-content">
 <pre>GET /shipments HTTP/1.1
-Host: api.mps-platform.com
-Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+Host: h8fcclh73j.execute-api.us-east-1.amazonaws.com
+Authorization: Bearer eyJraWQiOiJrZXkxIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJ1c2VyLWlkIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC51cy1lYXN0LTEuYW1hem9uYXdzLmNvbS91cy1lYXN0LTFfMjN2ZVVsVVViIiwiZXhwIjoxNjk5OTk5OTk5fQ.signature
 Content-Type: application/json</pre>
                         </div>
                     </div>
+                </div>
+
+                <!-- Error Responses -->
+                <div class="endpoint">
+                    <div class="params-title">Authentication Error Responses</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Error</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="response-code error">401</span></td>
+                                <td>Unauthorized</td>
+                                <td>Missing or invalid Authorization header</td>
+                            </tr>
+                            <tr>
+                                <td><span class="response-code error">401</span></td>
+                                <td>Token Expired</td>
+                                <td>JWT token has expired - refresh or re-authenticate</td>
+                            </tr>
+                            <tr>
+                                <td><span class="response-code error">403</span></td>
+                                <td>Forbidden</td>
+                                <td>User lacks permission for this resource</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -1374,13 +1656,19 @@ Content-Type: application/json</pre>
                                     <td><span class="param-name">industry</span></td>
                                     <td><span class="param-type">string</span></td>
                                     <td><span class="param-required optional">Optional</span></td>
-                                    <td>Industry classification</td>
+                                    <td>Industry classification (e.g., Manufacturing, Healthcare, Automotive)</td>
                                 </tr>
                                 <tr>
                                     <td><span class="param-name">contact_person</span></td>
                                     <td><span class="param-type">string</span></td>
                                     <td><span class="param-required optional">Optional</span></td>
                                     <td>Primary contact name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">email</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Contact email address</td>
                                 </tr>
                                 <tr>
                                     <td><span class="param-name">phone</span></td>
@@ -1393,6 +1681,12 @@ Content-Type: application/json</pre>
                                     <td><span class="param-type">string</span></td>
                                     <td><span class="param-required optional">Optional</span></td>
                                     <td>Street address</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">address_line2</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Additional address info (Suite, Building)</td>
                                 </tr>
                                 <tr>
                                     <td><span class="param-name">city</span></td>
@@ -1412,8 +1706,39 @@ Content-Type: application/json</pre>
                                     <td><span class="param-required optional">Optional</span></td>
                                     <td>ZIP/Postal code</td>
                                 </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Active status (default: true)</td>
+                                </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Example Request Body</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"name"</span>: <span class="string">"Acme Manufacturing Corp"</span>,
+  <span class="key">"industry"</span>: <span class="string">"Manufacturing"</span>,
+  <span class="key">"contact_person"</span>: <span class="string">"John Smith"</span>,
+  <span class="key">"email"</span>: <span class="string">"jsmith@acmemfg.com"</span>,
+  <span class="key">"phone"</span>: <span class="string">"(555) 123-4567"</span>,
+  <span class="key">"address_line1"</span>: <span class="string">"123 Industrial Blvd"</span>,
+  <span class="key">"city"</span>: <span class="string">"Detroit"</span>,
+  <span class="key">"state"</span>: <span class="string">"MI"</span>,
+  <span class="key">"postal_code"</span>: <span class="string">"48201"</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
                     </div>
                 </div>
 
@@ -1422,7 +1747,41 @@ Content-Type: application/json</pre>
                         <span class="method-badge put">PUT</span>
                         <span class="endpoint-path">/customers/{id}</span>
                     </div>
-                    <p class="endpoint-description">Update an existing customer record.</p>
+                    <p class="endpoint-description">Update an existing customer record. All fields are optional - only provided fields will be updated.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td>Customer ID to update</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📝</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Same fields as POST. Only include fields you want to update.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -1431,6 +1790,32 @@ Content-Type: application/json</pre>
                         <span class="endpoint-path">/customers/{id}</span>
                     </div>
                     <p class="endpoint-description">Delete a customer record (soft delete - marks as inactive).</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td>Customer ID to delete</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
             </section>
 
@@ -1516,6 +1901,113 @@ Content-Type: application/json</pre>
                         <span class="endpoint-path">/sites</span>
                     </div>
                     <p class="endpoint-description">Create a new site for a customer.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">customer_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Parent customer ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Site name/description</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">address_line1</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Street address</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">address_line2</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Additional address info</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">city</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>City name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">state</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>State code (2 letters)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">postal_code</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>ZIP/Postal code</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">region</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Geographic region (e.g., Midwest, Northeast)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">contact_name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Site contact person</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">contact_phone</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Contact phone number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Active status (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Example Request Body</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"customer_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="key">"name"</span>: <span class="string">"Main Manufacturing Plant"</span>,
+  <span class="key">"address_line1"</span>: <span class="string">"456 Industrial Blvd"</span>,
+  <span class="key">"city"</span>: <span class="string">"Cleveland"</span>,
+  <span class="key">"state"</span>: <span class="string">"OH"</span>,
+  <span class="key">"postal_code"</span>: <span class="string">"44101"</span>,
+  <span class="key">"region"</span>: <span class="string">"Midwest"</span>,
+  <span class="key">"contact_name"</span>: <span class="string">"John Smith"</span>,
+  <span class="key">"contact_phone"</span>: <span class="string">"216-555-0100"</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -1523,7 +2015,21 @@ Content-Type: application/json</pre>
                         <span class="method-badge put">PUT</span>
                         <span class="endpoint-path">/sites/{id}</span>
                     </div>
-                    <p class="endpoint-description">Update an existing site record.</p>
+                    <p class="endpoint-description">Update an existing site record. All fields are optional - only provided fields will be updated.</p>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📝</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Same fields as POST. Only include fields you want to update.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -1531,7 +2037,13 @@ Content-Type: application/json</pre>
                         <span class="method-badge delete">DELETE</span>
                         <span class="endpoint-path">/sites/{id}</span>
                     </div>
-                    <p class="endpoint-description">Delete a site (soft delete).</p>
+                    <p class="endpoint-description">Delete a site (soft delete - marks as inactive).</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
             </section>
 
@@ -1596,7 +2108,169 @@ Content-Type: application/json</pre>
                         <span class="method-badge post">POST</span>
                         <span class="endpoint-path">/vendors</span>
                     </div>
-                    <p class="endpoint-description">Create a new vendor record.</p>
+                    <p class="endpoint-description">Create a new vendor record with qualification information.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Vendor company name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">vendor_code</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Unique vendor identifier (e.g., VND-001)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">vendor_type</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Type: Disposal, Transportation, Treatment, Recycling, Broker</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">address_line1</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Street address</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">city</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>City name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">state</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>State code (2 letters)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">postal_code</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>ZIP/Postal code</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">phone</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Contact phone number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">email</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Contact email address</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">contact_name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Primary contact person</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">dbe_flag</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Disadvantaged Business Enterprise flag</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">commodities</span></td>
+                                    <td><span class="param-type">array[string]</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Waste types handled (e.g., ["Industrial Waste", "Hazardous"])</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">risk_level</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Risk classification: Level 1 - Critical, Level 2 - High, Level 3 - Low</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">vendor_status</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Qualification status: Active, Pending, Suspended, Inactive</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">completion_status</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Documentation status: Complete, Incomplete, Pending Review</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">expiration_date</span></td>
+                                    <td><span class="param-type">string (date)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Qualification expiration date (YYYY-MM-DD)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">reviewed_by</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Name of reviewer who approved qualification</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">date_reviewed</span></td>
+                                    <td><span class="param-type">string (date)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Date of last qualification review (YYYY-MM-DD)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Active status (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Example Request Body</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"name"</span>: <span class="string">"Waste Solutions Inc"</span>,
+  <span class="key">"vendor_code"</span>: <span class="string">"VND-001"</span>,
+  <span class="key">"vendor_type"</span>: <span class="string">"Disposal"</span>,
+  <span class="key">"address_line1"</span>: <span class="string">"100 Industrial Park Dr"</span>,
+  <span class="key">"city"</span>: <span class="string">"Chicago"</span>,
+  <span class="key">"state"</span>: <span class="string">"IL"</span>,
+  <span class="key">"postal_code"</span>: <span class="string">"60601"</span>,
+  <span class="key">"phone"</span>: <span class="string">"(555) 987-6543"</span>,
+  <span class="key">"email"</span>: <span class="string">"contact@wastesolutions.com"</span>,
+  <span class="key">"contact_name"</span>: <span class="string">"Mike Johnson"</span>,
+  <span class="key">"dbe_flag"</span>: <span class="boolean">false</span>,
+  <span class="key">"commodities"</span>: [<span class="string">"Industrial Waste"</span>, <span class="string">"Hazardous"</span>],
+  <span class="key">"risk_level"</span>: <span class="string">"Level 3 - Low"</span>,
+  <span class="key">"vendor_status"</span>: <span class="string">"Active"</span>,
+  <span class="key">"completion_status"</span>: <span class="string">"Complete"</span>,
+  <span class="key">"expiration_date"</span>: <span class="string">"2025-12-31"</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -1604,7 +2278,41 @@ Content-Type: application/json</pre>
                         <span class="method-badge put">PUT</span>
                         <span class="endpoint-path">/vendors/{id}</span>
                     </div>
-                    <p class="endpoint-description">Update vendor information and qualification status.</p>
+                    <p class="endpoint-description">Update vendor information and qualification status. All fields are optional - only provided fields will be updated.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td>Vendor ID to update</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📝</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Same fields as POST. Only include fields you want to update. The <code>name</code> field is not required for updates.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -1612,7 +2320,33 @@ Content-Type: application/json</pre>
                         <span class="method-badge delete">DELETE</span>
                         <span class="endpoint-path">/vendors/{id}</span>
                     </div>
-                    <p class="endpoint-description">Delete a vendor record.</p>
+                    <p class="endpoint-description">Delete a vendor record (soft delete - marks as inactive).</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td>Vendor ID to delete</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
             </section>
 
@@ -1664,6 +2398,854 @@ Content-Type: application/json</pre>
                     <span class="info-box-icon">📋</span>
                     <div class="info-box-content">
                         <strong>Waste Categories:</strong> Non Haz, Hazardous Waste, Recycling, C&D, E-Waste, Universal Waste, Special Waste, Medical, Liquid, Fuel, Alternative Reuse, Gas
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transporters Section -->
+            <section id="transporters" class="section">
+                <div class="section-header">
+                    <div class="section-icon">🚛</div>
+                    <div>
+                        <h2 class="section-title">Transporters</h2>
+                        <p class="section-description">Waste transportation carrier management</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/transporters</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all transporters/carriers in the system.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"transporters"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"name"</span>: <span class="string">"ABC Transport Inc"</span>,
+      <span class="key">"dot_number"</span>: <span class="string">"1234567"</span>,
+      <span class="key">"mc_number"</span>: <span class="string">"MC-987654"</span>,
+      <span class="key">"epa_id"</span>: <span class="string">"OHD123456789"</span>,
+      <span class="key">"phone"</span>: <span class="string">"(555) 234-5678"</span>,
+      <span class="key">"city"</span>: <span class="string">"Columbus"</span>,
+      <span class="key">"state"</span>: <span class="string">"OH"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/transporters/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve a single transporter by ID.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/transporters</span>
+                    </div>
+                    <p class="endpoint-description">Create a new transporter record.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Transporter company name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">dot_number</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>DOT registration number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">mc_number</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Motor Carrier number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">epa_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>EPA ID number (for hazardous waste transporters)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">address_line1</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Street address</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">city</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>City name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">state</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>State code (2 letters)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">phone</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Contact phone number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">email</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Contact email</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Active status (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/transporters/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing transporter record.</p>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📝</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Same fields as POST. Only include fields you want to update.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/transporters/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a transporter record (soft delete).</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Receiving Facilities Section -->
+            <section id="receiving-facilities" class="section">
+                <div class="section-header">
+                    <div class="section-icon">🏭</div>
+                    <div>
+                        <h2 class="section-title">Receiving Facilities</h2>
+                        <p class="section-description">Waste treatment and disposal facility management</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/receiving-facilities</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all receiving/disposal facilities.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"receiving_facilities"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"name"</span>: <span class="string">"Regional Landfill"</span>,
+      <span class="key">"facility_type"</span>: <span class="string">"Landfill"</span>,
+      <span class="key">"epa_id"</span>: <span class="string">"OHD987654321"</span>,
+      <span class="key">"permit_number"</span>: <span class="string">"SW-2024-001"</span>,
+      <span class="key">"city"</span>: <span class="string">"Toledo"</span>,
+      <span class="key">"state"</span>: <span class="string">"OH"</span>,
+      <span class="key">"accepted_waste_types"</span>: [<span class="string">"Non Haz"</span>, <span class="string">"C&D"</span>],
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/receiving-facilities/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve a single facility by ID.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/receiving-facilities</span>
+                    </div>
+                    <p class="endpoint-description">Create a new receiving facility record.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Facility name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">facility_type</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Type: Landfill, Incinerator, Transfer Station, Recycler, Treatment</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">epa_id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>EPA facility ID</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">permit_number</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>State permit number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">address_line1</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Street address</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">city</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>City name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">state</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>State code (2 letters)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">accepted_waste_types</span></td>
+                                    <td><span class="param-type">array[string]</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Waste categories accepted</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">capacity_tons</span></td>
+                                    <td><span class="param-type">number</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Daily capacity in tons</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Active status (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/receiving-facilities/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing facility record.</p>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📝</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Same fields as POST. Only include fields you want to update.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/receiving-facilities/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a facility record (soft delete).</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Containers Section -->
+            <section id="containers" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📦</div>
+                    <div>
+                        <h2 class="section-title">Containers</h2>
+                        <p class="section-description">Container inventory and tracking</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/containers</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all containers in the system.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"containers"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"container_number"</span>: <span class="string">"CONT-2024-001"</span>,
+      <span class="key">"container_type"</span>: <span class="string">"40 Yard Roll-Off"</span>,
+      <span class="key">"capacity"</span>: <span class="number">40</span>,
+      <span class="key">"capacity_unit"</span>: <span class="string">"cubic yards"</span>,
+      <span class="key">"current_site_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"status"</span>: <span class="string">"deployed"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/containers/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve a single container by ID.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/containers</span>
+                    </div>
+                    <p class="endpoint-description">Create a new container record.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">container_number</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Unique container identifier</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">container_type</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Type (e.g., 40 Yard Roll-Off, Front Load, Compactor)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">capacity</span></td>
+                                    <td><span class="param-type">number</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Capacity value</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">capacity_unit</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Unit of measure (cubic yards, gallons)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">owner_vendor_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Vendor who owns this container</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">current_site_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Site where container is currently deployed</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">status</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Status: available, deployed, maintenance, retired</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Active status (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/containers/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing container record.</p>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📝</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Same fields as POST. Only include fields you want to update.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/containers/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a container record (soft delete).</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profiles Section -->
+            <section id="profiles" class="section">
+                <div class="section-header">
+                    <div class="section-icon">📋</div>
+                    <div>
+                        <h2 class="section-title">Profiles</h2>
+                        <p class="section-description">Waste stream profiles and characterization</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/profiles</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all waste stream profiles.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"profiles"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"profile_number"</span>: <span class="string">"PROF-2024-001"</span>,
+      <span class="key">"customer_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"waste_type_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"description"</span>: <span class="string">"Metal cutting oil waste"</span>,
+      <span class="key">"physical_form"</span>: <span class="string">"Liquid"</span>,
+      <span class="key">"hazard_class"</span>: <span class="string">"D001"</span>,
+      <span class="key">"expiration_date"</span>: <span class="string">"2025-12-31"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/profiles/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve a single profile by ID.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/profiles</span>
+                    </div>
+                    <p class="endpoint-description">Create a new waste stream profile.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">profile_number</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Unique profile identifier (auto-generated if not provided)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">customer_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Customer this profile belongs to</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">waste_type_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Waste type classification</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">description</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Waste stream description</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">physical_form</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Physical state: Solid, Liquid, Gas, Sludge</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">hazard_class</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Hazard classification code</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">waste_codes</span></td>
+                                    <td><span class="param-type">array[string]</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>EPA/State waste codes</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">expiration_date</span></td>
+                                    <td><span class="param-type">string (date)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Profile expiration date (YYYY-MM-DD)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Active status (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/profiles/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing profile.</p>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📝</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Same fields as POST. Only include fields you want to update.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/profiles/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a profile record (soft delete).</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Service Items Section -->
+            <section id="service-items" class="section">
+                <div class="section-header">
+                    <div class="section-icon">🔧</div>
+                    <div>
+                        <h2 class="section-title">Service Items</h2>
+                        <p class="section-description">Service line items and pricing configuration</p>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/service-items</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve all service items/SKUs.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"service_items"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"service_code"</span>: <span class="string">"SVC-001"</span>,
+      <span class="key">"name"</span>: <span class="string">"Roll-Off Container Rental"</span>,
+      <span class="key">"description"</span>: <span class="string">"Monthly rental for 40 yard roll-off"</span>,
+      <span class="key">"unit_price"</span>: <span class="number">250.00</span>,
+      <span class="key">"unit_of_measure"</span>: <span class="string">"month"</span>,
+      <span class="key">"category"</span>: <span class="string">"Rental"</span>,
+      <span class="key">"is_active"</span>: <span class="boolean">true</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/service-items/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve a single service item by ID.</p>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/service-items</span>
+                    </div>
+                    <p class="endpoint-description">Create a new service item.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">service_code</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Unique service item code/SKU</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Service item name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">description</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Detailed description</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">unit_price</span></td>
+                                    <td><span class="param-type">number</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Default unit price</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">unit_of_measure</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Unit: each, ton, lb, hour, month, trip</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">category</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Service category: Rental, Hauling, Disposal, Processing</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">taxable</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Whether this service is taxable</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Active status (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/service-items/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing service item.</p>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📝</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Same fields as POST. Only include fields you want to update.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/service-items/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a service item (soft delete).</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
                     </div>
                 </div>
             </section>
@@ -2375,10 +3957,136 @@ Content-Type: application/json</pre>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/users</span>
+                    </div>
+                    <p class="endpoint-description">Create a new user account (admin only). Creates both database record and Cognito user.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">email</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>User email address (used for login)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">display_name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>User's display name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">role</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>User role: admin, manager, operator, viewer</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">temporary_password</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Initial password (auto-generated if not provided)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">assigned_site_ids</span></td>
+                                    <td><span class="param-type">array[string]</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Array of site UUIDs user can access</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">phone</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>User phone number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">department</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>User's department</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Account active status (default: true)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Example Request Body</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"email"</span>: <span class="string">"newuser@company.com"</span>,
+  <span class="key">"display_name"</span>: <span class="string">"John Smith"</span>,
+  <span class="key">"role"</span>: <span class="string">"manager"</span>,
+  <span class="key">"temporary_password"</span>: <span class="string">"TempPass123!"</span>,
+  <span class="key">"assigned_site_ids"</span>: [
+    <span class="string">"550e8400-e29b-41d4-a716-446655440001"</span>,
+    <span class="string">"550e8400-e29b-41d4-a716-446655440002"</span>
+  ],
+  <span class="key">"phone"</span>: <span class="string">"555-123-4567"</span>,
+  <span class="key">"department"</span>: <span class="string">"Operations"</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📧</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> New users receive an email with their temporary password. They must change it on first login.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                        <span class="response-code error">403 Forbidden</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
                         <span class="method-badge get">GET</span>
                         <span class="endpoint-path">/users/profile</span>
                     </div>
                     <p class="endpoint-description">Retrieve the current authenticated user's profile.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+  <span class="key">"email"</span>: <span class="string">"user@example.com"</span>,
+  <span class="key">"display_name"</span>: <span class="string">"John Doe"</span>,
+  <span class="key">"role"</span>: <span class="string">"manager"</span>,
+  <span class="key">"phone"</span>: <span class="string">"555-123-4567"</span>,
+  <span class="key">"department"</span>: <span class="string">"Operations"</span>,
+  <span class="key">"is_active"</span>: <span class="boolean">true</span>,
+  <span class="key">"assigned_site_ids"</span>: [<span class="string">"uuid1"</span>, <span class="string">"uuid2"</span>],
+  <span class="key">"created_at"</span>: <span class="string">"2024-01-15T10:30:00Z"</span>,
+  <span class="key">"last_login"</span>: <span class="string">"2024-03-18T08:45:00Z"</span>
+}</pre>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -2387,6 +4095,176 @@ Content-Type: application/json</pre>
                         <span class="endpoint-path">/users/profile</span>
                     </div>
                     <p class="endpoint-description">Update the current user's profile information.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">display_name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Updated display name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">phone</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Updated phone number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">department</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Updated department</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">🔒</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Users cannot update their own role or assigned sites. Only admins can modify these fields using PUT /users/{id}.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/users/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update any user's information (admin only). Can modify role and site assignments.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td>User ID to update</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">display_name</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Updated display name</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">role</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Updated role: admin, manager, operator, viewer</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">assigned_site_ids</span></td>
+                                    <td><span class="param-type">array[string]</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Updated list of assigned site UUIDs</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">phone</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Updated phone number</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">department</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Updated department</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">is_active</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Enable/disable user account</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                        <span class="response-code error">403 Forbidden</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/users/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Delete a user account (admin only). Disables Cognito user and marks as inactive.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td>User ID to delete</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                        <span class="response-code error">403 Forbidden</span>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -2395,6 +4273,24 @@ Content-Type: application/json</pre>
                         <span class="endpoint-path">/users/{userId}/sites</span>
                     </div>
                     <p class="endpoint-description">Retrieve sites assigned to a specific user.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"sites"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"name"</span>: <span class="string">"Main Manufacturing Plant"</span>,
+      <span class="key">"customer_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"customer_name"</span>: <span class="string">"Acme Corp"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -2403,6 +4299,38 @@ Content-Type: application/json</pre>
                         <span class="endpoint-path">/roles</span>
                     </div>
                     <p class="endpoint-description">Retrieve available user roles for assignment.</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"roles"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"admin"</span>,
+      <span class="key">"name"</span>: <span class="string">"Administrator"</span>,
+      <span class="key">"description"</span>: <span class="string">"Full system access"</span>
+    },
+    {
+      <span class="key">"id"</span>: <span class="string">"manager"</span>,
+      <span class="key">"name"</span>: <span class="string">"Manager"</span>,
+      <span class="key">"description"</span>: <span class="string">"Can manage assigned sites and users"</span>
+    },
+    {
+      <span class="key">"id"</span>: <span class="string">"operator"</span>,
+      <span class="key">"name"</span>: <span class="string">"Operator"</span>,
+      <span class="key">"description"</span>: <span class="string">"Can create and edit records"</span>
+    },
+    {
+      <span class="key">"id"</span>: <span class="string">"viewer"</span>,
+      <span class="key">"name"</span>: <span class="string">"Viewer"</span>,
+      <span class="key">"description"</span>: <span class="string">"Read-only access"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -2421,11 +4349,69 @@ Content-Type: application/json</pre>
                         <span class="method-badge post">POST</span>
                         <span class="endpoint-path">/exports</span>
                     </div>
-                    <p class="endpoint-description">Generate a new data export (async operation).</p>
+                    <p class="endpoint-description">Generate a new data export (async operation). Returns an export ID to poll for status.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">export_type</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Type of data to export: shipments, customers, vendors, sites, audit</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">format</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Output format: csv (default), xlsx, json</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">filters</span></td>
+                                    <td><span class="param-type">object</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter criteria (varies by export type)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">filters.date_from</span></td>
+                                    <td><span class="param-type">string (date)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Start date filter (YYYY-MM-DD)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">filters.date_to</span></td>
+                                    <td><span class="param-type">string (date)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>End date filter (YYYY-MM-DD)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">filters.customer_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter by customer</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">filters.site_id</span></td>
+                                    <td><span class="param-type">string (UUID)</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Filter by site</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="code-block">
                         <div class="code-header">
-                            <span class="code-label">Request Body</span>
+                            <span class="code-label">Example Request Body</span>
                         </div>
                         <div class="code-content">
 <pre>{
@@ -2433,7 +4419,8 @@ Content-Type: application/json</pre>
   <span class="key">"format"</span>: <span class="string">"csv"</span>,
   <span class="key">"filters"</span>: {
     <span class="key">"date_from"</span>: <span class="string">"2024-01-01"</span>,
-    <span class="key">"date_to"</span>: <span class="string">"2024-01-31"</span>
+    <span class="key">"date_to"</span>: <span class="string">"2024-01-31"</span>,
+    <span class="key">"customer_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>
   }
 }</pre>
                         </div>
@@ -2445,9 +4432,16 @@ Content-Type: application/json</pre>
                         </div>
                         <div class="code-content">
 <pre>{
-  <span class="key">"export_id"</span>: <span class="string">"exp-uuid-12345"</span>
+  <span class="key">"export_id"</span>: <span class="string">"exp-uuid-12345"</span>,
+  <span class="key">"status"</span>: <span class="string">"processing"</span>
 }</pre>
                         </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">202 Accepted</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
                     </div>
                 </div>
 
@@ -2457,6 +4451,68 @@ Content-Type: application/json</pre>
                         <span class="endpoint-path">/exports/{id}</span>
                     </div>
                     <p class="endpoint-description">Check the status of an export and get download URL when complete.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">id</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Export job ID returned from POST /exports</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response (Processing)</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"export_id"</span>: <span class="string">"exp-uuid-12345"</span>,
+  <span class="key">"status"</span>: <span class="string">"processing"</span>,
+  <span class="key">"progress"</span>: <span class="number">45</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response (Complete)</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"export_id"</span>: <span class="string">"exp-uuid-12345"</span>,
+  <span class="key">"status"</span>: <span class="string">"complete"</span>,
+  <span class="key">"download_url"</span>: <span class="string">"https://s3.amazonaws.com/exports/..."</span>,
+  <span class="key">"expires_at"</span>: <span class="string">"2024-01-16T10:30:00Z"</span>,
+  <span class="key">"file_size"</span>: <span class="number">1234567</span>,
+  <span class="key">"row_count"</span>: <span class="number">5000</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">⏰</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> Download URLs are pre-signed S3 URLs that expire after 1 hour. Request a new URL if expired.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
             </section>
 
@@ -2475,11 +4531,39 @@ Content-Type: application/json</pre>
                         <span class="method-badge post">POST</span>
                         <span class="endpoint-path">/uploads/url</span>
                     </div>
-                    <p class="endpoint-description">Get a pre-signed URL for uploading a file to S3.</p>
+                    <p class="endpoint-description">Get a pre-signed URL for uploading a file to S3. Use this URL to directly upload your file to S3.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">filename</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Original filename with extension</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">content_type</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>MIME type: text/csv, application/vnd.ms-excel, application/pdf</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="code-block">
                         <div class="code-header">
-                            <span class="code-label">Request Body</span>
+                            <span class="code-label">Example Request</span>
                         </div>
                         <div class="code-content">
 <pre>{
@@ -2495,10 +4579,24 @@ Content-Type: application/json</pre>
                         </div>
                         <div class="code-content">
 <pre>{
-  <span class="key">"upload_url"</span>: <span class="string">"https://s3.amazonaws.com/..."</span>,
-  <span class="key">"file_key"</span>: <span class="string">"uploads/2024/01/abc123.csv"</span>
+  <span class="key">"upload_url"</span>: <span class="string">"https://s3.amazonaws.com/bucket/..."</span>,
+  <span class="key">"file_key"</span>: <span class="string">"uploads/2024/01/abc123.csv"</span>,
+  <span class="key">"expires_in"</span>: <span class="number">3600</span>
 }</pre>
                         </div>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📤</span>
+                        <div class="info-box-content">
+                            <strong>Usage:</strong> Send a PUT request to the <code>upload_url</code> with your file as the body and <code>Content-Type</code> header matching what you specified. The pre-signed URL expires in 1 hour.
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
                     </div>
                 </div>
 
@@ -2507,18 +4605,87 @@ Content-Type: application/json</pre>
                         <span class="method-badge post">POST</span>
                         <span class="endpoint-path">/uploads/process</span>
                     </div>
-                    <p class="endpoint-description">Trigger processing of an uploaded file.</p>
+                    <p class="endpoint-description">Trigger processing of an uploaded file. Call this after successfully uploading to S3.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">file_key</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>The file_key returned from POST /uploads/url</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">file_type</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td><span class="param-required required">Required</span></td>
+                                    <td>Type of import: shipment_import, customer_import, vendor_import</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">options</span></td>
+                                    <td><span class="param-type">object</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Processing options</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">options.skip_duplicates</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Skip duplicate records (default: true)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="param-name">options.validate_only</span></td>
+                                    <td><span class="param-type">boolean</span></td>
+                                    <td><span class="param-required optional">Optional</span></td>
+                                    <td>Validate without importing (dry run)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="code-block">
                         <div class="code-header">
-                            <span class="code-label">Request Body</span>
+                            <span class="code-label">Example Request</span>
                         </div>
                         <div class="code-content">
 <pre>{
   <span class="key">"file_key"</span>: <span class="string">"uploads/2024/01/abc123.csv"</span>,
-  <span class="key">"file_type"</span>: <span class="string">"shipment_import"</span>
+  <span class="key">"file_type"</span>: <span class="string">"shipment_import"</span>,
+  <span class="key">"options"</span>: {
+    <span class="key">"skip_duplicates"</span>: <span class="boolean">true</span>,
+    <span class="key">"validate_only"</span>: <span class="boolean">false</span>
+  }
 }</pre>
                         </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"job_id"</span>: <span class="string">"job-uuid-12345"</span>,
+  <span class="key">"status"</span>: <span class="string">"processing"</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">202 Accepted</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 File Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
                     </div>
                 </div>
 
@@ -2528,6 +4695,68 @@ Content-Type: application/json</pre>
                         <span class="endpoint-path">/uploads/jobs/{jobId}</span>
                     </div>
                     <p class="endpoint-description">Check the status of a file processing job.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Path Parameters</div>
+                        <table class="params-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="param-name">jobId</span></td>
+                                    <td><span class="param-type">string</span></td>
+                                    <td>Job ID returned from POST /uploads/process</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response (Processing)</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"job_id"</span>: <span class="string">"job-uuid-12345"</span>,
+  <span class="key">"status"</span>: <span class="string">"processing"</span>,
+  <span class="key">"progress"</span>: <span class="number">65</span>,
+  <span class="key">"rows_processed"</span>: <span class="number">650</span>,
+  <span class="key">"total_rows"</span>: <span class="number">1000</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response (Complete)</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"job_id"</span>: <span class="string">"job-uuid-12345"</span>,
+  <span class="key">"status"</span>: <span class="string">"complete"</span>,
+  <span class="key">"rows_imported"</span>: <span class="number">980</span>,
+  <span class="key">"rows_skipped"</span>: <span class="number">15</span>,
+  <span class="key">"rows_failed"</span>: <span class="number">5</span>,
+  <span class="key">"errors"</span>: [
+    {
+      <span class="key">"row"</span>: <span class="number">25</span>,
+      <span class="key">"message"</span>: <span class="string">"Invalid customer_id"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
                 </div>
             </section>
 
