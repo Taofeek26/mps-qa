@@ -23,7 +23,6 @@ const amplifyConfig: ResourcesConfig = {
           redirectSignIn: [`${baseUrl}/auth/callback`],
           redirectSignOut: [`${baseUrl}/login`],
           responseType: 'code',
-          providers: ['Microsoft' as const],
         },
       },
     },
