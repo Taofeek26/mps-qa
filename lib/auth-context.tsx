@@ -153,13 +153,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     } catch (err) {
       console.error("[Auth] Microsoft sign-in error:", err);
-      const message = err instanceof Error ? err.message : "Microsoft sign-in failed";
-      // If already signed in, just refresh auth state
-      if (message.includes("already") || message.includes("signed in")) {
+      const errorStr = String(err);
+      // If already signed in, refresh auth state and redirect
+      if (errorStr.includes("Already") || errorStr.includes("already") || errorStr.includes("Authenticated")) {
         console.log("[Auth] User already signed in, refreshing state...");
         await checkAuthState();
+        // Redirect to dashboard since user is authenticated
+        window.location.href = "/dashboard";
         return;
       }
+      const message = err instanceof Error ? err.message : "Microsoft sign-in failed";
       setError(message);
       setLoading(false);
     }
