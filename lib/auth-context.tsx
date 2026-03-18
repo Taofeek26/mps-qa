@@ -53,9 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function checkAuthState() {
     try {
       setLoading(true);
+      console.log("[AuthContext] Checking auth state...");
       const cognitoUser = await getCurrentUser();
+      console.log("[AuthContext] Got user:", cognitoUser.userId);
       const attributes = await fetchUserAttributes();
+      console.log("[AuthContext] Got attributes:", attributes.email);
       const session = await fetchAuthSession();
+      console.log("[AuthContext] Got session, has tokens:", !!session.tokens?.idToken);
 
       // Get groups from token
       const groups = (session.tokens?.idToken?.payload?.["cognito:groups"] as string[]) || [];
@@ -84,8 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUserState(mpsUser);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(mpsUser));
-    } catch {
+      console.log("[AuthContext] User set successfully:", mpsUser.email);
+    } catch (err) {
       // No valid session
+      console.error("[AuthContext] checkAuthState failed:", err);
       setUserState(null);
       localStorage.removeItem(STORAGE_KEY);
     } finally {
@@ -136,15 +142,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       console.log("[Auth] Initiating Microsoft sign-in...");
 
-      // Sign out any existing user first to avoid "already signed in" error
-      try {
-        await signOut();
-        setUserState(null);
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {
-        // Ignore sign out errors - user might not be signed in
-      }
-
       // Use the OIDC provider name as configured in Cognito
       await signInWithRedirect({
         provider: {
@@ -157,6 +154,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("[Auth] Microsoft sign-in error:", err);
       const message = err instanceof Error ? err.message : "Microsoft sign-in failed";
+      // If already signed in, just refresh auth state
+      if (message.includes("already") || message.includes("signed in")) {
+        console.log("[Auth] User already signed in, refreshing state...");
+        await checkAuthState();
+        return;
+      }
       setError(message);
       setLoading(false);
     }
