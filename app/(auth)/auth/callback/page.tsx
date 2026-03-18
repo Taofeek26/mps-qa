@@ -25,26 +25,25 @@ export default function AuthCallbackPage() {
 
     // Listen for auth events
     const unsubscribe = Hub.listen("auth", async ({ payload }) => {
-      console.log("[Auth Callback] Hub event:", payload.event, payload.data);
+      console.log("[Auth Callback] Hub event:", payload.event);
 
       switch (payload.event) {
         case "signInWithRedirect":
           console.log("[Auth Callback] Sign in redirect completed");
           break;
         case "signInWithRedirect_failure":
-          console.error("[Auth Callback] Sign in failed:", payload.data);
+          console.error("[Auth Callback] Sign in failed:", payload);
           setStatus("error");
-          const errorData = payload.data as { error?: string; message?: string } | undefined;
-          setErrorMessage(errorData?.message || errorData?.error || "Authentication failed. Please try again.");
+          setErrorMessage(payload.message || "Authentication failed. Please try again.");
           break;
         case "customOAuthState":
-          console.log("[Auth Callback] Custom OAuth state:", payload.data);
+          console.log("[Auth Callback] Custom OAuth state received");
           break;
         case "tokenRefresh":
           console.log("[Auth Callback] Token refreshed");
           break;
         case "tokenRefresh_failure":
-          console.error("[Auth Callback] Token refresh failed:", payload.data);
+          console.error("[Auth Callback] Token refresh failed:", payload);
           break;
       }
     });
