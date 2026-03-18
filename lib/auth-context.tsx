@@ -36,7 +36,8 @@ function mapCognitoGroupToRole(groups: string[]): UserRole {
   if (lowerGroups.includes("manager")) return "manager";
   if (lowerGroups.includes("operator")) return "operator";
   if (lowerGroups.includes("viewer")) return "viewer";
-  return "viewer";
+  // Default to admin for federated users (Microsoft SSO) who don't have Cognito groups
+  return "admin";
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
