@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  signIn,
   signOut,
   signInWithRedirect,
   getCurrentUser,
@@ -15,7 +14,6 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signInWithCredentials: (email: string, password: string) => Promise<boolean>;
   signInWithMicrosoft: () => Promise<void>;
   signOutUser: () => Promise<void>;
   /** Check if user has one of the required roles */
@@ -109,43 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function signInWithCredentials(email: string, password: string): Promise<boolean> {
-    try {
-      setLoading(true);
-      setError(null);
-
-      console.log("[Auth] Attempting sign in for:", email);
-
-      const result = await signIn({
-        username: email,
-        password,
-      });
-
-      console.log("[Auth] Sign in result:", result);
-
-      if (result.isSignedIn) {
-        await checkAuthState();
-        return true;
-      }
-
-      // Handle challenges (e.g., NEW_PASSWORD_REQUIRED)
-      if (result.nextStep?.signInStep === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
-        setError("Password change required. Please contact administrator.");
-        return false;
-      }
-
-      setError("Sign in failed. Please try again.");
-      return false;
-    } catch (err) {
-      console.error("[Auth] Sign in error:", err);
-      const message = err instanceof Error ? err.message : "Sign in failed";
-      setError(message);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function signInWithMicrosoft(): Promise<void> {
     try {
       setLoading(true);
@@ -204,7 +165,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       loading,
       error,
-      signInWithCredentials,
       signInWithMicrosoft,
       signOutUser,
       hasRole,
