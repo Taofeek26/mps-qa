@@ -64,9 +64,9 @@ function AuthCallbackContent() {
         if (session.tokens?.idToken) {
           console.log("[Auth Callback] Valid session obtained");
           setStatus("success");
-          // Redirect to dashboard after successful auth
+          // Use full page navigation to ensure auth context reinitializes
           setTimeout(() => {
-            router.push("/dashboard");
+            window.location.href = "/dashboard";
           }, 500);
         } else {
           throw new Error("No valid tokens in session");
@@ -82,7 +82,7 @@ function AuthCallbackContent() {
           if (session.tokens?.idToken) {
             console.log("[Auth Callback] User authenticated on retry:", user.userId);
             setStatus("success");
-            router.push("/dashboard");
+            window.location.href = "/dashboard";
           } else {
             throw new Error("No valid tokens after retry");
           }
