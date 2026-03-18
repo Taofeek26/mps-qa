@@ -1,19 +1,31 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
-import { getCurrentUser } from "aws-amplify/auth";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [status, setStatus] = React.useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    // Check for error in URL params (OAuth error response)
+    const error = searchParams.get("error");
+    const errorDescription = searchParams.get("error_description");
+
+    if (error) {
+      console.error("[Auth Callback] OAuth error:", error, errorDescription);
+      setStatus("error");
+      setErrorMessage(errorDescription || `OAuth error: ${error}`);
+      return;
+    }
+
     // Listen for auth events
     const unsubscribe = Hub.listen("auth", async ({ payload }) => {
-      console.log("[Auth Callback] Hub event:", payload.event);
+      console.log("[Auth Callback] Hub event:", payload.event, payload.data);
 
       switch (payload.event) {
         case "signInWithRedirect":
@@ -22,10 +34,17 @@ export default function AuthCallbackPage() {
         case "signInWithRedirect_failure":
           console.error("[Auth Callback] Sign in failed:", payload.data);
           setStatus("error");
-          setErrorMessage("Authentication failed. Please try again.");
+          const errorData = payload.data as { error?: string; message?: string } | undefined;
+          setErrorMessage(errorData?.message || errorData?.error || "Authentication failed. Please try again.");
           break;
         case "customOAuthState":
           console.log("[Auth Callback] Custom OAuth state:", payload.data);
+          break;
+        case "tokenRefresh":
+          console.log("[Auth Callback] Token refreshed");
+          break;
+        case "tokenRefresh_failure":
+          console.error("[Auth Callback] Token refresh failed:", payload.data);
           break;
       }
     });
@@ -34,16 +53,24 @@ export default function AuthCallbackPage() {
     const checkAuth = async () => {
       try {
         // Small delay to allow Amplify to process the callback
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
+        // Try to get current user
         const user = await getCurrentUser();
         console.log("[Auth Callback] User authenticated:", user.userId);
-        setStatus("success");
 
-        // Redirect to dashboard after successful auth
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 500);
+        // Also verify we have a valid session
+        const session = await fetchAuthSession();
+        if (session.tokens?.idToken) {
+          console.log("[Auth Callback] Valid session obtained");
+          setStatus("success");
+          // Redirect to dashboard after successful auth
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 500);
+        } else {
+          throw new Error("No valid tokens in session");
+        }
       } catch (error) {
         console.error("[Auth Callback] Auth check error:", error);
         // If no user, wait a bit more and retry once
@@ -51,12 +78,19 @@ export default function AuthCallbackPage() {
 
         try {
           const user = await getCurrentUser();
-          console.log("[Auth Callback] User authenticated on retry:", user.userId);
-          setStatus("success");
-          router.push("/dashboard");
-        } catch {
+          const session = await fetchAuthSession();
+          if (session.tokens?.idToken) {
+            console.log("[Auth Callback] User authenticated on retry:", user.userId);
+            setStatus("success");
+            router.push("/dashboard");
+          } else {
+            throw new Error("No valid tokens after retry");
+          }
+        } catch (retryError) {
+          console.error("[Auth Callback] Retry failed:", retryError);
           setStatus("error");
-          setErrorMessage("Unable to complete authentication. Please try signing in again.");
+          const errMsg = retryError instanceof Error ? retryError.message : "Unknown error";
+          setErrorMessage(`Unable to complete authentication: ${errMsg}`);
         }
       }
     };
@@ -66,7 +100,7 @@ export default function AuthCallbackPage() {
     return () => {
       unsubscribe();
     };
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-app p-4">

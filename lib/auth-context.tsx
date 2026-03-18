@@ -136,9 +136,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       console.log("[Auth] Initiating Microsoft sign-in...");
 
+      // Use the OIDC provider name as configured in Cognito
       await signInWithRedirect({
         provider: {
           custom: 'Microsoft'
+        },
+        options: {
+          preferPrivateSession: false
         }
       });
     } catch (err) {
