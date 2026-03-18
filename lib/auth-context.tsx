@@ -6,7 +6,6 @@ import {
   signOut,
   signInWithRedirect,
   getCurrentUser,
-  fetchUserAttributes,
   fetchAuthSession,
 } from "aws-amplify/auth";
 import type { User, UserRole } from "@/lib/types";
@@ -56,14 +55,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("[AuthContext] Checking auth state...");
       const cognitoUser = await getCurrentUser();
       console.log("[AuthContext] Got user:", cognitoUser.userId);
-      const attributes = await fetchUserAttributes();
-      console.log("[AuthContext] Got attributes:", attributes.email);
+
       const session = await fetchAuthSession();
       console.log("[AuthContext] Got session, has tokens:", !!session.tokens?.idToken);
 
+      if (!session.tokens?.idToken) {
+        throw new Error("No valid ID token");
+      }
+
+      // Get user info from ID token payload (works with federated identity providers)
+      const idTokenPayload = session.tokens.idToken.payload;
+      const email = (idTokenPayload.email as string) || "";
+      const name = (idTokenPayload.name as string) || (idTokenPayload["cognito:username"] as string) || "";
+
       // Get groups from token
-      const groups = (session.tokens?.idToken?.payload?.["cognito:groups"] as string[]) || [];
+      const groups = (idTokenPayload["cognito:groups"] as string[]) || [];
       const role = mapCognitoGroupToRole(groups);
+
+      console.log("[AuthContext] Got user info from token:", email, name);
 
       // Try to get full user profile from backend
       let assignedSiteIds: string[] = [];
@@ -79,8 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const mpsUser: User = {
         id: cognitoUser.userId,
-        email: attributes.email || "",
-        displayName: attributes.name || attributes.email || cognitoUser.username,
+        email: email,
+        displayName: name || email || cognitoUser.username,
         role,
         active: true,
         assignedSiteIds,
