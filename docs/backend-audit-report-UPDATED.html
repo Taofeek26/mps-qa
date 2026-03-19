@@ -801,14 +801,198 @@
                 <div class="fix-status-text">All 7 previously missing endpoints have been implemented and deployed to production. Routes verified via AWS API Gateway.</div>
             </div>
 
-            <div class="ep-grid">
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> /shipments/{id}/line-items</div><div class="ep-desc">Shipment line item details for the detail drawer</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> /shipments/{id}/external-identifiers</div><div class="ep-desc">Manifest numbers, PO numbers, tracking IDs</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> /sites/{siteId}/container-locations</div><div class="ep-desc">Container placement locations at a site</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> POST /exports</div><div class="ep-desc">Generate server-side data exports (CSV/XLSX)</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> GET /exports/{exportId}</div><div class="ep-desc">Export status and download URL</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> POST /uploads/url</div><div class="ep-desc">Presigned S3 URL for file uploads</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> POST /uploads/process</div><div class="ep-desc">Trigger server-side file processing</div></div>
+            <!-- Detailed Endpoint Documentation -->
+
+            <!-- GET /shipments/{id}/line-items -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="tag tag-ok" style="background: var(--teal-100); color: var(--teal-700); font-weight: 600;">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/shipments/{id}/line-items</code>
+                </div>
+                <p style="margin-bottom: 12px;">Retrieve all line items associated with a shipment. Line items contain detailed waste stream information, quantities, and classification codes.</p>
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin-bottom: 8px;">Response Fields</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>id</code></td><td>string</td><td>Unique line item identifier</td></tr>
+                        <tr><td><code>shipment_id</code></td><td>string</td><td>Parent shipment ID</td></tr>
+                        <tr><td><code>line_number</code></td><td>integer</td><td>Line item sequence number</td></tr>
+                        <tr><td><code>quantity_value</code></td><td>number</td><td>Quantity amount</td></tr>
+                        <tr><td><code>standardized_weight_lb</code></td><td>number</td><td>Weight converted to pounds</td></tr>
+                        <tr><td><code>waste_type_id</code></td><td>string</td><td>Waste type classification</td></tr>
+                        <tr><td><code>waste_code_id</code></td><td>string</td><td>EPA/State waste code</td></tr>
+                        <tr><td><code>treatment_method_id</code></td><td>string</td><td>Treatment/disposal method</td></tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 10px;"><span class="tag tag-ok">200 OK</span> <span class="tag tag-warn">404 Not Found</span></div>
+            </div>
+
+            <!-- GET /shipments/{id}/external-identifiers -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="tag tag-ok" style="background: var(--teal-100); color: var(--teal-700); font-weight: 600;">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/shipments/{id}/external-identifiers</code>
+                </div>
+                <p style="margin-bottom: 12px;">Retrieve external system identifiers linked to a shipment (e.g., manifest numbers, PO numbers, tracking IDs from external systems).</p>
+                <div class="codeblock">
+<pre>{
+  <span class="str">"external_identifiers"</span>: [
+    {
+      <span class="str">"id"</span>: "uuid",
+      <span class="str">"identifier_type"</span>: "MANIFEST",
+      <span class="str">"identifier_value"</span>: "MAN-2024-001234",
+      <span class="str">"source_system"</span>: "EPA_MANIFEST"
+    },
+    {
+      <span class="str">"identifier_type"</span>: "PO_NUMBER",
+      <span class="str">"identifier_value"</span>: "PO-98765",
+      <span class="str">"source_system"</span>: "SAP"
+    }
+  ]
+}</pre>
+                </div>
+                <div style="margin-top: 10px;"><span class="tag tag-ok">200 OK</span> <span class="tag tag-warn">404 Not Found</span></div>
+            </div>
+
+            <!-- GET /sites/{id}/container-locations -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="tag tag-ok" style="background: var(--teal-100); color: var(--teal-700); font-weight: 600;">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/sites/{id}/container-locations</code>
+                </div>
+                <p style="margin-bottom: 12px;">Retrieve all container placement locations for a specific site.</p>
+                <div class="codeblock">
+<pre>{
+  <span class="str">"container_locations"</span>: [
+    {
+      <span class="str">"id"</span>: "uuid",
+      <span class="str">"site_id"</span>: "uuid",
+      <span class="str">"location_name"</span>: "Loading Dock A",
+      <span class="str">"location_code"</span>: "LD-A",
+      <span class="str">"is_active"</span>: true
+    }
+  ]
+}</pre>
+                </div>
+                <div style="margin-top: 10px;"><span class="tag tag-ok">200 OK</span> <span class="tag tag-warn">404 Not Found</span></div>
+            </div>
+
+            <!-- POST /exports -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="tag" style="background: var(--amber-100); color: var(--amber-800); font-weight: 600;">POST</span>
+                    <code style="font-size: 14px; font-weight: 600;">/exports</code>
+                </div>
+                <p style="margin-bottom: 12px;">Generate a new data export (async operation). Returns an export ID to poll for status.</p>
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin-bottom: 8px;">Request Body</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>export_type</code></td><td>string</td><td>Yes</td><td>Type: shipments, customers, vendors, sites, audit</td></tr>
+                        <tr><td><code>format</code></td><td>string</td><td>No</td><td>Output format: csv (default), xlsx, json</td></tr>
+                        <tr><td><code>filters.date_from</code></td><td>string</td><td>No</td><td>Start date (YYYY-MM-DD)</td></tr>
+                        <tr><td><code>filters.date_to</code></td><td>string</td><td>No</td><td>End date (YYYY-MM-DD)</td></tr>
+                        <tr><td><code>filters.customer_id</code></td><td>string</td><td>No</td><td>Filter by customer UUID</td></tr>
+                    </tbody>
+                </table>
+                <div class="codeblock" style="margin-top: 12px;">
+<pre><span class="cm">// Request</span>
+{
+  <span class="str">"export_type"</span>: "shipments",
+  <span class="str">"format"</span>: "csv",
+  <span class="str">"filters"</span>: { <span class="str">"date_from"</span>: "2024-01-01" }
+}
+
+<span class="cm">// Response</span>
+{ <span class="str">"export_id"</span>: "exp-uuid-12345", <span class="str">"status"</span>: "processing" }</pre>
+                </div>
+                <div style="margin-top: 10px;"><span class="tag tag-ok">202 Accepted</span> <span class="tag tag-warn">400 Bad Request</span></div>
+            </div>
+
+            <!-- GET /exports/{id} -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="tag tag-ok" style="background: var(--teal-100); color: var(--teal-700); font-weight: 600;">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/exports/{id}</code>
+                </div>
+                <p style="margin-bottom: 12px;">Check the status of an export and get download URL when complete.</p>
+                <div class="codeblock">
+<pre><span class="cm">// Processing</span>
+{ <span class="str">"export_id"</span>: "exp-uuid", <span class="str">"status"</span>: "processing", <span class="str">"progress"</span>: 45 }
+
+<span class="cm">// Complete</span>
+{
+  <span class="str">"export_id"</span>: "exp-uuid",
+  <span class="str">"status"</span>: "complete",
+  <span class="str">"download_url"</span>: "https://s3.amazonaws.com/exports/...",
+  <span class="str">"expires_at"</span>: "2024-01-16T10:30:00Z",
+  <span class="str">"file_size"</span>: 1234567,
+  <span class="str">"row_count"</span>: 5000
+}</pre>
+                </div>
+                <p style="font-size: 12px; color: var(--gray-500); margin-top: 8px;"><strong>Note:</strong> Download URLs are pre-signed S3 URLs that expire after 1 hour.</p>
+                <div style="margin-top: 10px;"><span class="tag tag-ok">200 OK</span> <span class="tag tag-warn">404 Not Found</span></div>
+            </div>
+
+            <!-- POST /uploads/url -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="tag" style="background: var(--amber-100); color: var(--amber-800); font-weight: 600;">POST</span>
+                    <code style="font-size: 14px; font-weight: 600;">/uploads/url</code>
+                </div>
+                <p style="margin-bottom: 12px;">Get a pre-signed URL for uploading a file to S3. Use this URL to directly upload your file.</p>
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin-bottom: 8px;">Request Body</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>filename</code></td><td>string</td><td>Yes</td><td>Original filename with extension</td></tr>
+                        <tr><td><code>content_type</code></td><td>string</td><td>Yes</td><td>MIME type: text/csv, application/vnd.ms-excel, application/pdf</td></tr>
+                    </tbody>
+                </table>
+                <div class="codeblock" style="margin-top: 12px;">
+<pre><span class="cm">// Request</span>
+{ <span class="str">"filename"</span>: "shipment-data.csv", <span class="str">"content_type"</span>: "text/csv" }
+
+<span class="cm">// Response</span>
+{
+  <span class="str">"upload_url"</span>: "https://s3.amazonaws.com/bucket/...",
+  <span class="str">"file_key"</span>: "uploads/2024/01/abc123.csv",
+  <span class="str">"expires_in"</span>: 3600
+}</pre>
+                </div>
+                <p style="font-size: 12px; color: var(--gray-500); margin-top: 8px;"><strong>Usage:</strong> Send a PUT request to <code>upload_url</code> with your file as the body. URL expires in 1 hour.</p>
+                <div style="margin-top: 10px;"><span class="tag tag-ok">200 OK</span> <span class="tag tag-warn">400 Bad Request</span></div>
+            </div>
+
+            <!-- POST /uploads/process -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="tag" style="background: var(--amber-100); color: var(--amber-800); font-weight: 600;">POST</span>
+                    <code style="font-size: 14px; font-weight: 600;">/uploads/process</code>
+                </div>
+                <p style="margin-bottom: 12px;">Trigger processing of an uploaded file. Call this after successfully uploading to S3.</p>
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin-bottom: 8px;">Request Body</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>file_key</code></td><td>string</td><td>Yes</td><td>The file_key returned from POST /uploads/url</td></tr>
+                        <tr><td><code>file_type</code></td><td>string</td><td>Yes</td><td>Type: shipment_import, customer_import, vendor_import</td></tr>
+                        <tr><td><code>options.skip_duplicates</code></td><td>boolean</td><td>No</td><td>Skip duplicate records (default: true)</td></tr>
+                        <tr><td><code>options.validate_only</code></td><td>boolean</td><td>No</td><td>Validate without importing (dry run)</td></tr>
+                    </tbody>
+                </table>
+                <div class="codeblock" style="margin-top: 12px;">
+<pre><span class="cm">// Request</span>
+{
+  <span class="str">"file_key"</span>: "uploads/2024/01/abc123.csv",
+  <span class="str">"file_type"</span>: "shipment_import",
+  <span class="str">"options"</span>: { <span class="str">"skip_duplicates"</span>: true }
+}
+
+<span class="cm">// Response</span>
+{ <span class="str">"job_id"</span>: "job-uuid-12345", <span class="str">"status"</span>: "processing" }</pre>
+                </div>
+                <div style="margin-top: 10px;"><span class="tag tag-ok">202 Accepted</span> <span class="tag tag-warn">404 File Not Found</span></div>
             </div>
         </div>
 
@@ -849,11 +1033,11 @@
                 <thead><tr><th>Endpoint</th><th>Status</th><th>Data</th></tr></thead>
                 <tbody>
                     <tr><td><code>/analytics/client-industry-codes</code></td><td><span class="tag tag-ok">✅ Fixed</span></td><td>SQL fixed (was is_active, now status='active')</td></tr>
-                    <tr><td><code>/analytics/safety-training</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
-                    <tr><td><code>/analytics/route-progress</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
-                    <tr><td><code>/analytics/yard-turnaround</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
-                    <tr><td><code>/analytics/service-agreement-rates</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
-                    <tr><td><code>/analytics/platform-monthly-events</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
+                    <tr><td><code>/analytics/safety-training</code></td><td><span class="tag tag-ok">Seeded</span></td><td>5 training records</td></tr>
+                    <tr><td><code>/analytics/route-progress</code></td><td><span class="tag tag-ok">Seeded</span></td><td>5 route schedules</td></tr>
+                    <tr><td><code>/analytics/yard-turnaround</code></td><td><span class="tag tag-ok">Seeded</span></td><td>7 turnaround records</td></tr>
+                    <tr><td><code>/analytics/service-agreement-rates</code></td><td><span class="tag tag-ok">Seeded</span></td><td>6 service agreements</td></tr>
+                    <tr><td><code>/analytics/platform-monthly-events</code></td><td><span class="tag tag-ok">Seeded</span></td><td>5 monthly events</td></tr>
                     <tr><td><code>/analytics/feature-usage</code></td><td><span class="tag tag-ok">OK</span></td><td>4 features tracked</td></tr>
                 </tbody>
             </table>
