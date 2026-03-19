@@ -3647,6 +3647,289 @@ Content-Type: application/json</pre>
                         </table>
                     </div>
                 </div>
+
+                <!-- Detailed Analytics Endpoints -->
+                <div id="analytics-safety-training" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/analytics/safety-training</span>
+                    </div>
+                    <p class="endpoint-description">Get safety training completion data grouped by training type. Returns the number of employees who have completed each type of safety training.</p>
+
+                    <h4>Response</h4>
+                    <div class="code-block">
+                        <pre>{
+  "safety_training_data": [
+    {
+      "training_type": "hazmat_handling",
+      "total_employees": 5,
+      "completed": 4,
+      "pending": 1
+    },
+    {
+      "training_type": "forklift_operation",
+      "total_employees": 5,
+      "completed": 3,
+      "pending": 2
+    },
+    {
+      "training_type": "dot_compliance",
+      "total_employees": 5,
+      "completed": 5,
+      "pending": 0
+    }
+  ]
+}</pre>
+                    </div>
+
+                    <h4>Response Fields</h4>
+                    <table class="params-table">
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">training_type</span></td><td>string</td><td>Type of safety training (e.g., hazmat_handling, forklift_operation, dot_compliance, first_aid)</td></tr>
+                            <tr><td><span class="param-name">total_employees</span></td><td>integer</td><td>Total number of employees assigned to this training</td></tr>
+                            <tr><td><span class="param-name">completed</span></td><td>integer</td><td>Number of employees who have completed the training</td></tr>
+                            <tr><td><span class="param-name">pending</span></td><td>integer</td><td>Number of employees with pending training</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="analytics-route-progress" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/analytics/route-progress</span>
+                    </div>
+                    <p class="endpoint-description">Get route completion progress for the last 30 days. Shows daily route statistics including on-time vs delayed routes.</p>
+
+                    <h4>Response</h4>
+                    <div class="code-block">
+                        <pre>{
+  "route_progress_data": [
+    {
+      "date": "2026-03-19",
+      "total_routes": 3,
+      "on_time": 2,
+      "delayed": 1
+    },
+    {
+      "date": "2026-03-18",
+      "total_routes": 1,
+      "on_time": 0,
+      "delayed": 1
+    }
+  ]
+}</pre>
+                    </div>
+
+                    <h4>Response Fields</h4>
+                    <table class="params-table">
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">date</span></td><td>string (date)</td><td>Date of the route schedule (YYYY-MM-DD)</td></tr>
+                            <tr><td><span class="param-name">total_routes</span></td><td>integer</td><td>Total number of routes scheduled for this date</td></tr>
+                            <tr><td><span class="param-name">on_time</span></td><td>integer</td><td>Number of routes completed on time</td></tr>
+                            <tr><td><span class="param-name">delayed</span></td><td>integer</td><td>Number of routes that were delayed</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="analytics-yard-turnaround" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/analytics/yard-turnaround</span>
+                    </div>
+                    <p class="endpoint-description">Get yard turnaround time statistics grouped by facility. Shows average, minimum, and maximum turnaround times in minutes.</p>
+
+                    <h4>Response</h4>
+                    <div class="code-block">
+                        <pre>{
+  "yard_turnaround_data": [
+    {
+      "facility_name": "Clean Earth Detroit",
+      "avg_turnaround": 45.0,
+      "min_turnaround": 35,
+      "max_turnaround": 55
+    },
+    {
+      "facility_name": "US Ecology Wayne",
+      "avg_turnaround": 55.0,
+      "min_turnaround": 50,
+      "max_turnaround": 60
+    },
+    {
+      "facility_name": "Republic Services Pontiac",
+      "avg_turnaround": 30.0,
+      "min_turnaround": 25,
+      "max_turnaround": 30
+    }
+  ]
+}</pre>
+                    </div>
+
+                    <h4>Response Fields</h4>
+                    <table class="params-table">
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">facility_name</span></td><td>string</td><td>Name of the receiving facility</td></tr>
+                            <tr><td><span class="param-name">avg_turnaround</span></td><td>number</td><td>Average turnaround time in minutes</td></tr>
+                            <tr><td><span class="param-name">min_turnaround</span></td><td>integer</td><td>Minimum turnaround time in minutes</td></tr>
+                            <tr><td><span class="param-name">max_turnaround</span></td><td>integer</td><td>Maximum turnaround time in minutes</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="analytics-service-agreement-rates" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/analytics/service-agreement-rates</span>
+                    </div>
+                    <p class="endpoint-description">Get service agreement pricing analysis grouped by service type. Shows rate statistics for active agreements.</p>
+
+                    <h4>Response</h4>
+                    <div class="code-block">
+                        <pre>{
+  "service_agreement_rates": [
+    {
+      "service_type": "Hazardous Waste Pickup",
+      "avg_rate": 487.50,
+      "min_rate": 450.00,
+      "max_rate": 525.00,
+      "agreement_count": 2
+    },
+    {
+      "service_type": "Container Rental",
+      "avg_rate": 150.00,
+      "min_rate": 150.00,
+      "max_rate": 150.00,
+      "agreement_count": 1
+    },
+    {
+      "service_type": "Lab Pack Services",
+      "avg_rate": 275.00,
+      "min_rate": 275.00,
+      "max_rate": 275.00,
+      "agreement_count": 1
+    }
+  ]
+}</pre>
+                    </div>
+
+                    <h4>Response Fields</h4>
+                    <table class="params-table">
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">service_type</span></td><td>string</td><td>Type of service (e.g., Hazardous Waste Pickup, Container Rental, Lab Pack Services)</td></tr>
+                            <tr><td><span class="param-name">avg_rate</span></td><td>number</td><td>Average rate across all agreements for this service type</td></tr>
+                            <tr><td><span class="param-name">min_rate</span></td><td>number</td><td>Minimum rate for this service type</td></tr>
+                            <tr><td><span class="param-name">max_rate</span></td><td>number</td><td>Maximum rate for this service type</td></tr>
+                            <tr><td><span class="param-name">agreement_count</span></td><td>integer</td><td>Number of active agreements for this service type</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="analytics-platform-monthly-events" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/analytics/platform-monthly-events</span>
+                    </div>
+                    <p class="endpoint-description">Get monthly platform activity statistics for the last 12 months. Shows event counts and unique user activity.</p>
+
+                    <h4>Response</h4>
+                    <div class="code-block">
+                        <pre>{
+  "platform_monthly_events": [
+    {
+      "month": "2026-03",
+      "event_count": 5,
+      "unique_users": 3
+    },
+    {
+      "month": "2026-02",
+      "event_count": 8,
+      "unique_users": 4
+    }
+  ]
+}</pre>
+                    </div>
+
+                    <h4>Response Fields</h4>
+                    <table class="params-table">
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">month</span></td><td>string</td><td>Month in YYYY-MM format</td></tr>
+                            <tr><td><span class="param-name">event_count</span></td><td>integer</td><td>Total number of platform events (logins, actions, etc.)</td></tr>
+                            <tr><td><span class="param-name">unique_users</span></td><td>integer</td><td>Number of unique users active during this month</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="analytics-client-industry-codes" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/analytics/client-industry-codes</span>
+                    </div>
+                    <p class="endpoint-description">Get client distribution by industry classification. Shows count of active customers per industry.</p>
+
+                    <h4>Response</h4>
+                    <div class="code-block">
+                        <pre>{
+  "client_industry_codes": [
+    {
+      "industry": "Manufacturing",
+      "count": 5
+    },
+    {
+      "industry": "Automotive",
+      "count": 3
+    },
+    {
+      "industry": "Chemical",
+      "count": 2
+    }
+  ]
+}</pre>
+                    </div>
+
+                    <h4>Response Fields</h4>
+                    <table class="params-table">
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">industry</span></td><td>string</td><td>Industry classification name</td></tr>
+                            <tr><td><span class="param-name">count</span></td><td>integer</td><td>Number of active customers in this industry</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="analytics-feature-usage" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/analytics/feature-usage</span>
+                    </div>
+                    <p class="endpoint-description">Get platform feature adoption and usage statistics for the last 30 days. Returns a map of feature names to usage counts.</p>
+
+                    <h4>Response</h4>
+                    <div class="code-block">
+                        <pre>{
+  "feature_usage_map": {
+    "Shipment Entry": 38,
+    "Reports": 24,
+    "Dashboard": 15,
+    "Admin": 8,
+    "Report Builder": 6,
+    "Vendor Management": 5
+  }
+}</pre>
+                    </div>
+
+                    <h4>Response Fields</h4>
+                    <table class="params-table">
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="param-name">feature_usage_map</span></td><td>object</td><td>Map of feature names to usage counts. Keys are feature names, values are integer counts.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
             </section>
 
             <!-- Reference Data Section -->
