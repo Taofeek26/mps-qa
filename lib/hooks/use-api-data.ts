@@ -300,12 +300,21 @@ function transformReceivingFacility(raw: any): {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformUser(raw: any): User {
+  // Handle status field - API returns "active"/"inactive" string, not boolean
+  let isActive = true;
+  if (raw.is_active !== undefined) {
+    isActive = raw.is_active;
+  } else if (raw.active !== undefined) {
+    isActive = raw.active;
+  } else if (raw.status !== undefined) {
+    isActive = raw.status === 'active';
+  }
   return {
     id: raw.id,
     email: raw.email ?? '',
     displayName: raw.display_name ?? raw.name ?? raw.email ?? '',
     role: raw.role ?? 'site_user',
-    active: raw.is_active ?? raw.active ?? true,
+    active: typeof isActive === 'boolean' ? isActive : isActive === 'active',
     assignedSiteIds: raw.assigned_site_ids ?? [],
   };
 }
