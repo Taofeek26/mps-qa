@@ -8,7 +8,7 @@ This document catalogs every issue, inconsistency, missing endpoint, and data ga
 
 ---
 
-## FIX STATUS SUMMARY — Updated March 19, 2026 (v2.7)
+## FIX STATUS SUMMARY — Updated March 19, 2026 (v2.8)
 
 | Issue ID | Issue | Status | Fix Details |
 |----------|-------|--------|-------------|
@@ -439,11 +439,11 @@ The frontend needs clarity on which field controls what.
 | Analytics Endpoint | Status | Data |
 |-------------------|--------|------|
 | `/analytics/client-industry-codes` | **500 Error** | SQL error |
-| `/analytics/safety-training` | 200 | Empty array |
-| `/analytics/route-progress` | 200 | Empty array |
-| `/analytics/yard-turnaround` | 200 | Empty array |
-| `/analytics/service-agreement-rates` | 200 | Empty array |
-| `/analytics/platform-monthly-events` | 200 | Empty array |
+| `/analytics/safety-training` | 200 | ✅ Has data (5 training records) |
+| `/analytics/route-progress` | 200 | ✅ Has data (5 route schedules) |
+| `/analytics/yard-turnaround` | 200 | ✅ Has data (7 turnaround records) |
+| `/analytics/service-agreement-rates` | 200 | ✅ Has data (6 agreements) |
+| `/analytics/platform-monthly-events` | 200 | ✅ Has data (5 events) |
 | `/analytics/feature-usage` | 200 | Has data (4 features tracked) |
 
 ---
@@ -693,15 +693,20 @@ The frontend expects soft delete. Please confirm.
 | `/profiles` | ✅ 5 | Waste profile management |
 | `/service-items` | ✅ 8 | Pricing and invoicing |
 
-### Empty Analytics (200 OK, empty arrays)
+### Analytics Endpoints — NOW SEEDED
 
-| Endpoint | Frontend Feature |
-|----------|-----------------|
-| `/analytics/safety-training` | Regulatory Report (training completion) |
-| `/analytics/route-progress` | Operations Report (route tracking) |
-| `/analytics/yard-turnaround` | Operations Report (yard efficiency) |
-| `/analytics/service-agreement-rates` | Cost Analysis (rate benchmarks) |
-| `/analytics/platform-monthly-events` | Platform Analytics Report |
+| Endpoint | Records | Frontend Feature |
+|----------|---------|-----------------|
+| `/analytics/safety-training` | ✅ 5 | Regulatory Report (training completion) |
+| `/analytics/route-progress` | ✅ 5 | Operations Report (route tracking) |
+| `/analytics/yard-turnaround` | ✅ 7 | Operations Report (yard efficiency) |
+| `/analytics/service-agreement-rates` | ✅ 6 | Cost Analysis (rate benchmarks) |
+| `/analytics/platform-monthly-events` | ✅ 5 | Platform Analytics Report |
+
+> **✅ FIX APPLIED (March 19, 2026)**
+> - Seeded `yard_turnaround` table with 7 facility turnaround records
+> - Seeded `service_agreements` table with 6 contract records + added `status` column
+> - Existing tables (`safety_training`, `route_schedules`, `platform_events`) already had data
 
 ---
 

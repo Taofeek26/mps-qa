@@ -1,12 +1,12 @@
 {
   "audit_metadata": {
     "date": "2026-03-19",
-    "version": "2.7",
+    "version": "2.8",
     "api_base_url": "https://h8fcclh73j.execute-api.us-east-1.amazonaws.com/prod",
     "frontend_stack": "Next.js 16 + React 19 + TypeScript 5 + Tailwind v4",
     "cognito_user_pool_id": "us-east-1_23veUlUUb",
     "cognito_client_id": "5o8a25t8ki8b2uo6ckponfg4t9",
-    "fixes_deployed": 27,
+    "fixes_deployed": 28,
     "pending_items": 0
   },
 
@@ -37,7 +37,8 @@
     "data_seeding": {
       "kpi_seed_script": "EXECUTED - 63 records across 11 tables",
       "profiles": "5 records seeded",
-      "service_items": "8 records seeded"
+      "service_items": "8 records seeded",
+      "analytics_tables": "SEEDED - yard_turnaround (7), service_agreements (6), safety_training (5), route_schedules (5), platform_events (5)"
     },
     "filtering": {
       "multi_value_filters": "FIXED - All list endpoints support comma-separated filters",
