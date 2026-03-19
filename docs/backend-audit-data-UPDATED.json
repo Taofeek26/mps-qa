@@ -1,12 +1,12 @@
 {
   "audit_metadata": {
     "date": "2026-03-19",
-    "version": "2.6",
+    "version": "2.7",
     "api_base_url": "https://h8fcclh73j.execute-api.us-east-1.amazonaws.com/prod",
     "frontend_stack": "Next.js 16 + React 19 + TypeScript 5 + Tailwind v4",
     "cognito_user_pool_id": "us-east-1_23veUlUUb",
     "cognito_client_id": "5o8a25t8ki8b2uo6ckponfg4t9",
-    "fixes_deployed": 25,
+    "fixes_deployed": 27,
     "pending_items": 0
   },
 
@@ -22,7 +22,9 @@
       "profile_404": "FIXED - JWT claims extraction updated + routing fix",
       "analytics_500": "FIXED - SQL changed from is_active to status='active'",
       "microsoft_sso": "FIXED - cognito_sub updated for federated users",
-      "orphan_users": "FIXED - Removed seed users with NULL cognito_sub"
+      "orphan_users": "FIXED - Removed seed users with NULL cognito_sub",
+      "cognito_groups_parsing": "FIXED - Handles bracketed space-separated format from Microsoft SSO",
+      "cognito_groups_sync": "FIXED - Auto-add users to Cognito groups based on DB role on login"
     },
     "missing_endpoints": {
       "line_items": "FIXED - GET /shipments/{id}/line-items implemented",

@@ -8,7 +8,7 @@ This document catalogs every issue, inconsistency, missing endpoint, and data ga
 
 ---
 
-## FIX STATUS SUMMARY — Updated March 19, 2026 (v2.6)
+## FIX STATUS SUMMARY — Updated March 19, 2026 (v2.7)
 
 | Issue ID | Issue | Status | Fix Details |
 |----------|-------|--------|-------------|
@@ -18,6 +18,8 @@ This document catalogs every issue, inconsistency, missing endpoint, and data ga
 | 2.1 | `last_login_at` Not Updated | ✅ VERIFIED | Tested working — 1 row affected on each login |
 | 2.2 | User Roles Don't Match Frontend | ✅ FIXED | `docs/ROLES.md` created + `GET /roles/mapping` endpoint added |
 | 2.3 | Missing `assigned_site_ids` | ✅ FIXED | Now queried from `user_site_assignments` table |
+| 2.4 | Cognito Groups Not Synced | ✅ FIXED | Auto-add users to Cognito groups based on DB role on login |
+| 2.5 | `cognito:groups` Parsing Fails | ✅ FIXED | Handles bracketed space-separated format from Microsoft SSO |
 | 3.1 | Inconsistent Pagination Param | ✅ DOCUMENTED | Frontend updated to use `limit` |
 | 3.2 | `/customers` No Pagination Object | ✅ FIXED | Standard pagination object added |
 | 3.3 | Customer List Missing Fields | ✅ FIXED | Changed to `SELECT *` for all fields |
@@ -192,6 +194,44 @@ The frontend currently maps:
 > - File: `mps-aws-stack/src/user-manager/app.py`
 > - Change: Added query to `get_user()` function to fetch `assigned_site_ids` from `user_site_assignments` table
 > - Response now wrapped in `{ user: {...} }` object with `assigned_site_ids` array included
+
+---
+
+### 2.4 Cognito Groups Not Synced for SSO Users
+
+**Problem:** Users logging in via Microsoft SSO are created in the database with a role (e.g., `admin`), but they are not automatically added to the corresponding Cognito group. This causes authorization failures when accessing role-restricted endpoints like `/users`.
+
+**Expected:** When a user logs in, their database role should be synced to Cognito groups.
+
+> **✅ FIX APPLIED (March 19, 2026)**
+> - File: `mps-aws-stack/src/auth-post-processor/app.py`
+> - Added `sync_user_to_cognito_group()` function that:
+>   - Extracts user's role from database after login
+>   - Creates the Cognito group if it doesn't exist
+>   - Adds the user to the appropriate group (admin, manager, operator, viewer)
+> - Triggered automatically on every authentication via PostAuthentication Lambda trigger
+
+---
+
+### 2.5 `cognito:groups` Claim Parsing Fails for Microsoft SSO
+
+**Problem:** The `cognito:groups` claim from Microsoft federated tokens comes in a bracketed space-separated format: `"[us-east-1_xxx_Microsoft admin]"`. The backend was splitting by comma, resulting in the entire string being treated as a single group name.
+
+**Debug Output (before fix):**
+```
+current_user_groups_str = [us-east-1_23veUlUUb_Microsoft admin]
+current_user_groups = ['[us-east-1_23veUlUUb_Microsoft admin]']  # Wrong!
+```
+
+**Expected:** `['us-east-1_23veUlUUb_Microsoft', 'admin']`
+
+> **✅ FIX APPLIED (March 19, 2026)**
+> - File: `mps-aws-stack/src/user-manager/app.py`
+> - Added `parse_cognito_groups()` function that handles multiple formats:
+>   - List format (HTTP API): `['admin', 'manager']`
+>   - Comma-separated string: `'admin,manager'`
+>   - **Bracketed space-separated**: `'[us-east-1_xxx_Microsoft admin]'` → correctly parses to `['us-east-1_xxx_Microsoft', 'admin']`
+> - Users list (`GET /users`) now accessible for admin/manager roles
 
 ---
 

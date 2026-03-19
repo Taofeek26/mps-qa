@@ -491,8 +491,8 @@
 
     <div class="scores-wrap">
         <div class="updated-banner">
-            <h3>✅ 25 FIXES DEPLOYED — March 19, 2026 (v2.6)</h3>
-            <p>JWT Authentication • CORS Restrictions • Rate Limiting • PII Protection • SQL Fixes • Pagination • Input Validation • All 7 Missing Endpoints • Profile Routing Fix • Microsoft SSO cognito_sub Fix • KPI Seed Data • Role-Based Authorization • Server-Side Filtering • <strong>Role Mapping Documentation</strong> — All deployed to production. <strong style="color:#86EFAC;">All items complete!</strong></p>
+            <h3>✅ 27 FIXES DEPLOYED — March 19, 2026 (v2.7)</h3>
+            <p>JWT Authentication • CORS Restrictions • Rate Limiting • PII Protection • SQL Fixes • Pagination • Input Validation • All 7 Missing Endpoints • Profile Routing Fix • Microsoft SSO cognito_sub Fix • KPI Seed Data • Role-Based Authorization • Server-Side Filtering • Role Mapping Documentation • <strong>Cognito Groups Auto-Sync</strong> • <strong>cognito:groups Parsing Fix</strong> — All deployed to production. <strong style="color:#86EFAC;">All items complete!</strong></p>
         </div>
         <div class="scores">
             <div class="score-card">
@@ -502,8 +502,8 @@
             </div>
             <div class="score-card">
                 <div class="label">Issues Fixed</div>
-                <div class="value val-good">25</div>
-                <div class="sub">Security, Auth, API, Endpoints, DB, RBAC, Filtering, Docs</div>
+                <div class="value val-good">27</div>
+                <div class="sub">Security, Auth, API, Endpoints, DB, RBAC, Filtering, Groups</div>
             </div>
             <div class="score-card">
                 <div class="label">Endpoints Working</div>
@@ -953,6 +953,8 @@
                     <li class="fixed"><span class="fix-badge">FIXED</span> <code>/users/profile</code> routing bug — moved <code>/profile</code> check before <code>/users</code> in Lambda handler</li>
                     <li class="fixed"><span class="fix-badge">FIXED</span> Microsoft SSO users — updated <code>cognito_sub</code> to match federated account sub</li>
                     <li class="fixed"><span class="fix-badge">FIXED</span> Removed orphan seed users with NULL <code>cognito_sub</code> (user-001 to user-004)</li>
+                    <li class="fixed"><span class="fix-badge">FIXED</span> Auto-add users to Cognito groups based on DB role on login (admin, manager, operator, viewer)</li>
+                    <li class="fixed"><span class="fix-badge">FIXED</span> <code>cognito:groups</code> parsing — handles bracketed space-separated format from Microsoft SSO</li>
                 </ol>
             </div>
 
@@ -1062,7 +1064,7 @@
     </div>
 
     <footer class="footer">
-        <p>MPS Backend Audit Report &middot; Updated March 19, 2026 (v2.6) &middot; <a href="https://www.mpsgrp.com">mpsgrp.com</a></p>
+        <p>MPS Backend Audit Report &middot; Updated March 19, 2026 (v2.7) &middot; <a href="https://www.mpsgrp.com">mpsgrp.com</a></p>
     </footer>
 
 </body>
