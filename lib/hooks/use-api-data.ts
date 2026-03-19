@@ -31,6 +31,7 @@ import {
   containerWeightRecordsApi,
   platformUserActivityApi,
   customerSurveysApi,
+  safetyTrainingApi,
   shipmentLineItemsApi,
   shipmentExternalIdentifiersApi,
   containerLocationsBySiteApi,
@@ -1454,4 +1455,49 @@ export function useClientIndustryCodes() {
   );
 
   return { clientIndustryCodes, loading, error, refetch };
+}
+
+// ============================================
+// Safety Training Records (Full CRUD - New Entity)
+// ============================================
+
+export interface SafetyTrainingRecordEntity {
+  id: string;
+  employeeName: string;
+  department: string;
+  courseName: string;
+  completionDate: string;
+  certified: boolean;
+  expirationDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function transformSafetyTrainingRecord(raw: any): SafetyTrainingRecordEntity {
+  return {
+    id: raw.id,
+    employeeName: raw.employee_name ?? raw.employeeName ?? '',
+    department: raw.department ?? '',
+    courseName: raw.course_name ?? raw.courseName ?? '',
+    completionDate: raw.completion_date ?? raw.completionDate ?? '',
+    certified: raw.certified ?? false,
+    expirationDate: raw.expiration_date ?? raw.expirationDate ?? undefined,
+    createdAt: raw.created_at ?? raw.createdAt ?? undefined,
+    updatedAt: raw.updated_at ?? raw.updatedAt ?? undefined,
+  };
+}
+
+export function useSafetyTrainingRecords(params?: Record<string, string>) {
+  const { data, loading, error, refetch } = useApiData<{ safety_training: unknown[]; pagination?: unknown }>(
+    () => safetyTrainingApi.getAll(params) as Promise<{ data: { safety_training: unknown[]; pagination?: unknown } | null; error: string | null }>,
+    [JSON.stringify(params)]
+  );
+
+  const safetyTrainingRecords = React.useMemo(
+    () => (data?.safety_training || []).map(transformSafetyTrainingRecord),
+    [data?.safety_training]
+  );
+
+  return { safetyTrainingRecords, pagination: data?.pagination, loading, error, refetch };
 }

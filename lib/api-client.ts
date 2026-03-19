@@ -311,22 +311,28 @@ export const truckLoadsApi = {
   getById: (id: string) => api.get<{ truck_load: unknown }>(`/truck-loads/${id}`),
 };
 
-// --- Safety Incidents ---
+// --- Safety Incidents (Full CRUD) ---
 export const safetyIncidentsApi = {
   getAll: (params?: Record<string, string>) => {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return api.get<{ safety_incidents: unknown[] }>(`/safety-incidents${query}`);
+    return api.get<{ safety_incidents: unknown[]; pagination?: unknown }>(`/safety-incidents${query}`);
   },
   getById: (id: string) => api.get<{ safety_incident: unknown }>(`/safety-incidents/${id}`),
+  create: (data: unknown) => api.post<{ id: string; message: string }>('/safety-incidents', data),
+  update: (id: string, data: unknown) => api.put<{ message: string }>(`/safety-incidents/${id}`, data),
+  delete: (id: string) => api.delete<{ message: string }>(`/safety-incidents/${id}`),
 };
 
-// --- Inspection Records ---
+// --- Inspection Records (Full CRUD) ---
 export const inspectionRecordsApi = {
   getAll: (params?: Record<string, string>) => {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return api.get<{ inspection_records: unknown[] }>(`/inspection-records${query}`);
+    return api.get<{ inspection_records: unknown[]; pagination?: unknown }>(`/inspection-records${query}`);
   },
   getById: (id: string) => api.get<{ inspection_record: unknown }>(`/inspection-records/${id}`),
+  create: (data: unknown) => api.post<{ id: string; message: string }>('/inspection-records', data),
+  update: (id: string, data: unknown) => api.put<{ message: string }>(`/inspection-records/${id}`, data),
+  delete: (id: string) => api.delete<{ message: string }>(`/inspection-records/${id}`),
 };
 
 // --- Service Verifications ---
@@ -354,15 +360,32 @@ export const platformUserActivityApi = {
     return api.get<{ platform_user_activities: unknown[] }>(`/platform-user-activity${query}`);
   },
   getById: (id: string) => api.get<{ platform_user_activity: unknown }>(`/platform-user-activity/${id}`),
+  track: (data: { event_type: 'page_view' | 'action'; page?: string; action?: string; metadata?: Record<string, unknown> }) =>
+    api.post<{ message: string }>('/platform-user-activity/track', data),
 };
 
-// --- Customer Surveys ---
+// --- Safety Training (Full CRUD - New Entity) ---
+export const safetyTrainingApi = {
+  getAll: (params?: Record<string, string>) => {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return api.get<{ safety_training: unknown[]; pagination?: unknown }>(`/safety-training${query}`);
+  },
+  getById: (id: string) => api.get<{ safety_training: unknown }>(`/safety-training/${id}`),
+  create: (data: unknown) => api.post<{ id: string; message: string }>('/safety-training', data),
+  update: (id: string, data: unknown) => api.put<{ message: string }>(`/safety-training/${id}`, data),
+  delete: (id: string) => api.delete<{ message: string }>(`/safety-training/${id}`),
+};
+
+// --- Customer Surveys (Full CRUD) ---
 export const customerSurveysApi = {
   getAll: (params?: Record<string, string>) => {
     const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return api.get<{ customer_surveys: unknown[] }>(`/customer-surveys${query}`);
+    return api.get<{ customer_surveys: unknown[]; pagination?: unknown }>(`/customer-surveys${query}`);
   },
   getById: (id: string) => api.get<{ customer_survey: unknown }>(`/customer-surveys/${id}`),
+  create: (data: unknown) => api.post<{ id: string; message: string }>('/customer-surveys', data),
+  update: (id: string, data: unknown) => api.put<{ message: string }>(`/customer-surveys/${id}`, data),
+  delete: (id: string) => api.delete<{ message: string }>(`/customer-surveys/${id}`),
 };
 
 // --- Shipment Line Items ---
