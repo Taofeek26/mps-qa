@@ -201,8 +201,8 @@ export const usersApi = {
   create: (data: unknown) => api.post<{ user: unknown }>('/users', data),
   update: (id: string, data: unknown) => api.put<{ user: unknown }>(`/users/${id}`, data),
   delete: (id: string) => api.delete<{ success: boolean }>(`/users/${id}`),
-  getProfile: () => api.get<{ user: unknown }>('/users/profile'),
-  updateProfile: (data: unknown) => api.put<{ user: unknown }>('/users/profile', data),
+  getProfile: () => api.get<{ user: unknown }>('/profile'),
+  updateProfile: (data: unknown) => api.put<{ user: unknown }>('/profile', data),
   getRoles: () => api.get<{ roles: unknown[] }>('/roles'),
 };
 
