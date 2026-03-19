@@ -1,0 +1,381 @@
+{
+  "audit_metadata": {
+    "date": "2026-03-19",
+    "api_base_url": "https://h8fcclh73j.execute-api.us-east-1.amazonaws.com/prod",
+    "frontend_stack": "Next.js 16 + React 19 + TypeScript 5 + Tailwind v4",
+    "cognito_user_pool_id": "us-east-1_23veUlUUb",
+    "cognito_client_id": "5o8a25t8ki8b2uo6ckponfg4t9"
+  },
+
+  "endpoints": [
+    {
+      "path": "/customers",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 8,
+      "pagination_style": "count_only",
+      "response_wrapper_key": "customers",
+      "fields_returned": ["id", "name", "code", "contact_name", "email", "phone", "address", "status"],
+      "fields_missing_from_list": ["industry", "city", "state", "zip_code", "billing_address", "created_at"],
+      "notes": "List endpoint returns fewer fields than detail. No pagination object — uses flat 'count' field instead.",
+      "issues": ["missing_fields_on_list", "inconsistent_pagination"]
+    },
+    {
+      "path": "/customers/{id}",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "fields_returned": ["id", "name", "code", "industry", "contact_name", "email", "phone", "address", "city", "state", "zip_code", "billing_address", "status", "created_at", "updated_at"],
+      "notes": "Detail endpoint has full fields. List should match."
+    },
+    {
+      "path": "/sites",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 20,
+      "pagination_style": "standard",
+      "pagination_shape": {"page": 1, "limit": 50, "total": 20, "pages": 1},
+      "response_wrapper_key": "sites",
+      "fields_returned": ["id", "name", "customer_id", "address", "city", "state", "zip_code", "region", "site_type", "contact_name", "contact_email", "contact_phone", "status", "created_at", "updated_at", "customer_name"],
+      "notes": "Includes denormalized customer_name. Good."
+    },
+    {
+      "path": "/vendors",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 11,
+      "pagination_style": "standard",
+      "response_wrapper_key": "vendors",
+      "fields_returned": ["id", "vendor_name", "vendor_type", "vendor_code", "contact_name", "email", "phone", "address", "city", "state", "zip_code", "license_number", "license_expiry", "waste_types", "certifications", "notes", "completion_status", "dbe_flag", "commodities", "risk_level", "supplier_form", "date_entered", "date_reviewed", "reviewed_by", "vendor_qual_status", "status", "created_at", "updated_at"],
+      "field_naming_issues": [
+        {"field": "vendor_name", "expected": "name", "note": "All other entities use 'name'. Vendors use 'vendor_name'."},
+        {"field": "vendor_qual_status", "expected": "vendor_status", "note": "Original docs said vendor_status. API uses vendor_qual_status."},
+        {"field": "status", "note": "Unclear relationship between 'status' (active/inactive) and 'vendor_qual_status' (qualification status)."}
+      ]
+    },
+    {
+      "path": "/waste-types",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 22,
+      "pagination_style": "standard",
+      "response_wrapper_key": "waste_types",
+      "fields_returned": ["id", "name", "code", "description", "hazardous_flag", "waste_category", "default_treatment_method", "default_waste_codes", "default_source_code", "default_form_code", "default_treatment_code", "default_ewc_number", "regulatory_code", "active", "created_at", "created_by", "updated_at", "updated_by"],
+      "active_field_style": "integer_0_1",
+      "notes": "Uses 'active' as 0/1 integer, not 'status' string. Inconsistent with customers/vendors."
+    },
+    {
+      "path": "/shipments",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 18,
+      "pagination_style": "standard",
+      "pagination_param": "limit",
+      "pagination_param_not_working": "page_size",
+      "response_wrapper_key": "shipments",
+      "supported_query_params": ["page", "limit", "customer_id", "site_id", "status", "waste_category", "search", "sort_by", "sort_dir", "date_from", "date_to"],
+      "fields_returned": ["id", "customer_id", "customer_name", "site_id", "site_name", "shipment_ref", "shipment_date", "collection_date", "vendor_id", "vendor_name", "collection_address", "delivery_address", "waste_type", "waste_type_id", "waste_description", "waste_stream_name", "ewc_code", "source_code", "form_code", "treatment_code", "waste_category", "waste_codes", "quantity", "quantity_unit", "weight_kg", "weight_per_unit", "standardized_weight_lb", "standardized_weight_kg", "target_load_weight", "container_type", "container_count", "container_location_id", "service_frequency_id", "profile_id", "manifest_number", "return_manifest_date", "hazardous", "adr_class", "un_number", "packing_group", "special_provisions", "consignment_note", "duty_of_care_ref", "transporter_id", "carrier_name", "carrier_license", "driver_name", "vehicle_reg", "trailer_reg", "collection_time", "delivery_time", "completed_date", "receiving_facility_id", "receiving_company", "facility_name", "facility_license", "receiving_city", "receiving_state", "receiving_zip", "receiving_epa_id", "distance_miles", "treatment_method", "recovery_disposal_code", "final_destination", "certificate_number", "certificate_date", "status", "notes", "mps_transport_cost", "mps_disposal_cost", "mps_admin_cost", "mps_haul_charge", "mps_disposal_fee_each", "mps_disposal_fee_total", "mps_fuel_fee", "mps_environmental_fee", "mps_rebate", "mps_other_fees", "mps_total_cost", "customer_transport_charge", "customer_disposal_charge", "customer_admin_charge", "customer_haul_charge", "customer_disposal_fee_each", "customer_disposal_fee_total", "customer_fuel_fee", "customer_environmental_fee", "customer_rebate", "customer_other_fees", "customer_total_charge", "margin_amount", "margin_percent", "plant_id", "approval_id", "management_method", "document_no", "disposal_location_code", "tri_waste_code", "pcb_removal_date", "pcb_destruction_date", "invoice_number", "invoice_date", "payment_status", "payment_date", "import_job_id", "created_at", "created_by", "updated_at", "updated_by"],
+      "field_naming_issues": [
+        {"api_field": "customer_id", "frontend_field": "clientId"},
+        {"api_field": "customer_name", "frontend_field": "clientName"},
+        {"api_field": "waste_description", "frontend_field": "wasteTypeName"},
+        {"api_field": "carrier_name", "frontend_field": "transporterName"},
+        {"api_field": "facility_name", "frontend_field": "receivingFacility"},
+        {"api_field": "distance_miles", "frontend_field": "milesFromFacility"},
+        {"api_field": "quantity", "frontend_field": "weightValue"},
+        {"api_field": "quantity_unit", "frontend_field": "weightUnit"},
+        {"api_field": "standardized_weight_lb", "frontend_field": "standardizedVolumeLbs"},
+        {"api_field": "customer_total_charge", "frontend_field": "customerCost (nested object)", "note": "API uses 'charge', docs said 'cost'. MPS side uses 'cost'. Inconsistent."}
+      ],
+      "cost_breakdown_available": true,
+      "cost_fields_mps": ["mps_transport_cost", "mps_disposal_cost", "mps_admin_cost", "mps_haul_charge", "mps_disposal_fee_each", "mps_disposal_fee_total", "mps_fuel_fee", "mps_environmental_fee", "mps_rebate", "mps_other_fees", "mps_total_cost"],
+      "cost_fields_customer": ["customer_transport_charge", "customer_disposal_charge", "customer_admin_charge", "customer_haul_charge", "customer_disposal_fee_each", "customer_disposal_fee_total", "customer_fuel_fee", "customer_environmental_fee", "customer_rebate", "customer_other_fees", "customer_total_charge"],
+      "notes": "Very comprehensive — 100+ fields. Full cost breakdown available (was originally thought to be missing). Supports search, sort, customer_id filter."
+    },
+    {
+      "path": "/transporters",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 7,
+      "response_wrapper_key": "transporters",
+      "fields_returned": ["id", "transporter_name", "transporter_code", "vendor_id", "epa_id", "dot_number", "license_number", "license_expiry", "insurance_expiry", "contact_name", "contact_phone", "contact_email", "address", "city", "state", "zip_code", "active", "created_at", "created_by", "updated_at", "updated_by", "vendor_name"],
+      "active_field_style": "integer_0_1",
+      "notes": "Includes vendor_id linking to vendors (good). Denormalized vendor_name included."
+    },
+    {
+      "path": "/receiving-facilities",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 9,
+      "response_wrapper_key": "receiving_facilities",
+      "fields_returned": ["id", "facility_name", "facility_code", "receiving_company_id", "address", "city", "state", "zip_code", "epa_id", "license_number", "license_expiry", "facility_type", "accepted_waste_types", "contact_name", "contact_phone", "contact_email", "active", "created_at", "created_by", "updated_at", "updated_by", "receiving_company_name"],
+      "active_field_style": "integer_0_1",
+      "notes": "Includes receiving_company_id + denormalized receiving_company_name."
+    },
+    {
+      "path": "/receiving-companies",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "response_wrapper_key": "receiving_companies",
+      "fields_returned": ["id", "company_name", "code", "address", "city", "state", "zip_code", "phone", "email", "active", "created_at", "created_by", "updated_at", "updated_by"]
+    },
+    {
+      "path": "/containers",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 17,
+      "response_wrapper_key": "containers",
+      "fields_returned": ["id", "container_name", "container_code", "container_family", "nominal_capacity_value", "nominal_capacity_unit_id", "description", "active", "created_at", "created_by", "updated_at", "updated_by"],
+      "active_field_style": "integer_0_1"
+    },
+    {
+      "path": "/profiles",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 0,
+      "notes": "Empty — no profiles exist. Frontend needs these for waste stream characterization."
+    },
+    {
+      "path": "/service-items",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 0,
+      "notes": "Empty — no service items exist. Frontend needs these for pricing/invoicing."
+    },
+    {
+      "path": "/users",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 12,
+      "response_wrapper_key": "users",
+      "fields_returned": ["id", "cognito_sub", "cognito_username", "email", "name", "role", "customer_id", "is_federated", "entra_id", "department", "job_title", "status", "last_login_at", "login_count", "created_at", "created_by", "updated_at", "updated_by", "customer_name", "groups"],
+      "active_field_style": "status_string",
+      "role_values": ["admin", "manager", "operator", "viewer"],
+      "frontend_role_mapping": {"admin": "system_admin", "manager": "admin", "operator": "site_user", "viewer": "site_user"},
+      "issues": [
+        "last_login_at not updated on subsequent logins",
+        "No assigned_site_ids field — only customer_id (links to one customer, not specific sites)",
+        "Role values differ from frontend expectations"
+      ]
+    },
+    {
+      "path": "/users/profile",
+      "method": "GET",
+      "status": "broken",
+      "http_code": 404,
+      "error": "User not found",
+      "notes": "Should return the profile of the authenticated user by matching JWT sub claim to cognito_sub column. Currently returns 404 even for existing users."
+    },
+    {
+      "path": "/roles",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "response_type": "object",
+      "roles": {
+        "admin": {"name": "Administrator", "permissions": ["*"]},
+        "manager": {"name": "Manager", "permissions": ["shipments:read", "shipments:write", "shipments:delete", "reports:read", "reports:export", "vendors:read", "vendors:write", "users:read"]},
+        "operator": {"name": "Operator", "permissions": ["shipments:read", "shipments:write", "reports:read", "vendors:read"]},
+        "viewer": {"name": "Viewer", "permissions": ["shipments:read", "reports:read", "vendors:read"]}
+      }
+    },
+    {
+      "path": "/audit-log",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 51,
+      "response_wrapper_key": "audit_log",
+      "fields_returned": ["id", "entity_type", "entity_id", "action", "old_values", "new_values", "created_at", "created_by"],
+      "missing_fields": ["summary", "actor_name"],
+      "notes": "created_by is a user ID/email — frontend needs to resolve to display name. No human-readable summary field."
+    },
+    {
+      "path": "/shipments/{id}/line-items",
+      "method": "GET",
+      "status": "not_implemented",
+      "http_code": 404
+    },
+    {
+      "path": "/shipments/{id}/external-identifiers",
+      "method": "GET",
+      "status": "not_implemented",
+      "http_code": 404
+    },
+    {
+      "path": "/sites/{id}/container-locations",
+      "method": "GET",
+      "status": "not_implemented",
+      "http_code": 404
+    },
+    {
+      "path": "/exports",
+      "method": "POST",
+      "status": "not_implemented",
+      "http_code": 404
+    },
+    {
+      "path": "/uploads/url",
+      "method": "POST",
+      "status": "not_implemented",
+      "http_code": 404
+    },
+    {
+      "path": "/analytics/client-industry-codes",
+      "method": "GET",
+      "status": "error",
+      "http_code": 500,
+      "error": "Unknown column 'is_active' in where clause"
+    },
+    {
+      "path": "/analytics/safety-training",
+      "method": "GET",
+      "status": "working",
+      "record_count": 0
+    },
+    {
+      "path": "/analytics/route-progress",
+      "method": "GET",
+      "status": "working",
+      "record_count": 0
+    },
+    {
+      "path": "/analytics/yard-turnaround",
+      "method": "GET",
+      "status": "working",
+      "record_count": 0
+    },
+    {
+      "path": "/analytics/service-agreement-rates",
+      "method": "GET",
+      "status": "working",
+      "record_count": 0
+    },
+    {
+      "path": "/analytics/platform-monthly-events",
+      "method": "GET",
+      "status": "working",
+      "record_count": 0
+    },
+    {
+      "path": "/analytics/feature-usage",
+      "method": "GET",
+      "status": "working",
+      "has_data": true,
+      "sample": {"Dashboard": 1, "New Shipment": 1, "Reports": 1, "Shipments": 1}
+    }
+  ],
+
+  "reference_data_endpoints": [
+    {"path": "/units", "status": "working", "wrapper_key": "units", "sample_fields": ["id", "unit_code", "unit_name", "unit_family", "conversion_to_lb", "conversion_to_kg", "sort_order", "active"]},
+    {"path": "/treatment-methods", "status": "working", "wrapper_key": "treatment_methods", "sample_fields": ["id", "treatment_method_name", "treatment_code", "description", "category", "active"]},
+    {"path": "/service-frequencies", "status": "working", "wrapper_key": "service_frequencies", "sample_fields": ["id", "frequency_name", "frequency_code", "days_between", "sort_order", "active"]},
+    {"path": "/source-codes", "status": "working", "wrapper_key": "source_codes", "sample_fields": ["code", "description"]},
+    {"path": "/form-codes", "status": "working", "wrapper_key": "form_codes", "sample_fields": ["code", "description"]},
+    {"path": "/treatment-codes", "status": "working", "wrapper_key": "treatment_codes", "sample_fields": ["code", "description", "category"]},
+    {"path": "/ewc-codes", "status": "working", "wrapper_key": "ewc_codes", "sample_fields": ["code", "description", "is_hazardous", "chapter", "sub_chapter"]},
+    {"path": "/container-types", "status": "working", "wrapper_key": "container_types", "sample_fields": ["code", "name", "capacity_m3", "capacity_l"]}
+  ],
+
+  "kpi_endpoints": [
+    {"path": "/invoice-records", "status": "working", "record_count": 4, "wrapper_key": "invoice_records", "fields": ["id", "client_id", "invoice_number", "invoice_date", "due_date", "amount", "paid_amount", "paid_date", "status", "created_at", "updated_at"]},
+    {"path": "/collection-events", "status": "working", "record_count": 3, "wrapper_key": "collection_events"},
+    {"path": "/container-placements", "status": "working", "record_count": 0, "wrapper_key": "container_placements", "needed_for": "Light Load Report — fill rates"},
+    {"path": "/facility-capacities", "status": "working", "record_count": 0, "wrapper_key": "facility_capacities", "needed_for": "Operations Report — utilization metrics"},
+    {"path": "/fuel-records", "status": "working", "record_count": 0, "wrapper_key": "fuel_records", "needed_for": "Logistics Report — fuel efficiency"},
+    {"path": "/route-schedules", "status": "working", "record_count": 0, "wrapper_key": "route_schedules", "needed_for": "Logistics Report — route adherence"},
+    {"path": "/truck-loads", "status": "working", "record_count": 0, "wrapper_key": "truck_loads", "needed_for": "Logistics Report — truck utilization"},
+    {"path": "/safety-incidents", "status": "working", "record_count": 4, "wrapper_key": "safety_incidents", "fields": ["id", "date", "type", "severity", "resolved", "resolved_date", "site_id", "description", "root_cause", "corrective_action", "reported_by", "created_at", "updated_at"], "type_enum_mismatch": {"api_returns": "injury", "frontend_expects": ["vehicle", "chemical", "slip-fall", "equipment", "ergonomic"]}, "severity_enum_mismatch": {"api_returns": "medium", "frontend_expects": ["minor", "moderate", "serious"]}},
+    {"path": "/inspection-records", "status": "working", "record_count": 2, "wrapper_key": "inspection_records"},
+    {"path": "/service-verifications", "status": "working", "record_count": 0, "wrapper_key": "service_verifications", "needed_for": "Vendor Intel Report"},
+    {"path": "/container-weight-records", "status": "working", "record_count": 0, "wrapper_key": "container_weight_records", "needed_for": "Emissions Report"},
+    {"path": "/platform-user-activity", "status": "working", "record_count": 3, "wrapper_key": "platform_user_activity"},
+    {"path": "/customer-surveys", "status": "working", "record_count": 3, "wrapper_key": "customer_surveys", "fields": ["id", "client_id", "client_name", "date", "csat", "nps", "fcr_resolved", "response_time_hrs", "has_complaint", "complaint_category", "feedback", "created_at", "updated_at"]}
+  ],
+
+  "active_field_inconsistencies": [
+    {"entity": "customers", "field_name": "status", "type": "string", "values": ["active", "inactive"]},
+    {"entity": "vendors", "field_name": "status", "type": "string", "values": ["active", "inactive"]},
+    {"entity": "users", "field_name": "status", "type": "string", "values": ["active", "inactive"]},
+    {"entity": "waste_types", "field_name": "active", "type": "integer", "values": [0, 1]},
+    {"entity": "transporters", "field_name": "active", "type": "integer", "values": [0, 1]},
+    {"entity": "receiving_facilities", "field_name": "active", "type": "integer", "values": [0, 1]},
+    {"entity": "containers", "field_name": "active", "type": "integer", "values": [0, 1]},
+    {"entity": "units", "field_name": "active", "type": "integer", "values": [0, 1]},
+    {"entity": "treatment_methods", "field_name": "active", "type": "integer", "values": [0, 1]},
+    {"entity": "service_frequencies", "field_name": "active", "type": "integer", "values": [0, 1]}
+  ],
+
+  "pagination_inconsistencies": {
+    "standard_pattern": {"response_key": "pagination", "shape": {"page": "int", "limit": "int", "total": "int", "pages": "int"}},
+    "query_param": "limit",
+    "query_param_not_working": "page_size",
+    "exceptions": [
+      {"endpoint": "/customers", "pattern": "Uses flat 'count' field instead of pagination object"}
+    ]
+  },
+
+  "critical_issues": [
+    {
+      "id": "CRIT-1",
+      "title": "/users/profile returns 404 for authenticated users",
+      "endpoint": "GET /users/profile",
+      "impact": "Frontend cannot determine user role, permissions, or first-login status",
+      "fix": "Look up user by JWT sub claim → cognito_sub column match",
+      "priority": "P0"
+    },
+    {
+      "id": "CRIT-2",
+      "title": "No authentication enforcement on any endpoint",
+      "impact": "All data publicly accessible without JWT token",
+      "fix": "Add Cognito JWT validation middleware to API Gateway or Lambda authorizer",
+      "priority": "P0"
+    },
+    {
+      "id": "CRIT-3",
+      "title": "/analytics/client-industry-codes returns 500",
+      "error": "Unknown column 'is_active' in where clause",
+      "fix": "Update SQL query to use correct column name (status or active)",
+      "priority": "P1"
+    }
+  ],
+
+  "high_priority_issues": [
+    {
+      "id": "HIGH-1",
+      "title": "last_login_at not updated on subsequent SSO logins",
+      "impact": "Frontend onboarding detection breaks — thinks every login is first login",
+      "fix": "Update last_login_at and increment login_count on each successful authentication"
+    },
+    {
+      "id": "HIGH-2",
+      "title": "Customer list endpoint missing fields",
+      "endpoint": "GET /customers",
+      "missing_fields": ["industry", "city", "state", "zip_code"],
+      "note": "Detail endpoint /customers/{id} returns these fields. List should too."
+    },
+    {
+      "id": "HIGH-3",
+      "title": "User record has no assigned_site_ids",
+      "impact": "Cannot restrict site_user access to specific sites",
+      "fix": "Add assigned_site_ids array to user record, or add GET /users/{id}/sites endpoint"
+    },
+    {
+      "id": "HIGH-4",
+      "title": "Pagination parameter is 'limit' not 'page_size'",
+      "note": "API docs said page_size but actual API uses limit. Frontend updated but docs should match."
+    }
+  ]
+}

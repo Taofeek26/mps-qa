@@ -1,0 +1,519 @@
+{
+  "audit_metadata": {
+    "date": "2026-03-19",
+    "version": "2.6",
+    "api_base_url": "https://h8fcclh73j.execute-api.us-east-1.amazonaws.com/prod",
+    "frontend_stack": "Next.js 16 + React 19 + TypeScript 5 + Tailwind v4",
+    "cognito_user_pool_id": "us-east-1_23veUlUUb",
+    "cognito_client_id": "5o8a25t8ki8b2uo6ckponfg4t9",
+    "fixes_deployed": 25,
+    "pending_items": 0
+  },
+
+  "fix_summary": {
+    "security": {
+      "jwt_authentication": "FIXED - Cognito JWT authorizer added to all endpoints",
+      "role_based_authorization": "FIXED - RBAC implemented for admin-only endpoints",
+      "cors_restriction": "FIXED - Restricted to frontend domains only",
+      "rate_limiting": "FIXED - 50 req/sec, 100 burst limit",
+      "pii_protection": "FIXED - cognito_sub, entra_id excluded from /users list"
+    },
+    "critical_bugs": {
+      "profile_404": "FIXED - JWT claims extraction updated + routing fix",
+      "analytics_500": "FIXED - SQL changed from is_active to status='active'",
+      "microsoft_sso": "FIXED - cognito_sub updated for federated users",
+      "orphan_users": "FIXED - Removed seed users with NULL cognito_sub"
+    },
+    "missing_endpoints": {
+      "line_items": "FIXED - GET /shipments/{id}/line-items implemented",
+      "external_identifiers": "FIXED - GET /shipments/{id}/external-identifiers implemented",
+      "container_locations": "FIXED - GET /sites/{id}/container-locations implemented",
+      "exports": "FIXED - POST /exports and GET /exports/{id} implemented",
+      "uploads": "FIXED - POST /uploads/url and POST /uploads/process implemented",
+      "roles_mapping": "NEW - GET /roles/mapping endpoint added"
+    },
+    "data_seeding": {
+      "kpi_seed_script": "EXECUTED - 63 records across 11 tables",
+      "profiles": "5 records seeded",
+      "service_items": "8 records seeded"
+    },
+    "filtering": {
+      "multi_value_filters": "FIXED - All list endpoints support comma-separated filters",
+      "supported_params": ["ids", "status", "customerIds", "siteIds", "states", "roles", "categories"]
+    }
+  },
+
+  "endpoints": [
+    {
+      "path": "/customers",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 8,
+      "pagination_style": "standard",
+      "pagination_shape": {"page": 1, "limit": 50, "total": 8, "pages": 1},
+      "response_wrapper_key": "customers",
+      "fields_returned": ["id", "name", "code", "industry", "contact_name", "email", "phone", "address", "city", "state", "zip_code", "billing_address", "status", "created_at", "updated_at"],
+      "supported_filters": ["search", "status", "ids"],
+      "notes": "FIXED: Now returns all fields and standard pagination object.",
+      "issues_fixed": ["missing_fields_on_list", "inconsistent_pagination"]
+    },
+    {
+      "path": "/customers/{id}",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "fields_returned": ["id", "name", "code", "industry", "contact_name", "email", "phone", "address", "city", "state", "zip_code", "billing_address", "status", "created_at", "updated_at"],
+      "notes": "Detail endpoint has full fields."
+    },
+    {
+      "path": "/sites",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 20,
+      "pagination_style": "standard",
+      "pagination_shape": {"page": 1, "limit": 50, "total": 20, "pages": 1},
+      "response_wrapper_key": "sites",
+      "fields_returned": ["id", "name", "customer_id", "address", "city", "state", "zip_code", "region", "site_type", "contact_name", "contact_email", "contact_phone", "status", "created_at", "updated_at", "customer_name"],
+      "supported_filters": ["search", "status", "ids", "customerIds", "states"],
+      "notes": "Includes denormalized customer_name. Multi-value filtering supported."
+    },
+    {
+      "path": "/vendors",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 11,
+      "pagination_style": "standard",
+      "response_wrapper_key": "vendors",
+      "fields_returned": ["id", "vendor_name", "vendor_type", "vendor_code", "contact_name", "email", "phone", "address", "city", "state", "zip_code", "license_number", "license_expiry", "waste_types", "certifications", "notes", "completion_status", "dbe_flag", "commodities", "risk_level", "supplier_form", "date_entered", "date_reviewed", "reviewed_by", "vendor_qual_status", "status", "active", "created_at", "updated_at"],
+      "supported_filters": ["search", "status", "ids", "states"],
+      "field_naming_issues": [
+        {"field": "vendor_name", "expected": "name", "note": "All other entities use 'name'. Vendors use 'vendor_name'."},
+        {"field": "vendor_qual_status", "expected": "vendor_status", "note": "Original docs said vendor_status. API uses vendor_qual_status."}
+      ],
+      "notes": "FIXED: Now returns both 'status' and 'active' fields for consistency."
+    },
+    {
+      "path": "/waste-types",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 22,
+      "pagination_style": "standard",
+      "response_wrapper_key": "waste_types",
+      "fields_returned": ["id", "name", "code", "description", "hazardous_flag", "waste_category", "default_treatment_method", "default_waste_codes", "default_source_code", "default_form_code", "default_treatment_code", "default_ewc_number", "regulatory_code", "active", "status", "created_at", "created_by", "updated_at", "updated_by"],
+      "supported_filters": ["search", "ids", "categories", "status"],
+      "notes": "FIXED: Now returns both 'active' (integer) and 'status' (string) fields."
+    },
+    {
+      "path": "/shipments",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 18,
+      "pagination_style": "standard",
+      "pagination_param": "limit",
+      "response_wrapper_key": "shipments",
+      "supported_query_params": ["page", "limit", "customer_id", "customerIds", "site_id", "siteIds", "vendor_id", "vendorIds", "waste_type_id", "status", "waste_category", "search", "sort_by", "sort_dir", "date_from", "date_to"],
+      "fields_returned": ["id", "customer_id", "customer_name", "site_id", "site_name", "shipment_ref", "shipment_date", "collection_date", "vendor_id", "vendor_name", "collection_address", "delivery_address", "waste_type", "waste_type_id", "waste_description", "waste_stream_name", "ewc_code", "source_code", "form_code", "treatment_code", "waste_category", "waste_codes", "quantity", "quantity_unit", "weight_kg", "weight_per_unit", "standardized_weight_lb", "standardized_weight_kg", "target_load_weight", "container_type", "container_count", "container_location_id", "service_frequency_id", "profile_id", "manifest_number", "return_manifest_date", "hazardous", "adr_class", "un_number", "packing_group", "special_provisions", "consignment_note", "duty_of_care_ref", "transporter_id", "carrier_name", "carrier_license", "driver_name", "vehicle_reg", "trailer_reg", "collection_time", "delivery_time", "completed_date", "receiving_facility_id", "receiving_company", "facility_name", "facility_license", "receiving_city", "receiving_state", "receiving_zip", "receiving_epa_id", "distance_miles", "treatment_method", "recovery_disposal_code", "final_destination", "certificate_number", "certificate_date", "status", "notes", "mps_transport_cost", "mps_disposal_cost", "mps_admin_cost", "mps_haul_charge", "mps_disposal_fee_each", "mps_disposal_fee_total", "mps_fuel_fee", "mps_environmental_fee", "mps_rebate", "mps_other_fees", "mps_total_cost", "customer_transport_charge", "customer_disposal_charge", "customer_admin_charge", "customer_haul_charge", "customer_disposal_fee_each", "customer_disposal_fee_total", "customer_fuel_fee", "customer_environmental_fee", "customer_rebate", "customer_other_fees", "customer_total_charge", "margin_amount", "margin_percent", "plant_id", "approval_id", "management_method", "document_no", "disposal_location_code", "tri_waste_code", "pcb_removal_date", "pcb_destruction_date", "invoice_number", "invoice_date", "payment_status", "payment_date", "import_job_id", "created_at", "created_by", "updated_at", "updated_by"],
+      "field_naming_issues": [
+        {"api_field": "customer_id", "frontend_field": "clientId"},
+        {"api_field": "customer_name", "frontend_field": "clientName"},
+        {"api_field": "waste_description", "frontend_field": "wasteTypeName"},
+        {"api_field": "carrier_name", "frontend_field": "transporterName"},
+        {"api_field": "facility_name", "frontend_field": "receivingFacility"},
+        {"api_field": "distance_miles", "frontend_field": "milesFromFacility"},
+        {"api_field": "quantity", "frontend_field": "weightValue"},
+        {"api_field": "quantity_unit", "frontend_field": "weightUnit"},
+        {"api_field": "standardized_weight_lb", "frontend_field": "standardizedVolumeLbs"},
+        {"api_field": "customer_total_charge", "frontend_field": "customerCost (nested object)", "note": "API uses 'charge', docs said 'cost'. MPS side uses 'cost'. Inconsistent."}
+      ],
+      "cost_breakdown_available": true,
+      "notes": "FIXED: Multi-value filtering now supported for all ID fields (customerIds, siteIds, vendorIds, etc.)."
+    },
+    {
+      "path": "/shipments/{id}/line-items",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "notes": "FIXED: Endpoint implemented. Returns line items for a shipment."
+    },
+    {
+      "path": "/shipments/{id}/external-identifiers",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "notes": "FIXED: Endpoint implemented. Returns manifest numbers, PO numbers, tracking IDs."
+    },
+    {
+      "path": "/transporters",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 7,
+      "response_wrapper_key": "transporters",
+      "fields_returned": ["id", "transporter_name", "transporter_code", "vendor_id", "epa_id", "dot_number", "license_number", "license_expiry", "insurance_expiry", "contact_name", "contact_phone", "contact_email", "address", "city", "state", "zip_code", "active", "status", "created_at", "created_by", "updated_at", "updated_by", "vendor_name"],
+      "supported_filters": ["search", "ids", "states", "status"],
+      "notes": "FIXED: Now returns both 'active' and 'status' fields. Multi-value filtering supported."
+    },
+    {
+      "path": "/receiving-facilities",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 9,
+      "response_wrapper_key": "receiving_facilities",
+      "fields_returned": ["id", "facility_name", "facility_code", "receiving_company_id", "address", "city", "state", "zip_code", "epa_id", "license_number", "license_expiry", "facility_type", "accepted_waste_types", "contact_name", "contact_phone", "contact_email", "active", "status", "created_at", "created_by", "updated_at", "updated_by", "receiving_company_name"],
+      "supported_filters": ["search", "ids", "states", "status"],
+      "notes": "FIXED: Now returns both 'active' and 'status' fields. Multi-value filtering supported."
+    },
+    {
+      "path": "/receiving-companies",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "response_wrapper_key": "receiving_companies",
+      "fields_returned": ["id", "company_name", "code", "address", "city", "state", "zip_code", "phone", "email", "active", "status", "created_at", "created_by", "updated_at", "updated_by"]
+    },
+    {
+      "path": "/containers",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 17,
+      "response_wrapper_key": "containers",
+      "fields_returned": ["id", "container_name", "container_code", "container_family", "nominal_capacity_value", "nominal_capacity_unit_id", "description", "active", "status", "created_at", "created_by", "updated_at", "updated_by"],
+      "supported_filters": ["search", "ids", "status"],
+      "notes": "FIXED: Now returns both 'active' and 'status' fields."
+    },
+    {
+      "path": "/sites/{id}/container-locations",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "notes": "FIXED: Endpoint implemented. Returns container placement locations for a site."
+    },
+    {
+      "path": "/profiles",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 5,
+      "response_wrapper_key": "profiles",
+      "supported_filters": ["search", "ids", "customerIds", "status"],
+      "notes": "FIXED: 5 records seeded via KPI seed script."
+    },
+    {
+      "path": "/service-items",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 8,
+      "response_wrapper_key": "service_items",
+      "notes": "FIXED: 8 records seeded via KPI seed script."
+    },
+    {
+      "path": "/users",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 8,
+      "response_wrapper_key": "users",
+      "fields_returned": ["id", "email", "name", "role", "frontend_role", "customer_id", "is_federated", "department", "job_title", "status", "last_login_at", "login_count", "created_at", "created_by", "updated_at", "updated_by", "customer_name", "groups"],
+      "fields_excluded_for_security": ["cognito_sub", "entra_id", "cognito_username"],
+      "supported_filters": ["search", "ids", "roles", "status"],
+      "role_values": ["admin", "manager", "operator", "viewer"],
+      "frontend_role_mapping": {"admin": "system_admin", "manager": "admin", "operator": "site_user", "viewer": "site_user"},
+      "authorization": "Requires admin or manager role",
+      "notes": "FIXED: PII fields excluded. frontend_role field added. Multi-value filtering supported."
+    },
+    {
+      "path": "/users/profile",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "fields_returned": ["id", "email", "name", "role", "frontend_role", "customer_id", "assigned_site_ids", "is_federated", "department", "job_title", "status", "last_login_at", "login_count", "created_at", "updated_at", "customer_name", "groups"],
+      "notes": "FIXED: JWT claims extraction updated. Routing fix applied. Now includes assigned_site_ids and frontend_role."
+    },
+    {
+      "path": "/roles",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "response_type": "object",
+      "roles": {
+        "admin": {"name": "Administrator", "permissions": ["*"]},
+        "manager": {"name": "Manager", "permissions": ["shipments:read", "shipments:write", "shipments:delete", "reports:read", "reports:export", "vendors:read", "vendors:write", "users:read", "users:write"]},
+        "operator": {"name": "Operator", "permissions": ["shipments:read", "shipments:write", "reports:read", "vendors:read"]},
+        "viewer": {"name": "Viewer", "permissions": ["shipments:read", "reports:read", "vendors:read"]}
+      }
+    },
+    {
+      "path": "/roles/mapping",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "response_type": "object",
+      "response_shape": {
+        "role_mapping": {"admin": "system_admin", "manager": "admin", "operator": "site_user", "viewer": "site_user"},
+        "api_roles": ["admin", "manager", "operator", "viewer"],
+        "frontend_roles": ["system_admin", "admin", "site_user"],
+        "permissions": "Detailed permissions matrix per role"
+      },
+      "notes": "NEW: Added March 19, 2026. Returns role mapping configuration for frontend."
+    },
+    {
+      "path": "/audit-log",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "record_count": 51,
+      "response_wrapper_key": "audit_log",
+      "fields_returned": ["id", "entity_type", "entity_id", "action", "old_values", "new_values", "created_at", "created_by"],
+      "authorization": "POST requires admin or manager role",
+      "notes": "FIXED: POST /audit now requires admin/manager role."
+    },
+    {
+      "path": "/exports",
+      "method": "POST",
+      "status": "working",
+      "http_code": 200,
+      "notes": "FIXED: Endpoint implemented. Generates data exports (CSV/XLSX)."
+    },
+    {
+      "path": "/exports/{id}",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "notes": "FIXED: Endpoint implemented. Returns export status and download URL."
+    },
+    {
+      "path": "/uploads/url",
+      "method": "POST",
+      "status": "working",
+      "http_code": 200,
+      "notes": "FIXED: Endpoint implemented. Returns presigned S3 URL for file upload."
+    },
+    {
+      "path": "/uploads/process",
+      "method": "POST",
+      "status": "working",
+      "http_code": 200,
+      "notes": "FIXED: Endpoint implemented. Triggers server-side file processing."
+    },
+    {
+      "path": "/analytics/client-industry-codes",
+      "method": "GET",
+      "status": "working",
+      "http_code": 200,
+      "notes": "FIXED: SQL changed from is_active=1 to status='active'."
+    },
+    {
+      "path": "/analytics/safety-training",
+      "method": "GET",
+      "status": "working",
+      "record_count": 5,
+      "notes": "FIXED: 5 records seeded via KPI seed script."
+    },
+    {
+      "path": "/analytics/route-progress",
+      "method": "GET",
+      "status": "working",
+      "record_count": 0
+    },
+    {
+      "path": "/analytics/yard-turnaround",
+      "method": "GET",
+      "status": "working",
+      "record_count": 0
+    },
+    {
+      "path": "/analytics/service-agreement-rates",
+      "method": "GET",
+      "status": "working",
+      "record_count": 0
+    },
+    {
+      "path": "/analytics/platform-monthly-events",
+      "method": "GET",
+      "status": "working",
+      "record_count": 5,
+      "notes": "FIXED: 5 records seeded via KPI seed script."
+    },
+    {
+      "path": "/analytics/feature-usage",
+      "method": "GET",
+      "status": "working",
+      "has_data": true,
+      "sample": {"Dashboard": 1, "New Shipment": 1, "Reports": 1, "Shipments": 1}
+    }
+  ],
+
+  "reference_data_endpoints": [
+    {"path": "/units", "status": "working", "wrapper_key": "units", "sample_fields": ["id", "unit_code", "unit_name", "unit_family", "conversion_to_lb", "conversion_to_kg", "sort_order", "active", "status"]},
+    {"path": "/treatment-methods", "status": "working", "wrapper_key": "treatment_methods", "sample_fields": ["id", "treatment_method_name", "treatment_code", "description", "category", "active", "status"]},
+    {"path": "/service-frequencies", "status": "working", "wrapper_key": "service_frequencies", "sample_fields": ["id", "frequency_name", "frequency_code", "days_between", "sort_order", "active", "status"]},
+    {"path": "/source-codes", "status": "working", "wrapper_key": "source_codes", "sample_fields": ["code", "description"]},
+    {"path": "/form-codes", "status": "working", "wrapper_key": "form_codes", "sample_fields": ["code", "description"]},
+    {"path": "/treatment-codes", "status": "working", "wrapper_key": "treatment_codes", "sample_fields": ["code", "description", "category"]},
+    {"path": "/ewc-codes", "status": "working", "wrapper_key": "ewc_codes", "sample_fields": ["code", "description", "is_hazardous", "chapter", "sub_chapter"]},
+    {"path": "/container-types", "status": "working", "wrapper_key": "container_types", "sample_fields": ["code", "name", "capacity_m3", "capacity_l"]}
+  ],
+
+  "kpi_endpoints": [
+    {"path": "/invoice-records", "status": "working", "record_count": 4, "wrapper_key": "invoice_records", "fields": ["id", "client_id", "invoice_number", "invoice_date", "due_date", "amount", "paid_amount", "paid_date", "status", "created_at", "updated_at"]},
+    {"path": "/collection-events", "status": "working", "record_count": 3, "wrapper_key": "collection_events"},
+    {"path": "/container-placements", "status": "working", "record_count": 10, "wrapper_key": "container_placements", "needed_for": "Light Load Report — fill rates", "notes": "FIXED: 10 records seeded"},
+    {"path": "/facility-capacities", "status": "working", "record_count": 5, "wrapper_key": "facility_capacities", "needed_for": "Operations Report — utilization metrics", "notes": "FIXED: 5 records seeded"},
+    {"path": "/fuel-records", "status": "working", "record_count": 5, "wrapper_key": "fuel_records", "needed_for": "Logistics Report — fuel efficiency", "notes": "FIXED: 5 records seeded"},
+    {"path": "/route-schedules", "status": "working", "record_count": 5, "wrapper_key": "route_schedules", "needed_for": "Logistics Report — route adherence", "notes": "FIXED: 5 records seeded"},
+    {"path": "/truck-loads", "status": "working", "record_count": 5, "wrapper_key": "truck_loads", "needed_for": "Logistics Report — truck utilization", "notes": "FIXED: 5 records seeded"},
+    {"path": "/safety-incidents", "status": "working", "record_count": 4, "wrapper_key": "safety_incidents", "fields": ["id", "date", "type", "severity", "resolved", "resolved_date", "site_id", "description", "root_cause", "corrective_action", "reported_by", "created_at", "updated_at"]},
+    {"path": "/inspection-records", "status": "working", "record_count": 2, "wrapper_key": "inspection_records"},
+    {"path": "/service-verifications", "status": "working", "record_count": 5, "wrapper_key": "service_verifications", "needed_for": "Vendor Intel Report", "notes": "FIXED: 5 records seeded"},
+    {"path": "/container-weight-records", "status": "working", "record_count": 5, "wrapper_key": "container_weight_records", "needed_for": "Emissions Report", "notes": "FIXED: 5 records seeded"},
+    {"path": "/platform-user-activity", "status": "working", "record_count": 3, "wrapper_key": "platform_user_activity"},
+    {"path": "/customer-surveys", "status": "working", "record_count": 3, "wrapper_key": "customer_surveys", "fields": ["id", "client_id", "client_name", "date", "csat", "nps", "fcr_resolved", "response_time_hrs", "has_complaint", "complaint_category", "feedback", "created_at", "updated_at"]}
+  ],
+
+  "active_field_inconsistencies": {
+    "status": "FIXED",
+    "notes": "All entities now return BOTH 'active' (integer 0/1) AND 'status' (string active/inactive) fields for consistency.",
+    "original_patterns": [
+      {"entity": "customers", "field_name": "status", "type": "string", "values": ["active", "inactive"]},
+      {"entity": "vendors", "field_name": "status", "type": "string", "values": ["active", "inactive"]},
+      {"entity": "users", "field_name": "status", "type": "string", "values": ["active", "inactive"]},
+      {"entity": "waste_types", "field_name": "active", "type": "integer", "values": [0, 1]},
+      {"entity": "transporters", "field_name": "active", "type": "integer", "values": [0, 1]},
+      {"entity": "receiving_facilities", "field_name": "active", "type": "integer", "values": [0, 1]},
+      {"entity": "containers", "field_name": "active", "type": "integer", "values": [0, 1]}
+    ]
+  },
+
+  "pagination_inconsistencies": {
+    "status": "FIXED",
+    "standard_pattern": {"response_key": "pagination", "shape": {"page": "int", "limit": "int", "total": "int", "pages": "int"}},
+    "query_param": "limit",
+    "notes": "All endpoints now use standard pagination pattern including /customers."
+  },
+
+  "critical_issues": [
+    {
+      "id": "CRIT-1",
+      "title": "/users/profile returns 404 for authenticated users",
+      "endpoint": "GET /users/profile",
+      "status": "FIXED",
+      "fix_applied": "JWT claims extraction updated for HTTP API format. Routing fix: moved /profile check before /users check.",
+      "fixed_date": "2026-03-19"
+    },
+    {
+      "id": "CRIT-2",
+      "title": "No authentication enforcement on any endpoint",
+      "status": "FIXED",
+      "fix_applied": "Cognito JWT authorizer added to all API Gateway endpoints. No scopes required (supports federated tokens).",
+      "fixed_date": "2026-03-19"
+    },
+    {
+      "id": "CRIT-3",
+      "title": "/analytics/client-industry-codes returns 500",
+      "status": "FIXED",
+      "fix_applied": "SQL changed from is_active=1 to status='active'.",
+      "fixed_date": "2026-03-19"
+    },
+    {
+      "id": "CRIT-4",
+      "title": "/users/profile routing bug",
+      "status": "FIXED",
+      "fix_applied": "Moved /profile check before /users check in Lambda handler.",
+      "fixed_date": "2026-03-19"
+    },
+    {
+      "id": "CRIT-5",
+      "title": "Microsoft SSO users had wrong cognito_sub",
+      "status": "FIXED",
+      "fix_applied": "Updated database cognito_sub to match federated account sub.",
+      "fixed_date": "2026-03-19"
+    },
+    {
+      "id": "CRIT-6",
+      "title": "Orphan seed users with NULL cognito_sub",
+      "status": "FIXED",
+      "fix_applied": "Removed seed users (user-001 to user-004) that had no Cognito accounts.",
+      "fixed_date": "2026-03-19"
+    }
+  ],
+
+  "high_priority_issues": [
+    {
+      "id": "HIGH-1",
+      "title": "last_login_at not updated on subsequent SSO logins",
+      "status": "VERIFIED",
+      "fix_applied": "auth-post-processor Lambda update_last_login() function triggered via Cognito PostAuthentication.",
+      "test_result": "Updated last_login_at: 1 row(s) affected, timestamp=2026-03-19T06:50:38",
+      "verified_date": "2026-03-19"
+    },
+    {
+      "id": "HIGH-2",
+      "title": "Customer list endpoint missing fields",
+      "endpoint": "GET /customers",
+      "status": "FIXED",
+      "fix_applied": "Changed to SELECT * — all fields now returned."
+    },
+    {
+      "id": "HIGH-3",
+      "title": "User record has no assigned_site_ids",
+      "status": "FIXED",
+      "fix_applied": "Now queries user_site_assignments table and includes assigned_site_ids array in profile response."
+    },
+    {
+      "id": "HIGH-4",
+      "title": "Pagination parameter is 'limit' not 'page_size'",
+      "status": "DOCUMENTED",
+      "fix_applied": "Frontend updated to use 'limit'. Documentation corrected."
+    },
+    {
+      "id": "HIGH-5",
+      "title": "Role-based authorization for admin endpoints",
+      "status": "FIXED",
+      "fix_applied": "RBAC implemented: GET /users (list), POST /users, PUT /users/{id}, DELETE /users/{id}, PUT /roles, POST /audit require admin/manager role.",
+      "fixed_date": "2026-03-19"
+    },
+    {
+      "id": "HIGH-6",
+      "title": "Server-side filtering missing",
+      "status": "FIXED",
+      "fix_applied": "Multi-value filtering added to all list endpoints. Supports comma-separated values for IDs, status, states, roles, categories.",
+      "fixed_date": "2026-03-19"
+    },
+    {
+      "id": "HIGH-7",
+      "title": "User role mapping undocumented",
+      "status": "FIXED",
+      "fix_applied": "Created docs/ROLES.md. Added GET /roles/mapping endpoint.",
+      "fixed_date": "2026-03-19"
+    }
+  ],
+
+  "remaining_items": [
+    {
+      "id": "NICE-1",
+      "title": "Add batch shipment create endpoint",
+      "status": "OPEN",
+      "priority": "Low"
+    },
+    {
+      "id": "NICE-2",
+      "title": "Add dashboard aggregation endpoint",
+      "status": "OPEN",
+      "priority": "Low"
+    },
+    {
+      "id": "NICE-3",
+      "title": "Add request logging for security monitoring",
+      "status": "OPEN",
+      "priority": "Low"
+    }
+  ]
+}

@@ -8,36 +8,6 @@ This document catalogs every issue, inconsistency, missing endpoint, and data ga
 
 ---
 
-## FIX STATUS SUMMARY — Updated March 19, 2026 (v2.6)
-
-| Issue ID | Issue | Status | Fix Details |
-|----------|-------|--------|-------------|
-| 1.1 | `/users/profile` Returns 404 | ✅ FIXED | JWT claims extraction updated for HTTP API format (`authorizer.jwt.claims`) |
-| 1.2 | No Authentication Enforcement | ✅ FIXED | Cognito JWT authorizer added to all API Gateway endpoints |
-| 1.3 | `/analytics/client-industry-codes` 500 | ✅ FIXED | SQL changed from `is_active=1` to `status='active'` |
-| 2.1 | `last_login_at` Not Updated | ✅ VERIFIED | Tested working — 1 row affected on each login |
-| 2.2 | User Roles Don't Match Frontend | ✅ FIXED | `docs/ROLES.md` created + `GET /roles/mapping` endpoint added |
-| 2.3 | Missing `assigned_site_ids` | ✅ FIXED | Now queried from `user_site_assignments` table |
-| 3.1 | Inconsistent Pagination Param | ✅ DOCUMENTED | Frontend updated to use `limit` |
-| 3.2 | `/customers` No Pagination Object | ✅ FIXED | Standard pagination object added |
-| 3.3 | Customer List Missing Fields | ✅ FIXED | Changed to `SELECT *` for all fields |
-| 3.4 | Vendor Status Confusion | ⚠️ OPEN | Documentation needed |
-| 3.5 | Inconsistent Active/Status | ✅ FIXED | API now returns both `active` and `status` fields |
-| 4.1-4.3 | Missing Endpoints | ✅ FIXED | All 7 endpoints implemented and deployed |
-| 5.1-5.4 | Empty Tables | ✅ FIXED | KPI seed script executed — 63 records across 11 tables |
-| 8.1 | Server-Side Filtering | ✅ FIXED | Multi-value filters added to all list endpoints |
-| 10.1 | No Authentication | ✅ FIXED | JWT authorizer added (no scopes - supports federated tokens) |
-| 10.2 | No Authorization on Writes | ✅ FIXED | Role-based authorization added (admin/manager checks) |
-| 10.3 | Privilege Escalation | ✅ FIXED | RBAC: only admin can create admin users |
-| 10.4 | PII Exposure in `/users` | ✅ FIXED | `cognito_sub`, `entra_id` excluded from list |
-| 10.5 | CORS Allows All Origins | ✅ FIXED | Restricted to frontend domains only |
-| 10.6 | No Rate Limiting | ✅ FIXED | 50 req/sec, 100 burst limit |
-| 10.7 | SQL Injection | ✅ MITIGATED | Parameterized queries in use |
-| 10.8 | XSS via Stored Data | ⚠️ OPEN | Recommend audit |
-| 10.9 | No Input Validation | ✅ FIXED | Email, required fields, string length validation added |
-
----
-
 ## TABLE OF CONTENTS
 
 1. [CRITICAL — Blocking Issues](#1-critical--blocking-issues)
@@ -78,12 +48,6 @@ This document catalogs every issue, inconsistency, missing endpoint, and data ga
 
 **Fix Required:** `/users/profile` must look up the user by JWT `sub` → `cognito_sub` match.
 
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/src/user-manager/app.py`
-> - Change: Updated JWT claims extraction to handle HTTP API format (`authorizer.jwt.claims` instead of `authorizer.claims`)
-> - The endpoint now correctly matches JWT `sub` claim against `cognito_sub` column
-> - Additional: Added `/users/profile` routes to template.yaml, frontend updated to use `/profile` endpoint
-
 ---
 
 ### 1.2 No Authentication Enforcement on API
@@ -95,13 +59,6 @@ This document catalogs every issue, inconsistency, missing endpoint, and data ga
 **Impact:** Data is publicly accessible to anyone with the API URL.
 
 **Fix Required:** Add JWT validation middleware to all endpoints. The token is issued by Cognito User Pool `us-east-1_23veUlUUb`.
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/template.yaml`
-> - Change: Added Cognito JWT authorizer to API Gateway HttpApi
-> - No AuthorizationScopes required (removed to support federated/Microsoft SSO tokens)
-> - All endpoints now require valid `Authorization: Bearer <token>` header
-> - Validates: token issuer (Cognito), audience (App Client ID), and expiration
 
 ---
 
@@ -115,11 +72,6 @@ This document catalogs every issue, inconsistency, missing endpoint, and data ga
 
 **Fix Required:** Update the SQL query to use the correct column name (likely `status` or `active`).
 
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/src/kpi-analytics/app.py`
-> - Change: Updated SQL from `WHERE is_active = 1` to `WHERE status = 'active'`
-> - Also fixed same issue in `get_service_agreement_rates()` function
-
 ---
 
 ## 2. HIGH — Authentication & User Management
@@ -131,13 +83,6 @@ This document catalogs every issue, inconsistency, missing endpoint, and data ga
 **Expected:** `last_login_at` should be updated every time the user successfully authenticates via Cognito SSO. The frontend uses `last_login_at === created_at` to detect first-time users for the onboarding flow.
 
 **Fix Required:** Add a post-authentication hook or API call that updates `last_login_at` and increments `login_count`.
-
-> **✅ VERIFIED WORKING (March 19, 2026)**
-> - File: `mps-aws-stack/src/auth-post-processor/app.py`
-> - The `update_last_login()` function updates `last_login_at` and increments `login_count`
-> - Triggered via Cognito PostAuthentication Lambda trigger
-> - **Test Result:** `"Updated last_login_at for cognito_sub=24d8d408-...: 1 row(s) affected, timestamp=2026-03-19T06:50:38"`
-> - Added success logging to confirm each update
 
 ---
 
@@ -155,15 +100,6 @@ The frontend currently maps:
 - (A) Align the API roles to match the frontend (`system_admin`, `admin`, `site_user`), or
 - (B) Document the official mapping and confirm it's correct, or
 - (C) Add the frontend role names as a `frontend_role` field on the user record
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - Created `docs/ROLES.md` with comprehensive role documentation
-> - Added `GET /roles/mapping` endpoint that returns:
->   - `role_mapping`: API role → frontend role mapping
->   - `api_roles`: List of valid API roles
->   - `frontend_roles`: List of frontend roles
->   - `permissions`: Detailed permissions matrix per role
-> - User responses now include `frontend_role` field with mapped value
 
 ---
 
@@ -187,11 +123,6 @@ The frontend currently maps:
 - Use the `customer_id` + `groups` mechanism to derive site access
 
 **Impact:** Without this, the frontend cannot restrict site_user access to specific sites.
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/src/user-manager/app.py`
-> - Change: Added query to `get_user()` function to fetch `assigned_site_ids` from `user_site_assignments` table
-> - Response now wrapped in `{ user: {...} }` object with `assigned_site_ids` array included
 
 ---
 
@@ -233,12 +164,6 @@ The frontend currently maps:
 
 **Fix Required:** Standardize all endpoints to return `{ [entity]: [...], pagination: { page, limit, total, pages } }`.
 
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/src/reference-data/app.py`
-> - Change: Updated `get_customers()` to return standard pagination object
-> - Now returns: `{ customers: [...], pagination: { page, limit, total, pages } }`
-> - Added search and status filter support
-
 ---
 
 ### 3.3 Customer List Missing Fields
@@ -255,11 +180,6 @@ The frontend currently maps:
 | `created_at` | Missing | Present |
 
 **Fix Required:** The list endpoint should return the same fields as the detail endpoint (or at minimum: `industry`, `city`, `state`, `zip_code`). The frontend needs these for table columns and filters.
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/src/reference-data/app.py`
-> - Change: Updated `get_customers()` to use `SELECT *` instead of specific columns
-> - All fields now returned including `industry`, `city`, `state`, `zip_code`, `billing_address`, `created_at`
 
 ---
 
@@ -297,18 +217,13 @@ The frontend needs clarity on which field controls what.
 
 | Endpoint | Status | Purpose |
 |----------|--------|---------|
-| `GET /shipments/{id}/line-items` | ✅ **FIXED** | Get line items for a shipment |
-| `GET /shipments/{id}/external-identifiers` | ✅ **FIXED** | Get manifest/PO numbers |
-| `GET /sites/{id}/container-locations` | ✅ **FIXED** | Get container placement locations |
+| `GET /shipments/{id}/line-items` | **404** | Get line items for a shipment |
+| `GET /shipments/{id}/external-identifiers` | **404** | Get manifest/PO numbers |
+| `GET /sites/{id}/container-locations` | **404** | Get container placement locations |
 
 **Impact:** The shipment detail drawer cannot show line items or external identifiers. Container location assignment in forms doesn't work.
 
 **Priority:** Medium — data is available on the main shipment record, but structured sub-resources are needed for the detail view.
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - All 3 endpoints implemented in `shipment-manager` and `reference-data` Lambdas
-> - Routes added to `template.yaml`
-> - Deployed to production
 
 ---
 
@@ -316,17 +231,12 @@ The frontend needs clarity on which field controls what.
 
 | Endpoint | Status | Purpose |
 |----------|--------|---------|
-| `POST /exports` | ✅ **FIXED** | Generate data export (CSV/XLSX) |
-| `GET /exports/{id}` | ✅ **FIXED** | Check export status / get download URL |
+| `POST /exports` | **404** | Generate data export (CSV/XLSX) |
+| `GET /exports/{id}` | **404** | Check export status / get download URL |
 
 **Impact:** The frontend CSV export feature currently generates files client-side. Server-side exports would be needed for large datasets.
 
 **Priority:** Low — client-side export works for now.
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - Both endpoints implemented in `export-handler` Lambda
-> - Routes added to `template.yaml`
-> - Deployed to production
 
 ---
 
@@ -334,17 +244,12 @@ The frontend needs clarity on which field controls what.
 
 | Endpoint | Status | Purpose |
 |----------|--------|---------|
-| `POST /uploads/url` | ✅ **FIXED** | Get presigned S3 URL for file upload |
-| `POST /uploads/process` | ✅ **FIXED** | Trigger processing of uploaded file |
+| `POST /uploads/url` | **404** | Get presigned S3 URL for file upload |
+| `POST /uploads/process` | **404** | Trigger processing of uploaded file |
 
 **Impact:** The bulk shipment import (CSV upload) currently parses files client-side. Server-side processing would handle large files better.
 
 **Priority:** Low — client-side parsing works for now.
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - Both endpoints implemented in `upload-handler` Lambda
-> - Routes added to `template.yaml`
-> - Deployed to production
 
 ---
 
@@ -354,15 +259,9 @@ The frontend needs clarity on which field controls what.
 
 `GET /profiles` returns an empty array. Profiles are needed for waste stream characterization and regulatory compliance reporting.
 
-> **✅ FIX APPLIED (March 19, 2026)**
-> - 5 profile records seeded via `scripts/seed_kpi_data.sql`
-
 ### 5.2 Service Items — 0 Records
 
 `GET /service-items` returns an empty array. Service items are needed for pricing and invoicing.
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - 8 service item records seeded via `scripts/seed_kpi_data.sql`
 
 ### 5.3 KPI Data Sparsity
 
@@ -370,15 +269,15 @@ The frontend needs clarity on which field controls what.
 |-------------|---------|------------|
 | `/invoice-records` | 4 | Minimal |
 | `/collection-events` | 3 | Minimal |
-| `/container-placements` | **10** | ✅ Seeded |
-| `/facility-capacities` | **5** | ✅ Seeded |
-| `/fuel-records` | **5** | ✅ Seeded |
-| `/route-schedules` | **5** | ✅ Seeded |
-| `/truck-loads` | **5** | ✅ Seeded |
+| `/container-placements` | **0** | Empty |
+| `/facility-capacities` | **0** | Empty |
+| `/fuel-records` | **0** | Empty |
+| `/route-schedules` | **0** | Empty |
+| `/truck-loads` | **0** | Empty |
 | `/safety-incidents` | 4 | Minimal |
 | `/inspection-records` | 2 | Minimal |
-| `/service-verifications` | **5** | ✅ Seeded |
-| `/container-weight-records` | **5** | ✅ Seeded |
+| `/service-verifications` | **0** | Empty |
+| `/container-weight-records` | **0** | Empty |
 | `/platform-user-activity` | 3 | Minimal |
 | `/customer-surveys` | 3 | Minimal |
 
@@ -389,10 +288,7 @@ The frontend needs clarity on which field controls what.
 - **Vendor Intel Report**: Needs `service-verifications`
 - **Emissions Report**: Needs `container-weight-records`
 
-> **✅ FIX APPLIED (March 19, 2026)**
-> - KPI seed script executed: `mps-aws-stack/scripts/seed_kpi_data.sql`
-> - **63 records inserted** across 11 tables
-> - All previously empty KPI tables now have sample data
+**Recommendation:** Seed these tables with realistic sample data or connect them to actual operational data sources.
 
 ### 5.4 Analytics Endpoints — Mostly Empty
 
@@ -520,31 +416,19 @@ The frontend currently fetches all records and filters/sorts client-side for sev
 
 | Param | Purpose | Current Status |
 |-------|---------|---------------|
-| `customer_id` | Filter by customer | ✅ Works (single value) |
-| `customer_ids` | Filter by multiple customers | ✅ **FIXED** — comma-separated |
-| `site_id` / `site_ids` | Filter by site(s) | ✅ **FIXED** |
-| `vendor_id` / `vendor_ids` | Filter by vendor(s) | ✅ **FIXED** |
-| `waste_type_id` | Filter by waste type | ✅ **FIXED** |
-| `waste_category` | Filter by category | ✅ **FIXED** |
-| `transporter_id` | Filter by transporter | ✅ **FIXED** |
-| `date_from` / `date_to` | Date range | ✅ Works |
+| `customer_id` | Filter by customer | Works (single value) |
+| `customer_ids` | Filter by multiple customers | **Needed** — frontend sends arrays |
+| `site_id` / `site_ids` | Filter by site(s) | **Needed** |
+| `vendor_id` / `vendor_ids` | Filter by vendor(s) | **Needed** |
+| `waste_type_id` | Filter by waste type | **Needed** |
+| `waste_category` | Filter by category | **Needs verification** |
+| `transporter_id` | Filter by transporter | **Needed** |
+| `date_from` / `date_to` | Date range | **Needs verification** |
 
 **Other entity endpoints should also support:**
 - `?search=` for customers, vendors, sites, waste types, users
 - `?status=active` / `?status=inactive` for all entities
 - `?customer_id=` on sites endpoint (filter sites by customer)
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - Multi-value filtering implemented in `reference-data` and `user-manager` Lambdas
-> - Added `parse_multi_value()` and `build_multi_value_filter()` helper functions
-> - All list endpoints now support comma-separated multi-value filters:
->   - `?ids=id1,id2,id3` — Multi-value ID filter
->   - `?status=active,pending` — Multi-value status filter
->   - `?customerIds=c1,c2` — Multi-value customer filter
->   - `?states=MI,OH,IN` — Multi-value state filter
->   - `?roles=admin,manager` — Multi-value role filter
->   - `?categories=hazardous,non-hazardous` — Multi-value category filter
-> - Uses parameterized SQL queries (SQL injection safe)
 
 ### 8.2 Search/Filter Support Status
 
@@ -623,35 +507,32 @@ The frontend expects soft delete. Please confirm.
 
 | Endpoint | Status | Error |
 |----------|--------|-------|
-| `GET /users/profile` | ✅ **FIXED** | Now returns user profile correctly |
-| `GET /analytics/client-industry-codes` | ✅ **FIXED** | SQL updated to use `status='active'` |
+| `GET /users/profile` | 404 | `"User not found"` (see issue 1.1) |
+| `GET /analytics/client-industry-codes` | 500 | SQL column `is_active` not found |
 
-### Previously Missing Endpoints — NOW IMPLEMENTED
+### Missing Endpoints (404)
 
-| Endpoint | Purpose | Status |
-|----------|---------|--------|
-| `GET /shipments/{id}/line-items` | Shipment line item details | ✅ **FIXED** |
-| `GET /shipments/{id}/external-identifiers` | Manifest/PO number tracking | ✅ **FIXED** |
-| `GET /sites/{id}/container-locations` | Container placement locations at a site | ✅ **FIXED** |
-| `POST /exports` | Generate data exports | ✅ **FIXED** |
-| `GET /exports/{id}` | Export status/download | ✅ **FIXED** |
-| `POST /uploads/url` | Presigned upload URL | ✅ **FIXED** |
-| `POST /uploads/process` | Process uploaded file | ✅ **FIXED** |
-| `GET /roles/mapping` | Role mapping configuration | ✅ **NEW** |
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /shipments/{id}/line-items` | Shipment line item details |
+| `GET /shipments/{id}/external-identifiers` | Manifest/PO number tracking |
+| `GET /sites/{id}/container-locations` | Container placement locations at a site |
+| `POST /exports` | Generate data exports |
+| `GET /exports/{id}` | Export status/download |
+| `POST /uploads/url` | Presigned upload URL |
+| `POST /uploads/process` | Process uploaded file |
 
-### KPI Endpoints — NOW SEEDED
+### Empty KPI Endpoints (200 OK, 0 records)
 
-| Endpoint | Records | Frontend Feature |
-|----------|---------|-----------------|
-| `/container-placements` | ✅ 10 | Light Load Report (fill rates) |
-| `/facility-capacities` | ✅ 5 | Operations Report (utilization) |
-| `/fuel-records` | ✅ 5 | Logistics Report (fuel efficiency) |
-| `/route-schedules` | ✅ 5 | Logistics Report (route adherence) |
-| `/truck-loads` | ✅ 5 | Logistics Report (truck utilization) |
-| `/service-verifications` | ✅ 5 | Vendor Intel Report (verification rate) |
-| `/container-weight-records` | ✅ 5 | Emissions Report (net weight tracking) |
-| `/profiles` | ✅ 5 | Waste profile management |
-| `/service-items` | ✅ 8 | Pricing and invoicing |
+| Endpoint | Frontend Feature That Needs It |
+|----------|-------------------------------|
+| `/container-placements` | Light Load Report (fill rates) |
+| `/facility-capacities` | Operations Report (utilization) |
+| `/fuel-records` | Logistics Report (fuel efficiency) |
+| `/route-schedules` | Logistics Report (route adherence) |
+| `/truck-loads` | Logistics Report (truck utilization) |
+| `/service-verifications` | Vendor Intel Report (verification rate) |
+| `/container-weight-records` | Emissions Report (net weight tracking) |
 
 ### Empty Analytics (200 OK, empty arrays)
 
@@ -684,11 +565,6 @@ The frontend expects soft delete. Please confirm.
 
 **Impact:** Anyone with the API URL can read all business data.
 
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/template.yaml`
-> - Change: Added `CognitoJwtAuthorizer` as default authorizer for all routes
-> - All endpoints now validate JWT tokens against Cognito User Pool
-
 ### 10.2 No Authorization / Role Checks on Write Operations (CRITICAL)
 
 **All create, update, and delete operations succeed without authentication:**
@@ -704,10 +580,6 @@ The frontend expects soft delete. Please confirm.
 | `DELETE /users/{id}` (no auth) | **200 OK** — user deleted |
 
 **Impact:** Anyone can create admin users, modify business records, delete data, and send invitation emails to arbitrary addresses.
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - All write operations now require valid JWT authentication
-> - Unauthenticated requests return 401 Unauthorized
 
 ### 10.3 Privilege Escalation via User Creation (CRITICAL)
 
@@ -737,11 +609,6 @@ This creates a user with full admin permissions AND sends an invitation email, w
 
 **12 user accounts are fully exposed** including their authentication identifiers.
 
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/src/user-manager/app.py`
-> - Change: Updated `list_users()` to explicitly select columns, excluding `cognito_sub` and `entra_id`
-> - PII fields no longer returned in list response
-
 ### 10.5 CORS Allows All Origins (MEDIUM)
 
 ```
@@ -754,13 +621,6 @@ The API allows requests from **any origin**. This means any website can make aut
 **Fix:** Restrict `Access-Control-Allow-Origin` to the frontend domain(s) only:
 - `https://your-app-domain.com`
 - `http://localhost:3000` (for development)
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/template.yaml`
-> - Change: Restricted CORS `AllowOrigins` to specific domains:
->   - `https://mps-frontend-qa-app.vercel.app`
->   - `https://mps-staging.vercel.app`
->   - `http://localhost:3000`
 
 ### 10.6 No Rate Limiting (MEDIUM)
 
@@ -775,12 +635,6 @@ The API allows requests from **any origin**. This means any website can make aut
 - Default: 100 requests/second per IP
 - Burst: 200 requests
 - Per-user limits for authenticated endpoints
-
-> **✅ FIX APPLIED (March 19, 2026)**
-> - File: `mps-aws-stack/template.yaml`
-> - Change: Added `DefaultRouteSettings` with throttling configuration:
->   - `ThrottlingRateLimit: 50` (requests per second)
->   - `ThrottlingBurstLimit: 100` (concurrent requests)
 
 ### 10.7 SQL Injection — Partially Mitigated (LOW)
 
@@ -803,15 +657,6 @@ The API accepts arbitrary data without validation:
 - No required field enforcement tested
 - Email format not validated on user creation
 
-> **✅ FIX APPLIED (March 19, 2026)**
-> - Files: `mps-aws-stack/src/user-manager/app.py`, `mps-aws-stack/src/reference-data/app.py`
-> - Added validation utilities:
->   - `validate_email()` - Email format validation
->   - `validate_required_fields()` - Required field checking
->   - `validate_string_length()` - String length limits
->   - `sanitize_input()` - Input sanitization (whitespace trim, length limit)
-> - Applied to `create_user()` and `create_customer()` functions
-
 ---
 
 ### SECURITY RECOMMENDATIONS (Priority Order)
@@ -831,38 +676,36 @@ The API accepts arbitrary data without validation:
 
 ## SUMMARY — Priority Action Items
 
-> **✅ ALL CRITICAL AND HIGH-PRIORITY ITEMS COMPLETE (March 19, 2026 v2.6)**
-
 ### URGENT — Security (Do First)
-1. ✅ ~~**Add Cognito JWT authorizer to ALL API Gateway endpoints**~~ (Section 10.1, 10.2) — **FIXED**
-2. ✅ ~~**Add role-based authorization** for admin-only endpoints~~ (Section 10.3) — **FIXED**
-3. ✅ ~~**Restrict CORS to frontend domain(s) only**~~ (Section 10.5) — **FIXED**
-4. ✅ ~~**Remove PII from /users list response**~~ (Section 10.4) — **FIXED**
-5. ✅ ~~**Add rate limiting** to API Gateway~~ (Section 10.6) — **FIXED**
+1. **Add Cognito JWT authorizer to ALL API Gateway endpoints** (Section 10.1, 10.2)
+2. **Add role-based authorization** for admin-only endpoints (Section 10.3)
+3. **Restrict CORS to frontend domain(s) only** — currently `*` (Section 10.5)
+4. **Remove PII from /users list response** (cognito_sub, entra_id) or restrict to admin-only (Section 10.4)
+5. **Add rate limiting** to API Gateway (Section 10.6)
 
 ### Must Fix (Blocking)
-6. ✅ ~~**`/users/profile` must find user by JWT sub → cognito_sub**~~ (Issue 1.1) — **FIXED**
-7. ✅ ~~**Fix `/analytics/client-industry-codes` SQL error**~~ (Issue 1.3) — **FIXED**
+6. **`/users/profile` must find user by JWT sub → cognito_sub** (Issue 1.1)
+7. **Fix `/analytics/client-industry-codes` SQL error** (Issue 1.3)
 
 ### Should Fix (High Impact)
-8. ✅ ~~Update `last_login_at` on each SSO sign-in~~ (Issue 2.1) — **VERIFIED WORKING**
-9. ✅ ~~Standardize pagination on all endpoints including `/customers`~~ (Issue 3.2) — **FIXED**
-10. ✅ ~~Return full fields on customer list endpoint~~ (Issue 3.3) — **FIXED**
-11. ✅ ~~Clarify and document user role mapping~~ (Issue 2.2) — **FIXED** (docs/ROLES.md + GET /roles/mapping)
-12. ✅ ~~Add user site assignment mechanism~~ (Issue 2.3) — **FIXED**
-13. ✅ ~~Add server-side filtering support~~ (Issue 8.1) — **FIXED**
+8. Update `last_login_at` on each SSO sign-in (Issue 2.1)
+9. Standardize pagination to `{ pagination: { page, limit, total, pages } }` on all endpoints including `/customers` (Issue 3.2)
+10. Return full fields on customer list endpoint (Issue 3.3)
+11. Clarify and document user role mapping (Issue 2.2)
+12. Add user site assignment mechanism (Issue 2.3)
+13. Add server-side filtering support (multi-value filters, search on all entities) (Issue 8.1)
 
 ### Should Build (Missing Features)
-14. ✅ ~~Implement shipment line-items sub-endpoint~~ (Issue 4.1) — **FIXED**
-15. ✅ ~~Implement shipment external-identifiers sub-endpoint~~ (Issue 4.1) — **FIXED**
-16. ✅ ~~Implement site container-locations sub-endpoint~~ (Issue 4.1) — **FIXED**
-17. ✅ ~~Seed profile and service-item data~~ (Issue 5.1, 5.2) — **FIXED**
-18. ✅ ~~Seed KPI data for empty tables~~ (Issue 5.3) — **FIXED**
-19. ✅ ~~Add input validation on all POST/PUT endpoints~~ (Section 10.9) — **FIXED**
+14. Implement shipment line-items sub-endpoint (Issue 4.1)
+15. Implement shipment external-identifiers sub-endpoint (Issue 4.1)
+16. Implement site container-locations sub-endpoint (Issue 4.1)
+17. Seed profile and service-item data (Issue 5.1, 5.2)
+18. Seed KPI data for empty tables (Issue 5.3)
+19. Add input validation on all POST/PUT endpoints (Section 10.9)
 
 ### Nice to Have
-20. ✅ ~~Standardize active/status field pattern across all entities~~ (Issue 3.5) — **FIXED**
-21. ⚠️ Add batch shipment create endpoint (Issue 8.2) — OPEN
-22. ⚠️ Add dashboard aggregation endpoint (Issue 7.2) — OPEN
-23. ✅ ~~Add export/upload endpoints~~ (Issues 4.2, 4.3) — **FIXED**
-24. ⚠️ Add request logging for security monitoring (Section 10.8) — OPEN
+20. Standardize active/status field pattern across all entities (Issue 3.5)
+21. Add batch shipment create endpoint (Issue 8.2)
+22. Add dashboard aggregation endpoint (Issue 7.2)
+23. Add export/upload endpoints (Issues 4.2, 4.3)
+24. Add request logging for security monitoring (Section 10.8)

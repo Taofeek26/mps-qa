@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MPS Backend Audit Report — UPDATED</title>
+    <title>MPS Backend Audit Report</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
@@ -391,28 +391,6 @@
         .action-group.must .action-list li::before { background: var(--amber-100); color: var(--amber-800); }
         .action-group.should .action-list li::before { background: var(--blue-100); color: var(--blue-700); }
 
-        /* Fixed items styling */
-        .action-list li.fixed {
-            background: var(--green-50);
-            text-decoration: line-through;
-            color: var(--gray-500);
-        }
-        .action-list li.fixed::before {
-            background: var(--green-100) !important;
-            color: var(--green-700) !important;
-        }
-        .fix-badge {
-            display: inline-block;
-            font-size: 9px;
-            font-weight: 700;
-            background: var(--green-600);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-right: 8px;
-            text-decoration: none;
-        }
-
         /* ── Footer ── */
         .footer {
             background: var(--white);
@@ -422,44 +400,6 @@
         }
         .footer p { font-size: 12px; color: var(--gray-400); }
         .footer a { color: var(--teal-700); text-decoration: none; }
-
-        /* Fix Status Styles */
-        .fix-status {
-            background: #D1FAE5;
-            border: 1px solid #6EE7B7;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-top: 8px;
-        }
-        .fix-status-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #065F46;
-            margin-bottom: 4px;
-        }
-        .fix-status-text {
-            font-size: 12px;
-            color: #047857;
-            line-height: 1.5;
-        }
-        .fix-status-open {
-            background: #FEF3C7;
-            border: 1px solid #FCD34D;
-        }
-        .fix-status-open .fix-status-header { color: #92400E; }
-        .fix-status-open .fix-status-text { color: #B45309; }
-        .updated-banner {
-            background: linear-gradient(90deg, #059669, #0D9488);
-            color: white;
-            padding: 20px 24px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        .updated-banner h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-        .updated-banner p { font-size: 13px; opacity: 0.9; }
 
         @media (max-width: 768px) {
             .scores { grid-template-columns: repeat(2, 1fr); }
@@ -490,30 +430,26 @@
     </header>
 
     <div class="scores-wrap">
-        <div class="updated-banner">
-            <h3>✅ 25 FIXES DEPLOYED — March 19, 2026 (v2.6)</h3>
-            <p>JWT Authentication • CORS Restrictions • Rate Limiting • PII Protection • SQL Fixes • Pagination • Input Validation • All 7 Missing Endpoints • Profile Routing Fix • Microsoft SSO cognito_sub Fix • KPI Seed Data • Role-Based Authorization • Server-Side Filtering • <strong>Role Mapping Documentation</strong> — All deployed to production. <strong style="color:#86EFAC;">All items complete!</strong></p>
-        </div>
         <div class="scores">
             <div class="score-card">
                 <div class="label">Critical Issues</div>
-                <div class="value val-good">0</div>
-                <div class="sub">All 6 fixed (Auth, SQL, Profile, Routing)</div>
+                <div class="value val-critical">3</div>
+                <div class="sub">Security, Auth, SQL Error</div>
             </div>
             <div class="score-card">
-                <div class="label">Issues Fixed</div>
-                <div class="value val-good">25</div>
-                <div class="sub">Security, Auth, API, Endpoints, DB, RBAC, Filtering, Docs</div>
+                <div class="label">High Priority</div>
+                <div class="value val-warn">5</div>
+                <div class="sub">Auth, pagination, fields, roles</div>
             </div>
             <div class="score-card">
                 <div class="label">Endpoints Working</div>
-                <div class="value val-good">40</div>
-                <div class="sub">of 40 tested (100%)</div>
+                <div class="value val-good">33</div>
+                <div class="sub">of 40 tested (82.5%)</div>
             </div>
             <div class="score-card">
-                <div class="label">Pending Items</div>
-                <div class="value val-good">0</div>
-                <div class="sub">All items complete</div>
+                <div class="label">Security Score</div>
+                <div class="value val-critical">F</div>
+                <div class="sub">No auth enforcement</div>
             </div>
         </div>
     </div>
@@ -538,10 +474,6 @@
                 <h3>All endpoints accept unauthenticated requests</h3>
                 <p>Tested with no auth header and fake tokens &mdash; both return <code>200 OK</code>. JWT tokens are never validated. <code>GET /users</code> exposes all 12 user emails, Cognito sub IDs, and Entra IDs publicly.</p>
                 <div class="fix"><div class="fix-label">Required Fix</div><div class="fix-text">Add Cognito JWT authorizer to API Gateway for all endpoints. User Pool: <code>us-east-1_23veUlUUb</code></div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">Cognito JWT authorizer added to API Gateway. All endpoints now require valid Authorization header. No scopes required (supports federated/Microsoft SSO tokens).</div>
-                </div>
             </div>
 
             <div class="card card-left-critical">
@@ -549,10 +481,6 @@
                 <h3>Anyone can create, update, and delete any record</h3>
                 <p>Unauthenticated <code>POST</code>, <code>PUT</code>, <code>DELETE</code> all succeed. Tested: customer creation, shipment deletion, user creation with <code>"role":"admin"</code> (which also triggers an invitation email).</p>
                 <div class="fix"><div class="fix-label">Required Fix</div><div class="fix-text">Add role-based authorization. Admin-only: user management, audit-log writes, system configuration.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">JWT authentication now required for all write operations. Unauthenticated requests return 401.</div>
-                </div>
             </div>
 
             <div class="card card-left-critical">
@@ -577,30 +505,18 @@
                         <tr><td><code>last_login_at</code>, <code>login_count</code></td><td>Usage patterns and activity tracking</td></tr>
                     </tbody>
                 </table>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text"><code>cognito_sub</code> and <code>entra_id</code> excluded from /users list response. PII no longer exposed.</div>
-                </div>
             </div>
 
             <div class="card card-left-medium">
                 <div class="card-id">SEC-5</div>
                 <h3>CORS allows all origins (<code>Access-Control-Allow-Origin: *</code>)</h3>
                 <p>Any website can make cross-origin API calls. Should be restricted to the frontend domain(s) only.</p>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">CORS restricted to: mps-frontend-qa-app.vercel.app, mps-staging.vercel.app, localhost:3000</div>
-                </div>
             </div>
 
             <div class="card card-left-medium">
                 <div class="card-id">SEC-6</div>
                 <h3>No rate limiting</h3>
                 <p>5 rapid sequential requests all returned <code>200 OK</code>. No throttling or <code>X-RateLimit</code> headers. Vulnerable to scraping and denial-of-service.</p>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">Rate limiting added: 50 requests/sec, 100 burst limit via API Gateway throttling.</div>
-                </div>
             </div>
         </div>
 
@@ -609,7 +525,7 @@
             <div class="section-head">
                 <span class="section-dot dot-red"></span>
                 <h2>Blocking Issues</h2>
-                <span class="section-badge sbadge-critical">6 Issues — All Fixed</span>
+                <span class="section-badge sbadge-critical">3 Issues</span>
             </div>
 
             <div class="card card-left-critical">
@@ -617,10 +533,6 @@
                 <h3><code>/users/profile</code> returns 404 for authenticated users</h3>
                 <p>User record exists in the database (cognito_sub: <code>f4385418-...</code>, email: <code>kalumcjethro@outlook.com</code>, role: <code>admin</code>). The endpoint returns <code>{"error": "User not found"}</code>.</p>
                 <div class="fix"><div class="fix-label">Required Fix</div><div class="fix-text">Extract <code>sub</code> claim from JWT and match against <code>cognito_sub</code> column.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">JWT claims extraction updated for HTTP API format (authorizer.jwt.claims). Now correctly matches sub claim.</div>
-                </div>
             </div>
 
             <div class="card card-left-critical">
@@ -628,10 +540,6 @@
                 <h3><code>/analytics/client-industry-codes</code> returns 500</h3>
                 <p>SQL error: <code>Unknown column 'is_active' in 'where clause'</code>. The query references a non-existent column.</p>
                 <div class="fix"><div class="fix-label">Required Fix</div><div class="fix-text">Update SQL to use <code>status</code> or <code>active</code> (whichever exists on that table).</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">SQL updated from <code>is_active = 1</code> to <code>status = 'active'</code>. Endpoint now returns 200 OK.</div>
-                </div>
             </div>
 
             <div class="card card-left-high">
@@ -639,65 +547,6 @@
                 <h3><code>last_login_at</code> not updated on subsequent SSO logins</h3>
                 <p>Currently equals <code>created_at</code> after multiple sessions. Frontend uses this to detect first-time users for onboarding.</p>
                 <div class="fix"><div class="fix-label">Required Fix</div><div class="fix-text">Post-auth hook: update <code>last_login_at</code> and increment <code>login_count</code> on each successful authentication.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ VERIFIED WORKING</div>
-                    <div class="fix-status-text">The auth-post-processor Lambda <code>update_last_login()</code> function is triggered via Cognito PostAuthentication. Tested March 19, 2026: <code>"Updated last_login_at: 1 row(s) affected, timestamp=2026-03-19T06:50:38"</code>. Both <code>last_login_at</code> and <code>login_count</code> are updated on each SSO login.</div>
-                </div>
-            </div>
-
-            <div class="card card-left-critical">
-                <div class="card-id">CRIT-4</div>
-                <h3><code>/users/profile</code> routing bug — Lambda checked <code>/users</code> before <code>/profile</code></h3>
-                <p>When frontend called <code>GET /users/profile</code>, the Lambda handler matched <code>/users</code> branch first (line 193), extracted "profile" as user ID, then tried <code>get_user("profile")</code> which returned 404. The <code>/profile</code> check was an <code>elif</code> that never executed.</p>
-                <div class="codeblock"><pre><span class="cm"># BEFORE (broken):</span>
-<span class="kw">if</span> <span class="str">'/users'</span> in path:     <span class="cm"># matched first!</span>
-    user_id = get_user_id_from_path()  <span class="cm"># extracted "profile"</span>
-    ...
-<span class="kw">elif</span> <span class="str">'/profile'</span> in path:  <span class="cm"># never reached</span>
-    return get_user(current_user_id)</pre></div>
-                <div class="fix"><div class="fix-label">Required Fix</div><div class="fix-text">Reorder routing logic to check <code>/profile</code> BEFORE <code>/users</code>.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">Moved <code>/profile</code> check to line 194 (before <code>/users</code>). Now both <code>/profile</code> and <code>/users/profile</code> correctly route to profile handler. File: <code>src/user-manager/app.py</code></div>
-                </div>
-            </div>
-
-            <div class="card card-left-critical">
-                <div class="card-id">CRIT-5</div>
-                <h3>Microsoft federated users had wrong <code>cognito_sub</code> in database</h3>
-                <p>User <code>akannibolaji.taofeek@gmail.com</code> had two Cognito accounts: native (<code>c4f8f4e8-...</code>) and Microsoft federated (<code>24d8d408-...</code>). Database stored the native sub, but user was logging in via Microsoft SSO with different sub. Profile lookup failed with 404.</p>
-                <table class="dt">
-                    <thead><tr><th>Account Type</th><th>cognito_sub</th><th>Status</th></tr></thead>
-                    <tbody>
-                        <tr><td>Native Cognito</td><td><code>c4f8f4e8-00d1-7088-4cd3-f288984be7c4</code></td><td><span class="tag tag-err">Old (wrong)</span></td></tr>
-                        <tr><td>Microsoft SSO</td><td><code>24d8d408-00f1-709a-f253-d8373677c718</code></td><td><span class="tag tag-ok">Now using</span></td></tr>
-                    </tbody>
-                </table>
-                <div class="fix"><div class="fix-label">Required Fix</div><div class="fix-text">Update database <code>cognito_sub</code> to match the Microsoft federated account sub.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">Updated users table: <code>cognito_sub = '24d8d408-00f1-709a-f253-d8373677c718'</code> and <code>cognito_username = 'microsoft_aaaa...nrki_...'</code> for affected user. Profile now loads correctly.</div>
-                </div>
-            </div>
-
-            <div class="card card-left-high">
-                <div class="card-id">CRIT-6</div>
-                <h3>Seed users had NULL <code>cognito_sub</code> — cannot authenticate</h3>
-                <p>Four seed users (<code>admin@mps.com</code>, <code>manager@mps.com</code>, <code>operator@mps.com</code>, <code>viewer@mps.com</code>) existed in database with <code>NULL</code> for <code>cognito_sub</code> and <code>cognito_username</code>. No matching Cognito accounts existed. These users could never log in or retrieve their profile.</p>
-                <table class="dt">
-                    <thead><tr><th>User ID</th><th>Email</th><th>cognito_sub</th><th>Status</th></tr></thead>
-                    <tbody>
-                        <tr><td>user-001</td><td>admin@mps.com</td><td><code>NULL</code></td><td><span class="tag tag-err">Orphan</span></td></tr>
-                        <tr><td>user-002</td><td>manager@mps.com</td><td><code>NULL</code></td><td><span class="tag tag-err">Orphan</span></td></tr>
-                        <tr><td>user-003</td><td>operator@mps.com</td><td><code>NULL</code></td><td><span class="tag tag-err">Orphan</span></td></tr>
-                        <tr><td>user-004</td><td>viewer@mps.com</td><td><code>NULL</code></td><td><span class="tag tag-err">Orphan</span></td></tr>
-                    </tbody>
-                </table>
-                <div class="fix"><div class="fix-label">Required Fix</div><div class="fix-text">Either create Cognito accounts for these users or remove them from database.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">Removed orphan seed users from database. These were demo accounts that had no corresponding Cognito accounts and could never authenticate. Real users with valid Cognito accounts remain.</div>
-                </div>
             </div>
         </div>
 
@@ -720,10 +569,6 @@
                     </tbody>
                 </table>
                 <p style="margin-top:8px; font-size:13px; color:var(--gray-500);">Also: API uses <code>?limit=N</code>, not <code>?page_size=N</code> as documented.</p>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">/customers now returns standard pagination object: { pagination: { page, limit, total, pages } }</div>
-                </div>
             </div>
 
             <div class="card card-left-high">
@@ -738,10 +583,6 @@
                         <tr><td><code>zip_code</code></td><td><span class="tag tag-err">Missing</span></td><td><span class="tag tag-ok">Present</span></td></tr>
                     </tbody>
                 </table>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">Changed to SELECT * — all fields now returned including industry, city, state, zip_code.</div>
-                </div>
             </div>
 
             <div class="card card-left-medium">
@@ -754,10 +595,6 @@
                         <tr><td>Waste Types, Transporters, Facilities, Containers</td><td><code>active</code></td><td><code>1 | 0</code> (integer)</td></tr>
                     </tbody>
                 </table>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">API now returns both <code>active</code> and <code>status</code> fields for all entities. Entities with integer <code>active</code> field now also include <code>status: "active" | "inactive"</code> string for frontend consistency.</div>
-                </div>
             </div>
 
             <div class="card card-left-medium">
@@ -771,58 +608,40 @@
                         <tr><td><code>operator</code> / <code>viewer</code></td><td><code>site_user</code></td></tr>
                     </tbody>
                 </table>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">User responses now include <code>frontend_role</code> field with mapped values (system_admin, admin, site_user) alongside the original <code>role</code> field.</div>
-                </div>
             </div>
 
             <div class="card card-left-medium">
                 <div class="card-id">INC-5</div>
                 <h3>User record missing <code>assigned_site_ids</code></h3>
                 <p>Only <code>customer_id</code> exists (links to one customer). Frontend needs an <code>assigned_site_ids</code> array to restrict non-admin users to specific sites.</p>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">Now queries user_site_assignments table and includes assigned_site_ids array in user profile response.</div>
-                </div>
             </div>
         </div>
 
         <!-- MISSING ENDPOINTS -->
         <div class="section">
             <div class="section-head">
-                <span class="section-dot dot-green"></span>
+                <span class="section-dot dot-blue"></span>
                 <h2>Missing Endpoints</h2>
-                <span class="section-badge sbadge-low">All 7 Fixed</span>
-            </div>
-
-            <div class="fix-status" style="margin-bottom: 12px;">
-                <div class="fix-status-header">✅ ALL ENDPOINTS DEPLOYED</div>
-                <div class="fix-status-text">All 7 previously missing endpoints have been implemented and deployed to production. Routes verified via AWS API Gateway.</div>
+                <span class="section-badge sbadge-medium">7 Endpoints</span>
             </div>
 
             <div class="ep-grid">
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> /shipments/{id}/line-items</div><div class="ep-desc">Shipment line item details for the detail drawer</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> /shipments/{id}/external-identifiers</div><div class="ep-desc">Manifest numbers, PO numbers, tracking IDs</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> /sites/{siteId}/container-locations</div><div class="ep-desc">Container placement locations at a site</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> POST /exports</div><div class="ep-desc">Generate server-side data exports (CSV/XLSX)</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> GET /exports/{exportId}</div><div class="ep-desc">Export status and download URL</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> POST /uploads/url</div><div class="ep-desc">Presigned S3 URL for file uploads</div></div>
-                <div class="ep-card"><div class="ep-path"><span class="tag tag-ok">✅</span> POST /uploads/process</div><div class="ep-desc">Trigger server-side file processing</div></div>
+                <div class="ep-card"><div class="ep-path"><span class="tag tag-miss">404</span> /shipments/{id}/line-items</div><div class="ep-desc">Shipment line item details for the detail drawer</div></div>
+                <div class="ep-card"><div class="ep-path"><span class="tag tag-miss">404</span> /shipments/{id}/external-identifiers</div><div class="ep-desc">Manifest numbers, PO numbers, tracking IDs</div></div>
+                <div class="ep-card"><div class="ep-path"><span class="tag tag-miss">404</span> /sites/{id}/container-locations</div><div class="ep-desc">Container placement locations at a site</div></div>
+                <div class="ep-card"><div class="ep-path"><span class="tag tag-miss">404</span> POST /exports</div><div class="ep-desc">Generate server-side data exports (CSV/XLSX)</div></div>
+                <div class="ep-card"><div class="ep-path"><span class="tag tag-miss">404</span> GET /exports/{id}</div><div class="ep-desc">Export status and download URL</div></div>
+                <div class="ep-card"><div class="ep-path"><span class="tag tag-miss">404</span> POST /uploads/url</div><div class="ep-desc">Presigned S3 URL for file uploads</div></div>
+                <div class="ep-card"><div class="ep-path"><span class="tag tag-miss">404</span> POST /uploads/process</div><div class="ep-desc">Trigger server-side file processing</div></div>
             </div>
         </div>
 
         <!-- KPI DATA -->
         <div class="section">
             <div class="section-head">
-                <span class="section-dot dot-green"></span>
+                <span class="section-dot dot-amber"></span>
                 <h2>KPI &amp; Analytics Data</h2>
-                <span class="section-badge sbadge-low">7 Tables Seeded</span>
-            </div>
-
-            <div class="fix-status" style="margin-bottom: 12px;">
-                <div class="fix-status-header">✅ SEED SCRIPT EXECUTED</div>
-                <div class="fix-status-text">SQL seed script at <code>mps-aws-stack/scripts/seed_kpi_data.sql</code> was executed on March 19, 2026. <strong>63 records inserted</strong> across 11 tables: container_placements (10), facility_capacities (5), fuel_records (5), route_schedules (5), truck_loads (5), service_verifications (5), container_weight_records (5), profiles (5), service_items (8), safety_training (5), platform_events (5). Dashboard and report functionality now has sample data.</div>
+                <span class="section-badge sbadge-high">7 Empty Tables</span>
             </div>
 
             <table class="dt">
@@ -830,15 +649,15 @@
                 <tbody>
                     <tr><td><code>/invoice-records</code></td><td>4</td><td><span class="tag tag-warn">Minimal</span></td><td>Cost Analysis Report</td></tr>
                     <tr><td><code>/collection-events</code></td><td>3</td><td><span class="tag tag-warn">Minimal</span></td><td>Operations Report</td></tr>
-                    <tr><td><code>/container-placements</code></td><td>10</td><td><span class="tag tag-ok">Seeded</span></td><td>Light Load Report (fill rates)</td></tr>
-                    <tr><td><code>/facility-capacities</code></td><td>5</td><td><span class="tag tag-ok">Seeded</span></td><td>Operations Report (utilization)</td></tr>
-                    <tr><td><code>/fuel-records</code></td><td>5</td><td><span class="tag tag-ok">Seeded</span></td><td>Logistics Report (fuel efficiency)</td></tr>
-                    <tr><td><code>/route-schedules</code></td><td>5</td><td><span class="tag tag-ok">Seeded</span></td><td>Logistics Report (route adherence)</td></tr>
-                    <tr><td><code>/truck-loads</code></td><td>5</td><td><span class="tag tag-ok">Seeded</span></td><td>Logistics Report (truck utilization)</td></tr>
+                    <tr><td><code>/container-placements</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td><td>Light Load Report (fill rates)</td></tr>
+                    <tr><td><code>/facility-capacities</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td><td>Operations Report (utilization)</td></tr>
+                    <tr><td><code>/fuel-records</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td><td>Logistics Report (fuel efficiency)</td></tr>
+                    <tr><td><code>/route-schedules</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td><td>Logistics Report (route adherence)</td></tr>
+                    <tr><td><code>/truck-loads</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td><td>Logistics Report (truck utilization)</td></tr>
                     <tr><td><code>/safety-incidents</code></td><td>4</td><td><span class="tag tag-warn">Minimal</span></td><td>Regulatory Report</td></tr>
                     <tr><td><code>/inspection-records</code></td><td>2</td><td><span class="tag tag-warn">Minimal</span></td><td>Regulatory Report</td></tr>
-                    <tr><td><code>/service-verifications</code></td><td>5</td><td><span class="tag tag-ok">Seeded</span></td><td>Vendor Intel Report</td></tr>
-                    <tr><td><code>/container-weight-records</code></td><td>5</td><td><span class="tag tag-ok">Seeded</span></td><td>Emissions Report</td></tr>
+                    <tr><td><code>/service-verifications</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td><td>Vendor Intel Report</td></tr>
+                    <tr><td><code>/container-weight-records</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td><td>Emissions Report</td></tr>
                     <tr><td><code>/platform-user-activity</code></td><td>3</td><td><span class="tag tag-warn">Minimal</span></td><td>Platform Analytics</td></tr>
                     <tr><td><code>/customer-surveys</code></td><td>3</td><td><span class="tag tag-warn">Minimal</span></td><td>Customer Experience</td></tr>
                 </tbody>
@@ -848,7 +667,7 @@
             <table class="dt">
                 <thead><tr><th>Endpoint</th><th>Status</th><th>Data</th></tr></thead>
                 <tbody>
-                    <tr><td><code>/analytics/client-industry-codes</code></td><td><span class="tag tag-ok">✅ Fixed</span></td><td>SQL fixed (was is_active, now status='active')</td></tr>
+                    <tr><td><code>/analytics/client-industry-codes</code></td><td><span class="tag tag-err">500</span></td><td>SQL column error</td></tr>
                     <tr><td><code>/analytics/safety-training</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
                     <tr><td><code>/analytics/route-progress</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
                     <tr><td><code>/analytics/yard-turnaround</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
@@ -867,10 +686,6 @@
                 <span class="section-badge sbadge-low">13 Fields</span>
             </div>
             <p style="font-size:13px; color:var(--gray-500); margin-bottom:12px;">The frontend has mappers for these, but aligning them would reduce complexity.</p>
-            <div class="fix-status" style="margin-bottom: 12px;">
-                <div class="fix-status-header" style="background: var(--blue-600);">ℹ️ BY DESIGN</div>
-                <div class="fix-status-text">These field naming differences follow standard conventions: <strong>API uses snake_case</strong> (Python/database standard) while <strong>frontend uses camelCase</strong> (JavaScript standard). The frontend's data mapper layer handles this transformation. Changing API field names could break existing integrations and is not recommended. The mapping is documented here for reference.</div>
-            </div>
             <table class="dt">
                 <thead><tr><th>Frontend (camelCase)</th><th>API (snake_case)</th><th>Entity</th></tr></thead>
                 <tbody>
@@ -921,8 +736,8 @@
                     <tr><td><code>GET /treatment-codes</code></td><td>20+</td><td><span class="tag tag-ok">OK</span></td></tr>
                     <tr><td><code>GET /ewc-codes</code></td><td>100+</td><td><span class="tag tag-ok">OK</span></td></tr>
                     <tr><td><code>GET /container-types</code></td><td>8+</td><td><span class="tag tag-ok">OK</span></td></tr>
-                    <tr><td><code>GET /profiles</code></td><td>5</td><td><span class="tag tag-ok">Seeded</span></td></tr>
-                    <tr><td><code>GET /service-items</code></td><td>8</td><td><span class="tag tag-ok">Seeded</span></td></tr>
+                    <tr><td><code>GET /profiles</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td></tr>
+                    <tr><td><code>GET /service-items</code></td><td>0</td><td><span class="tag tag-empty">Empty</span></td></tr>
                 </tbody>
             </table>
         </div>
@@ -937,132 +752,42 @@
             <div class="action-group urgent">
                 <h3>Urgent &mdash; Security (Do First)</h3>
                 <ol class="action-list">
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Add Cognito JWT authorizer to ALL API Gateway endpoints</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Add role-based authorization for admin-only endpoints (user management, audit writes)</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Restrict CORS to frontend domain(s) only &mdash; now restricted to specific domains</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Remove PII from <code>/users</code> list (cognito_sub, entra_id excluded)</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Add rate limiting to API Gateway (50 req/sec, 100 burst)</li>
+                    <li>Add Cognito JWT authorizer to ALL API Gateway endpoints</li>
+                    <li>Add role-based authorization for admin-only endpoints (user management, audit writes)</li>
+                    <li>Restrict CORS to frontend domain(s) only &mdash; currently allows all origins</li>
+                    <li>Remove PII from <code>/users</code> list (cognito_sub, entra_id) or restrict to admin-only</li>
+                    <li>Add rate limiting to API Gateway</li>
                 </ol>
             </div>
 
             <div class="action-group must">
                 <h3>Must Fix &mdash; Blocking</h3>
                 <ol class="action-list" start="6">
-                    <li class="fixed"><span class="fix-badge">FIXED</span> <code>/users/profile</code> now finds user by JWT <code>sub</code> claim matching <code>cognito_sub</code> column</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> <code>/analytics/client-industry-codes</code> SQL error fixed (changed to <code>status='active'</code>)</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> <code>/users/profile</code> routing bug — moved <code>/profile</code> check before <code>/users</code> in Lambda handler</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Microsoft SSO users — updated <code>cognito_sub</code> to match federated account sub</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Removed orphan seed users with NULL <code>cognito_sub</code> (user-001 to user-004)</li>
+                    <li><code>/users/profile</code> must find user by JWT <code>sub</code> claim matching <code>cognito_sub</code> column</li>
+                    <li>Fix <code>/analytics/client-industry-codes</code> SQL error (<code>is_active</code> column)</li>
                 </ol>
             </div>
 
             <div class="action-group should">
                 <h3>Should Fix &mdash; High Impact</h3>
                 <ol class="action-list" start="8">
-                    <li class="fixed"><span class="fix-badge">VERIFIED</span> <code>last_login_at</code> tested working — updates on each SSO login</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Standardize pagination on all endpoints (including <code>/customers</code>)</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Return full fields on customer list endpoint (now uses SELECT *)</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Clarify and document user role mapping (API vs frontend) — ROLES.md + /roles/mapping endpoint</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> <code>assigned_site_ids</code> now included in user profile response</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Add server-side filtering (multi-value filters, search on all entities)</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Implemented all 7 missing endpoints (line-items, external-identifiers, container-locations, exports, uploads)</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Seed profiles, service-items, and KPI data — 63 records across 11 tables</li>
-                    <li class="fixed"><span class="fix-badge">FIXED</span> Input validation added to user and customer creation</li>
+                    <li>Update <code>last_login_at</code> on each SSO sign-in</li>
+                    <li>Standardize pagination on all endpoints (including <code>/customers</code>)</li>
+                    <li>Return full fields on customer list endpoint (industry, city, state, zip_code)</li>
+                    <li>Clarify and document user role mapping (API vs frontend)</li>
+                    <li>Add user site assignment mechanism (<code>assigned_site_ids</code> or <code>GET /users/{id}/sites</code>)</li>
+                    <li>Add server-side filtering (multi-value filters, search on all entities)</li>
+                    <li>Implement shipment sub-endpoints (line-items, external-identifiers)</li>
+                    <li>Seed profiles, service-items, and KPI data for empty tables</li>
+                    <li>Add input validation on all POST/PUT endpoints</li>
                 </ol>
-            </div>
-        </div>
-
-        <!-- PENDING ITEMS SUMMARY -->
-        <div class="section">
-            <div class="section-head">
-                <span class="section-dot dot-green"></span>
-                <h2>Previously Pending Items</h2>
-                <span class="section-badge sbadge-low">All Fixed</span>
-            </div>
-
-            <div class="fix-status" style="margin-bottom: 16px;">
-                <div class="fix-status-header">✅ ALL ITEMS COMPLETE</div>
-                <div class="fix-status-text">All previously pending items have been implemented and deployed.</div>
-            </div>
-
-            <div class="card card-left-high">
-                <div class="card-id">PEND-1</div>
-                <h3>Role-based authorization for admin-only endpoints</h3>
-                <p>Currently JWT authentication is enforced, but any authenticated user can access admin endpoints like <code>POST /users</code>, <code>DELETE /users/{id}</code>, and audit log writes. Need to check user's Cognito groups/role before allowing access.</p>
-                <div class="fix"><div class="fix-label">Implementation</div><div class="fix-text">Add role check in Lambda handlers: extract <code>cognito:groups</code> from JWT claims, verify user has <code>admin</code> or <code>manager</code> role before processing admin-only requests. Return 403 Forbidden if unauthorized.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">
-                        Role-based authorization implemented in <code>user-manager</code> and <code>audit-logger</code> Lambdas:
-                        <ul style="margin:8px 0 0 20px; font-size:12px;">
-                            <li><code>GET /users</code> (list) — requires admin/manager</li>
-                            <li><code>POST /users</code> — requires admin/manager; only admin can create admin users</li>
-                            <li><code>PUT /users/{id}</code> — requires admin/manager; only admin can modify admin users or assign admin role</li>
-                            <li><code>DELETE /users/{id}</code> — requires admin only</li>
-                            <li><code>PUT /roles</code> — requires admin only</li>
-                            <li><code>POST /audit</code> — requires admin/manager</li>
-                        </ul>
-                        Unauthorized requests return <code>403 Forbidden</code> with <code>INSUFFICIENT_PERMISSIONS</code> code.
-                    </div>
-                </div>
-            </div>
-
-            <div class="card card-left-medium">
-                <div class="card-id">PEND-2</div>
-                <h3>Document user role mapping (API vs Frontend)</h3>
-                <p>API uses roles: <code>admin</code>, <code>manager</code>, <code>operator</code>, <code>viewer</code>. Frontend expects: <code>system_admin</code>, <code>admin</code>, <code>site_user</code>. The <code>frontend_role</code> field was added but mapping documentation is needed.</p>
-                <table class="dt">
-                    <thead><tr><th>API Role</th><th>Frontend Role</th><th>Permissions</th></tr></thead>
-                    <tbody>
-                        <tr><td><code>admin</code></td><td><code>system_admin</code></td><td>Full access, system configuration, user management</td></tr>
-                        <tr><td><code>manager</code></td><td><code>admin</code></td><td>CRUD on all entities, reports, no system config</td></tr>
-                        <tr><td><code>operator</code></td><td><code>site_user</code></td><td>Limited to assigned sites, shipment entry</td></tr>
-                        <tr><td><code>viewer</code></td><td><code>site_user</code></td><td>Read-only access to assigned sites</td></tr>
-                    </tbody>
-                </table>
-                <div class="fix"><div class="fix-label">Implementation</div><div class="fix-text">Add this mapping to project documentation (README or separate ROLES.md). Consider adding a <code>GET /roles/mapping</code> endpoint for frontend to fetch dynamically.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">
-                        Role mapping documented and API endpoint added:
-                        <ul style="margin:8px 0 0 20px; font-size:12px;">
-                            <li><code>docs/ROLES.md</code> — Comprehensive documentation of roles, permissions, and mapping</li>
-                            <li><code>GET /roles/mapping</code> — API endpoint returns role mapping, permissions, and descriptions</li>
-                            <li>Frontend can fetch mapping dynamically via the endpoint</li>
-                            <li>Includes detailed permissions matrix per role</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card card-left-medium">
-                <div class="card-id">PEND-3</div>
-                <h3>Server-side filtering (multi-value filters, search)</h3>
-                <p>Currently filtering is done client-side. For large datasets, need server-side filtering with support for multi-value filters (e.g., <code>?siteIds=1,2,3</code>) and search across fields.</p>
-                <div class="fix"><div class="fix-label">Implementation</div><div class="fix-text">Add query parameters to list endpoints: <code>?search=term</code> (searches name, description fields), <code>?siteIds=1,2,3</code> (comma-separated IDs), <code>?status=active,pending</code> (multi-value enums). Build dynamic SQL WHERE clauses with parameterized queries.</div></div>
-                <div class="fix-status">
-                    <div class="fix-status-header">✅ FIXED</div>
-                    <div class="fix-status-text">
-                        Multi-value filtering implemented in <code>reference-data</code> and <code>user-manager</code> Lambdas. All list endpoints now support:
-                        <ul style="margin:8px 0 0 20px; font-size:12px;">
-                            <li><code>?search=term</code> — Text search across relevant fields</li>
-                            <li><code>?ids=id1,id2,id3</code> — Multi-value ID filter</li>
-                            <li><code>?status=active,pending</code> — Multi-value status filter</li>
-                            <li><code>?customerIds=c1,c2</code> — Multi-value customer filter (sites, profiles)</li>
-                            <li><code>?states=MI,OH,IN</code> — Multi-value state filter (sites, facilities, transporters)</li>
-                            <li><code>?roles=admin,manager</code> — Multi-value role filter (users)</li>
-                            <li><code>?categories=hazardous,non-hazardous</code> — Multi-value category filter (waste types)</li>
-                        </ul>
-                        Uses parameterized SQL queries to prevent SQL injection.
-                    </div>
-                </div>
             </div>
         </div>
 
     </div>
 
     <footer class="footer">
-        <p>MPS Backend Audit Report &middot; Updated March 19, 2026 (v2.6) &middot; <a href="https://www.mpsgrp.com">mpsgrp.com</a></p>
+        <p>MPS Backend Audit Report &middot; Generated March 19, 2026 &middot; <a href="https://www.mpsgrp.com">mpsgrp.com</a></p>
     </footer>
 
 </body>
