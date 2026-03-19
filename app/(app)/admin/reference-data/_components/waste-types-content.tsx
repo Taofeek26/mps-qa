@@ -206,6 +206,7 @@ function WasteTypeForm({
           return;
         }
         toast.success("Waste type updated");
+
       } else {
         const result = await wasteTypesApi.create(data);
         if (result.error) {
@@ -213,6 +214,7 @@ function WasteTypeForm({
           return;
         }
         toast.success("Waste type created");
+
       }
       onSaved();
       onClose();

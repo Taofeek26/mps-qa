@@ -37,8 +37,12 @@ async function apiRequest<T>(
 ): Promise<ApiResponse<T>> {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = `${API_BASE_URL}${endpoint}`;
+    console.log(`[API] ${options.method || 'GET'} ${url}`);
+
+    const response = await fetch(url, {
       ...options,
+      cache: 'no-store',  // Disable Next.js caching to always get fresh data
       headers: {
         ...headers,
         ...options.headers,
@@ -46,6 +50,7 @@ async function apiRequest<T>(
     });
 
     const data = response.ok ? await response.json() : null;
+    console.log(`[API] ${options.method || 'GET'} ${endpoint} -> ${response.status}`, data ? `(${Array.isArray(data) ? data.length : 'object'})` : '');
 
     return {
       data,
@@ -53,6 +58,7 @@ async function apiRequest<T>(
       status: response.status,
     };
   } catch (error) {
+    console.error(`[API] ${options.method || 'GET'} ${endpoint} -> ERROR:`, error);
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Unknown error',

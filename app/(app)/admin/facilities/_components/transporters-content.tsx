@@ -106,6 +106,7 @@ function TransporterForm({
           return;
         }
         toast.success("Transporter updated");
+
       } else {
         const result = await transportersApi.create(data);
         if (result.error) {
@@ -113,6 +114,7 @@ function TransporterForm({
           return;
         }
         toast.success("Transporter created");
+
       }
       onSaved();
       onClose();

@@ -79,6 +79,7 @@ function SiteForm({
           return;
         }
         toast.success("Site updated");
+
       } else {
         const result = await sitesApi.create(data);
         if (result.error) {
@@ -86,6 +87,7 @@ function SiteForm({
           return;
         }
         toast.success("Site created");
+
       }
       onSaved();
       onClose();

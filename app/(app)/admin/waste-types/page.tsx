@@ -204,6 +204,7 @@ function WasteTypeForm({
           return;
         }
         toast.success("Waste type updated");
+
       } else {
         const result = await wasteTypesApi.create(data);
         if (result.error) {
@@ -211,6 +212,7 @@ function WasteTypeForm({
           return;
         }
         toast.success("Waste type created");
+
       }
       onSaved();
       onClose();
@@ -412,10 +414,6 @@ export default function WasteTypesPage() {
     return result;
   }, [allData, search, categoryFilter]);
 
-  function refresh() {
-    refetch();
-  }
-
   async function handleDelete(item: WasteType) {
     try {
       const result = await wasteTypesApi.delete(item.id);
@@ -470,7 +468,7 @@ export default function WasteTypesPage() {
       emptyTitle="No waste types found"
       emptyDescription="Add your first waste type to get started."
       formContent={({ item, onClose }) => (
-        <WasteTypeForm item={item} onClose={onClose} onSaved={refresh} />
+        <WasteTypeForm item={item} onClose={onClose} onSaved={refetch} />
       )}
     />
   );

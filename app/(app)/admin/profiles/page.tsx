@@ -126,6 +126,7 @@ function ProfileForm({
           return;
         }
         toast.success("Profile updated");
+
       } else {
         const result = await profilesApi.create(data);
         if (result.error) {
@@ -133,6 +134,7 @@ function ProfileForm({
           return;
         }
         toast.success("Profile created");
+
       }
       onSaved();
       onClose();

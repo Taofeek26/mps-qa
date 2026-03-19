@@ -220,6 +220,7 @@ function VendorForm({
           return;
         }
         toast.success("Vendor updated");
+
       } else {
         const result = await vendorsApi.create(data);
         if (result.error) {
@@ -227,6 +228,7 @@ function VendorForm({
           return;
         }
         toast.success("Vendor created");
+
       }
       onSaved();
       onClose();
@@ -498,10 +500,6 @@ function VendorsContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    refetch();
-  }
-
   async function handleDelete(item: Vendor) {
     try {
       const result = await vendorsApi.delete(item.id);
@@ -612,7 +610,7 @@ function VendorsContent() {
       emptyDescription="Add your first vendor to get started."
       loading={loading}
       formContent={({ item, onClose }) => (
-        <VendorForm item={item} onClose={onClose} onSaved={refresh} />
+        <VendorForm item={item} onClose={onClose} onSaved={refetch} />
       )}
     />
     </div>

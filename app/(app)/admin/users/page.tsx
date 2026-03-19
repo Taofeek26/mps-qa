@@ -218,10 +218,6 @@ function UsersContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    refetch();
-  }
-
   async function handleDelete(item: User) {
     try {
       const result = await usersApi.delete(item.id);
@@ -315,7 +311,7 @@ function UsersContent() {
           item={item}
           siteOptions={siteOptions}
           onClose={onClose}
-          onSaved={refresh}
+          onSaved={refetch}
         />
       )}
     />
@@ -371,6 +367,7 @@ function UserForm({
           return;
         }
         toast.success("User updated");
+
       } else {
         const result = await usersApi.create(data);
         if (result.error) {
@@ -378,6 +375,7 @@ function UserForm({
           return;
         }
         toast.success("User created");
+
       }
       onSaved();
       onClose();

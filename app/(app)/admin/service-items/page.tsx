@@ -108,6 +108,7 @@ function ServiceItemForm({
           return;
         }
         toast.success("Service item updated");
+
       } else {
         const result = await serviceItemsApi.create(data);
         if (result.error) {
@@ -115,6 +116,7 @@ function ServiceItemForm({
           return;
         }
         toast.success("Service item created");
+
       }
       onSaved();
       onClose();

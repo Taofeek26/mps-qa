@@ -162,6 +162,7 @@ function ReceivingFacilityForm({
           return;
         }
         toast.success("Receiving facility updated");
+
       } else {
         const result = await receivingFacilitiesApi.create(data);
         if (result.error) {
@@ -169,6 +170,7 @@ function ReceivingFacilityForm({
           return;
         }
         toast.success("Receiving facility created");
+
       }
       onSaved();
       onClose();

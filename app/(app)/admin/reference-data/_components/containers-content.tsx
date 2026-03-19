@@ -75,6 +75,7 @@ function ContainerForm({
           return;
         }
         toast.success("Container updated");
+
       } else {
         const result = await containersApi.create(data);
         if (result.error) {
@@ -82,6 +83,7 @@ function ContainerForm({
           return;
         }
         toast.success("Container created");
+
       }
       onSaved();
       onClose();

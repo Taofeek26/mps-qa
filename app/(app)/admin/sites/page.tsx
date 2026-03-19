@@ -175,10 +175,6 @@ function SitesContent() {
     router.replace(pathname);
   }
 
-  function refresh() {
-    refetch();
-  }
-
   async function handleDelete(item: Site) {
     try {
       const result = await sitesApi.delete(item.id);
@@ -275,7 +271,7 @@ function SitesContent() {
           item={item}
           clients={clients}
           onClose={onClose}
-          onSaved={refresh}
+          onSaved={refetch}
         />
       )}
     />
@@ -334,6 +330,7 @@ function SiteForm({
           return;
         }
         toast.success("Site updated");
+
       } else {
         const result = await sitesApi.create(data);
         if (result.error) {
@@ -341,6 +338,7 @@ function SiteForm({
           return;
         }
         toast.success("Site created");
+
       }
       onSaved();
       onClose();
