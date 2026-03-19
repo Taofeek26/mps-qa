@@ -699,6 +699,10 @@
                         <tr><td>Waste Types, Transporters, Facilities, Containers</td><td><code>active</code></td><td><code>1 | 0</code> (integer)</td></tr>
                     </tbody>
                 </table>
+                <div class="fix-status">
+                    <div class="fix-status-header">✅ FIXED</div>
+                    <div class="fix-status-text">API now returns both <code>active</code> and <code>status</code> fields for all entities. Entities with integer <code>active</code> field now also include <code>status: "active" | "inactive"</code> string for frontend consistency.</div>
+                </div>
             </div>
 
             <div class="card card-left-medium">
@@ -712,6 +716,10 @@
                         <tr><td><code>operator</code> / <code>viewer</code></td><td><code>site_user</code></td></tr>
                     </tbody>
                 </table>
+                <div class="fix-status">
+                    <div class="fix-status-header">✅ FIXED</div>
+                    <div class="fix-status-text">User responses now include <code>frontend_role</code> field with mapped values (system_admin, admin, site_user) alongside the original <code>role</code> field.</div>
+                </div>
             </div>
 
             <div class="card card-left-medium">
@@ -752,6 +760,11 @@
                 <span class="section-badge sbadge-high">7 Empty Tables</span>
             </div>
 
+            <div class="fix-status" style="margin-bottom: 12px;">
+                <div class="fix-status-header">📄 SEED SCRIPT AVAILABLE</div>
+                <div class="fix-status-text">SQL seed script created at <code>mps-aws-stack/scripts/seed_kpi_data.sql</code> to populate all empty KPI tables with sample data. Run this script against the database to enable dashboard and report functionality. Includes: container_placements, facility_capacities, fuel_records, route_schedules, truck_loads, service_verifications, container_weight_records, profiles, and service_items.</div>
+            </div>
+
             <table class="dt">
                 <thead><tr><th>Endpoint</th><th>Records</th><th>Status</th><th>Needed For</th></tr></thead>
                 <tbody>
@@ -775,7 +788,7 @@
             <table class="dt">
                 <thead><tr><th>Endpoint</th><th>Status</th><th>Data</th></tr></thead>
                 <tbody>
-                    <tr><td><code>/analytics/client-industry-codes</code></td><td><span class="tag tag-err">500</span></td><td>SQL column error</td></tr>
+                    <tr><td><code>/analytics/client-industry-codes</code></td><td><span class="tag tag-ok">✅ Fixed</span></td><td>SQL fixed (was is_active, now status='active')</td></tr>
                     <tr><td><code>/analytics/safety-training</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
                     <tr><td><code>/analytics/route-progress</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
                     <tr><td><code>/analytics/yard-turnaround</code></td><td><span class="tag tag-empty">Empty</span></td><td>Empty array</td></tr>
@@ -794,6 +807,10 @@
                 <span class="section-badge sbadge-low">13 Fields</span>
             </div>
             <p style="font-size:13px; color:var(--gray-500); margin-bottom:12px;">The frontend has mappers for these, but aligning them would reduce complexity.</p>
+            <div class="fix-status" style="margin-bottom: 12px;">
+                <div class="fix-status-header" style="background: var(--blue-600);">ℹ️ BY DESIGN</div>
+                <div class="fix-status-text">These field naming differences follow standard conventions: <strong>API uses snake_case</strong> (Python/database standard) while <strong>frontend uses camelCase</strong> (JavaScript standard). The frontend's data mapper layer handles this transformation. Changing API field names could break existing integrations and is not recommended. The mapping is documented here for reference.</div>
+            </div>
             <table class="dt">
                 <thead><tr><th>Frontend (camelCase)</th><th>API (snake_case)</th><th>Entity</th></tr></thead>
                 <tbody>
