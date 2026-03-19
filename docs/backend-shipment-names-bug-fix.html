@@ -824,10 +824,100 @@
                 </table>
             </div>
         </section>
+
+        <!-- Bug Fix #2: POST Endpoints 500 Error (created_by column) -->
+        <section class="section" style="border: 2px solid var(--red-600);">
+            <div class="section-header" style="background: var(--red-50);">
+                <h2 style="color: var(--red-800);">Bug Fix #2: POST Endpoints 500 Error (created_by column)</h2>
+                <span class="badge new" style="background: var(--green-100); color: var(--green-700);">FIXED</span>
+            </div>
+            <div class="section-body">
+                <div class="bug-card">
+                    <h3>Error: POST /safety-incidents returns 500</h3>
+                    <p>
+                        When creating new records via POST endpoints, the server returned a 500 Internal Server Error: <code>(1054, "Unknown column 'created_by' in 'field list'")</code>. The INSERT query referenced a <code>created_by</code> column that does not exist in the database tables.
+                    </p>
+                </div>
+
+                <h4 style="margin: 20px 0 12px; color: var(--gray-700);">Affected Endpoints</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Table</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="method-badge post">POST</span> <code>/safety-incidents</code></td>
+                            <td>safety_incidents</td>
+                            <td style="color: var(--green-700); font-weight: 600;">Fixed</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge post">POST</span> <code>/inspection-records</code></td>
+                            <td>inspection_records</td>
+                            <td style="color: var(--green-700); font-weight: 600;">Fixed</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge post">POST</span> <code>/customer-surveys</code></td>
+                            <td>customer_surveys</td>
+                            <td style="color: var(--green-700); font-weight: 600;">Fixed</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-badge post">POST</span> <code>/safety-training</code></td>
+                            <td>safety_training_records</td>
+                            <td style="color: var(--blue-600); font-weight: 600;">OK (auto-creates table)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="fix-card" style="margin-top: 20px;">
+                    <h3>Solution: Removed created_by from INSERT statements</h3>
+                    <p>
+                        The <code>created_by</code> column and JWT extraction code were removed from the INSERT statements for all affected endpoints since these tables don't have the column.
+                    </p>
+                </div>
+
+                <h4 style="margin: 20px 0 12px; color: var(--gray-700);">Code Change (Before → After)</h4>
+<pre><span class="comment">// BEFORE (broken):</span>
+INSERT INTO safety_incidents (..., reported_by, <span style="color: #f87171; text-decoration: line-through;">created_by</span>, created_at, updated_at)
+VALUES (..., %s, <span style="color: #f87171; text-decoration: line-through;">%s</span>, NOW(), NOW())
+
+<span class="comment">// AFTER (fixed):</span>
+INSERT INTO safety_incidents (..., reported_by, <span style="color: #34d399;">created_at, updated_at</span>)
+VALUES (..., %s, <span style="color: #34d399;">NOW(), NOW()</span>)</pre>
+
+                <h4 style="margin: 20px 0 12px; color: var(--gray-700);">Deployment</h4>
+                <table>
+                    <thead>
+                        <tr><th>Property</th><th>Value</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Commit</td>
+                            <td><code>f76a139</code></td>
+                        </tr>
+                        <tr>
+                            <td>Lambda Updated</td>
+                            <td><code>MPS-prod-Core-KPIAnalytics</code></td>
+                        </tr>
+                        <tr>
+                            <td>File Changed</td>
+                            <td><code>src/kpi-analytics/app.py</code></td>
+                        </tr>
+                        <tr>
+                            <td>Date</td>
+                            <td>March 19, 2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <footer style="text-align: center; padding: 40px; color: var(--gray-400); font-size: 13px;">
-        MPS Waste Management System &mdash; Backend Documentation &mdash; v2.4.0
+        MPS Waste Management System &mdash; Backend Documentation &mdash; v2.4.1
     </footer>
 </body>
 </html>
