@@ -20,6 +20,10 @@ import {
   Leaf,
   Monitor,
   Heart,
+  AlertTriangle,
+  ClipboardCheck,
+  GraduationCap,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 
@@ -76,6 +80,15 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Audit Log", href: "/admin/audit-log", icon: ScrollText, roles: ["admin", "manager"] },
     ],
   },
+  {
+    label: "Safety & Compliance",
+    items: [
+      { label: "Safety Incidents", href: "/admin/safety-incidents", icon: AlertTriangle, roles: ["admin", "manager"] },
+      { label: "Inspection Records", href: "/admin/inspection-records", icon: ClipboardCheck, roles: ["admin", "manager"] },
+      { label: "Safety Training", href: "/admin/safety-training", icon: GraduationCap, roles: ["admin", "manager"] },
+      { label: "Customer Surveys", href: "/admin/customer-surveys", icon: MessageSquare, roles: ["admin", "manager"] },
+    ],
+  },
 ];
 
 /* ─── Helpers ─── */
@@ -109,6 +122,10 @@ const ROUTE_LABELS: Record<string, string> = {
   facilities: "Facilities & Transport",
   users: "Users",
   "audit-log": "Audit Log",
+  "safety-incidents": "Safety Incidents",
+  "inspection-records": "Inspection Records",
+  "safety-training": "Safety Training",
+  "customer-surveys": "Customer Surveys",
 };
 
 /** Maps tab query-param slugs to display labels for breadcrumbs */
