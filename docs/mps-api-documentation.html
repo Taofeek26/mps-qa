@@ -686,6 +686,7 @@
                 <a href="#truck-loads" class="sidebar-link">Truck Loads</a>
                 <a href="#safety-incidents" class="sidebar-link">Safety Incidents</a>
                 <a href="#inspection-records" class="sidebar-link">Inspection Records</a>
+                <a href="#safety-training" class="sidebar-link">Safety Training</a>
                 <a href="#service-verifications" class="sidebar-link">Service Verifications</a>
                 <a href="#container-weight-records" class="sidebar-link">Container Weight Records</a>
                 <a href="#platform-user-activity" class="sidebar-link">Platform User Activity</a>
@@ -3400,13 +3401,29 @@ Content-Type: application/json</pre>
                     </div>
                 </div>
 
-                <!-- Safety Incidents -->
+                <!-- Safety Incidents - Full CRUD -->
                 <div id="safety-incidents" class="endpoint">
                     <div class="endpoint-header">
                         <span class="method-badge get">GET</span>
                         <span class="endpoint-path">/safety-incidents</span>
+                        <span class="category-badge" style="margin-left: auto;">Full CRUD</span>
                     </div>
-                    <p class="endpoint-description">Retrieve safety incident records for compliance and safety metrics.</p>
+                    <p class="endpoint-description">Retrieve safety incident records for compliance and safety metrics. Supports filtering by site, type, severity, resolution status, and date range.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Query Parameters</div>
+                        <table class="params-table">
+                            <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">site_id</span></td><td>string (UUID)</td><td>Filter by site</td></tr>
+                                <tr><td><span class="param-name">type</span></td><td>string</td><td>Filter by type: vehicle, chemical, slip-fall, equipment, ergonomic</td></tr>
+                                <tr><td><span class="param-name">severity</span></td><td>string</td><td>Filter by severity: minor, moderate, serious</td></tr>
+                                <tr><td><span class="param-name">resolved</span></td><td>boolean</td><td>Filter by resolution status</td></tr>
+                                <tr><td><span class="param-name">date_from</span></td><td>string (date)</td><td>Filter incidents on or after date (YYYY-MM-DD)</td></tr>
+                                <tr><td><span class="param-name">date_to</span></td><td>string (date)</td><td>Filter incidents on or before date (YYYY-MM-DD)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="code-block">
                         <div class="code-header">
@@ -3421,12 +3438,79 @@ Content-Type: application/json</pre>
       <span class="key">"type"</span>: <span class="string">"vehicle"</span>,
       <span class="key">"severity"</span>: <span class="string">"minor"</span>,
       <span class="key">"resolved"</span>: <span class="boolean">true</span>,
+      <span class="key">"resolved_date"</span>: <span class="string">"2024-01-12"</span>,
       <span class="key">"site_id"</span>: <span class="string">"uuid"</span>,
-      <span class="key">"description"</span>: <span class="string">"Minor vehicle backing incident"</span>
+      <span class="key">"description"</span>: <span class="string">"Minor vehicle backing incident"</span>,
+      <span class="key">"root_cause"</span>: <span class="string">"Poor visibility"</span>,
+      <span class="key">"corrective_action"</span>: <span class="string">"Added mirrors"</span>,
+      <span class="key">"reported_by"</span>: <span class="string">"John Smith"</span>
     }
-  ]
+  ],
+  <span class="key">"pagination"</span>: { <span class="key">"page"</span>: <span class="number">1</span>, <span class="key">"limit"</span>: <span class="number">100</span>, <span class="key">"total"</span>: <span class="number">15</span>, <span class="key">"pages"</span>: <span class="number">1</span> }
 }</pre>
                         </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/safety-incidents</span>
+                    </div>
+                    <p class="endpoint-description">Create a new safety incident record.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">date</span></td><td>string (date)</td><td><span class="param-required required">Required</span></td><td>Incident date (YYYY-MM-DD)</td></tr>
+                                <tr><td><span class="param-name">type</span></td><td>string</td><td><span class="param-required required">Required</span></td><td>Type: vehicle, chemical, slip-fall, equipment, ergonomic</td></tr>
+                                <tr><td><span class="param-name">severity</span></td><td>string</td><td><span class="param-required required">Required</span></td><td>Severity: minor, moderate, serious</td></tr>
+                                <tr><td><span class="param-name">site_id</span></td><td>string (UUID)</td><td><span class="param-required required">Required</span></td><td>Site where incident occurred</td></tr>
+                                <tr><td><span class="param-name">description</span></td><td>string</td><td><span class="param-required required">Required</span></td><td>Description of the incident</td></tr>
+                                <tr><td><span class="param-name">resolved</span></td><td>boolean</td><td><span class="param-required optional">Optional</span></td><td>Resolution status (default: false)</td></tr>
+                                <tr><td><span class="param-name">resolved_date</span></td><td>string (date)</td><td><span class="param-required optional">Optional</span></td><td>Date incident was resolved</td></tr>
+                                <tr><td><span class="param-name">root_cause</span></td><td>string</td><td><span class="param-required optional">Optional</span></td><td>Root cause analysis</td></tr>
+                                <tr><td><span class="param-name">corrective_action</span></td><td>string</td><td><span class="param-required optional">Optional</span></td><td>Corrective action taken</td></tr>
+                                <tr><td><span class="param-name">reported_by</span></td><td>string</td><td><span class="param-required optional">Optional</span></td><td>Name of reporter</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/safety-incidents/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing safety incident. All fields are optional - only provided fields will be updated.</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/safety-incidents/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Soft delete a safety incident (sets deleted_at timestamp).</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
                     </div>
 
                     <div class="info-box">
@@ -3438,13 +3522,27 @@ Content-Type: application/json</pre>
                     </div>
                 </div>
 
-                <!-- Inspection Records -->
+                <!-- Inspection Records - Full CRUD -->
                 <div id="inspection-records" class="endpoint">
                     <div class="endpoint-header">
                         <span class="method-badge get">GET</span>
                         <span class="endpoint-path">/inspection-records</span>
+                        <span class="category-badge" style="margin-left: auto;">Full CRUD</span>
                     </div>
-                    <p class="endpoint-description">Retrieve vehicle and equipment inspection records for compliance tracking.</p>
+                    <p class="endpoint-description">Retrieve inspection records for compliance tracking. Supports filtering by site, pass/fail result, and date range.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Query Parameters</div>
+                        <table class="params-table">
+                            <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">site_id</span></td><td>string (UUID)</td><td>Filter by site</td></tr>
+                                <tr><td><span class="param-name">passed</span></td><td>boolean</td><td>Filter by pass/fail result</td></tr>
+                                <tr><td><span class="param-name">date_from</span></td><td>string (date)</td><td>Filter inspections on or after date</td></tr>
+                                <tr><td><span class="param-name">date_to</span></td><td>string (date)</td><td>Filter inspections on or before date</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="code-block">
                         <div class="code-header">
@@ -3455,16 +3553,79 @@ Content-Type: application/json</pre>
   <span class="key">"inspection_records"</span>: [
     {
       <span class="key">"id"</span>: <span class="string">"uuid"</span>,
-      <span class="key">"vehicle_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"site_id"</span>: <span class="string">"uuid"</span>,
       <span class="key">"inspection_date"</span>: <span class="string">"2024-01-15"</span>,
-      <span class="key">"inspection_type"</span>: <span class="string">"pre-trip"</span>,
+      <span class="key">"inspection_type"</span>: <span class="string">"annual"</span>,
+      <span class="key">"inspector_name"</span>: <span class="string">"Jane Doe"</span>,
+      <span class="key">"inspector_id"</span>: <span class="string">"INS-001"</span>,
       <span class="key">"passed"</span>: <span class="boolean">true</span>,
-      <span class="key">"inspector_id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"findings"</span>: <span class="number">0</span>,
       <span class="key">"notes"</span>: <span class="string">"All systems operational"</span>
     }
-  ]
+  ],
+  <span class="key">"pagination"</span>: { <span class="key">"page"</span>: <span class="number">1</span>, <span class="key">"limit"</span>: <span class="number">100</span>, <span class="key">"total"</span>: <span class="number">8</span>, <span class="key">"pages"</span>: <span class="number">1</span> }
 }</pre>
                         </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/inspection-records</span>
+                    </div>
+                    <p class="endpoint-description">Create a new inspection record.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">site_id</span></td><td>string (UUID)</td><td><span class="param-required required">Required</span></td><td>Site being inspected</td></tr>
+                                <tr><td><span class="param-name">inspection_date</span></td><td>string (date)</td><td><span class="param-required required">Required</span></td><td>Date of inspection (YYYY-MM-DD)</td></tr>
+                                <tr><td><span class="param-name">inspector_name</span></td><td>string</td><td><span class="param-required required">Required</span></td><td>Name of inspector</td></tr>
+                                <tr><td><span class="param-name">passed</span></td><td>boolean</td><td><span class="param-required required">Required</span></td><td>Pass or fail result</td></tr>
+                                <tr><td><span class="param-name">findings</span></td><td>integer</td><td><span class="param-required required">Required</span></td><td>Number of findings (must be >= 0)</td></tr>
+                                <tr><td><span class="param-name">inspection_type</span></td><td>string</td><td><span class="param-required optional">Optional</span></td><td>Type: pre-trip, post-trip, annual, quarterly, DOT</td></tr>
+                                <tr><td><span class="param-name">inspector_id</span></td><td>string</td><td><span class="param-required optional">Optional</span></td><td>Inspector ID number</td></tr>
+                                <tr><td><span class="param-name">notes</span></td><td>string</td><td><span class="param-required optional">Optional</span></td><td>Additional notes</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/inspection-records/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing inspection record. Same fields as POST, all optional.</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/inspection-records/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Soft delete an inspection record.</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
                     </div>
 
                     <div class="info-box">
@@ -3472,6 +3633,112 @@ Content-Type: application/json</pre>
                         <div class="info-box-content">
                             <strong>Inspection Types:</strong> pre-trip, post-trip, annual, quarterly, DOT
                         </div>
+                    </div>
+                </div>
+
+                <!-- Safety Training Records - New Entity with Full CRUD -->
+                <div id="safety-training" class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/safety-training</span>
+                        <span class="category-badge" style="margin-left: auto; background: #DCFCE7; color: #15803D;">New Entity</span>
+                    </div>
+                    <p class="endpoint-description">Retrieve safety training records for employee certifications and compliance tracking. Supports search, filtering, and sorting.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Query Parameters</div>
+                        <table class="params-table">
+                            <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">search</span></td><td>string</td><td>Search across employee_name, department, course_name</td></tr>
+                                <tr><td><span class="param-name">department</span></td><td>string</td><td>Filter by department</td></tr>
+                                <tr><td><span class="param-name">certified</span></td><td>boolean</td><td>Filter by certification status</td></tr>
+                                <tr><td><span class="param-name">sort_by</span></td><td>string</td><td>Sort field: id, employee_name, department, course_name, completion_date, expiration_date</td></tr>
+                                <tr><td><span class="param-name">sort_dir</span></td><td>string</td><td>Sort direction: ASC, DESC (default: DESC)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Response Schema</span>
+                        </div>
+                        <div class="code-content">
+<pre>{
+  <span class="key">"safety_training"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"uuid"</span>,
+      <span class="key">"employee_name"</span>: <span class="string">"Mike Johnson"</span>,
+      <span class="key">"department"</span>: <span class="string">"Operations"</span>,
+      <span class="key">"course_name"</span>: <span class="string">"Hazmat Handling Certification"</span>,
+      <span class="key">"completion_date"</span>: <span class="string">"2026-01-15"</span>,
+      <span class="key">"certified"</span>: <span class="boolean">true</span>,
+      <span class="key">"expiration_date"</span>: <span class="string">"2027-01-15"</span>,
+      <span class="key">"created_at"</span>: <span class="string">"2026-01-15T10:30:00Z"</span>,
+      <span class="key">"updated_at"</span>: <span class="string">"2026-01-15T10:30:00Z"</span>
+    }
+  ],
+  <span class="key">"pagination"</span>: { <span class="key">"page"</span>: <span class="number">1</span>, <span class="key">"limit"</span>: <span class="number">50</span>, <span class="key">"total"</span>: <span class="number">25</span>, <span class="key">"pages"</span>: <span class="number">1</span> }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/safety-training</span>
+                    </div>
+                    <p class="endpoint-description">Create a new safety training record.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">employee_name</span></td><td>string</td><td><span class="param-required required">Required</span></td><td>Employee's full name (max 255 chars)</td></tr>
+                                <tr><td><span class="param-name">department</span></td><td>string</td><td><span class="param-required required">Required</span></td><td>Department name (max 255 chars)</td></tr>
+                                <tr><td><span class="param-name">course_name</span></td><td>string</td><td><span class="param-required required">Required</span></td><td>Training course name (max 255 chars)</td></tr>
+                                <tr><td><span class="param-name">completion_date</span></td><td>string (date)</td><td><span class="param-required required">Required</span></td><td>Date course was completed (YYYY-MM-DD)</td></tr>
+                                <tr><td><span class="param-name">certified</span></td><td>boolean</td><td><span class="param-required required">Required</span></td><td>Whether employee is certified</td></tr>
+                                <tr><td><span class="param-name">expiration_date</span></td><td>string (date)</td><td><span class="param-required optional">Optional</span></td><td>Certification expiration date (YYYY-MM-DD)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/safety-training/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing training record. Same fields as POST, all optional.</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/safety-training/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Soft delete a training record.</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
                     </div>
                 </div>
 
@@ -3548,7 +3815,7 @@ Content-Type: application/json</pre>
                         </div>
                         <div class="code-content">
 <pre>{
-  <span class="key">"platform_user_activity"</span>: [
+  <span class="key">"platform_user_activities"</span>: [
     {
       <span class="key">"id"</span>: <span class="string">"uuid"</span>,
       <span class="key">"user_id"</span>: <span class="string">"uuid"</span>,
@@ -3564,13 +3831,88 @@ Content-Type: application/json</pre>
                     </div>
                 </div>
 
-                <!-- Customer Surveys -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/platform-user-activity/track</span>
+                        <span class="category-badge" style="margin-left: auto; background: #DCFCE7; color: #15803D;">New</span>
+                    </div>
+                    <p class="endpoint-description">Track a user activity event (page view or action). User ID is automatically extracted from JWT token.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">event_type</span></td><td>string</td><td><span class="param-required required">Required</span></td><td>Type: "page_view" or "action"</td></tr>
+                                <tr><td><span class="param-name">page</span></td><td>string</td><td><span class="param-required optional">Conditional</span></td><td>Page URL/path (required for page_view events)</td></tr>
+                                <tr><td><span class="param-name">action</span></td><td>string</td><td><span class="param-required optional">Conditional</span></td><td>Action name (required for action events)</td></tr>
+                                <tr><td><span class="param-name">metadata</span></td><td>object</td><td><span class="param-required optional">Optional</span></td><td>Additional metadata as key-value pairs</td></tr>
+                                <tr><td><span class="param-name">timestamp</span></td><td>string (ISO 8601)</td><td><span class="param-required optional">Optional</span></td><td>Event timestamp (defaults to current time)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-label">Example Request</span>
+                        </div>
+                        <div class="code-content">
+<pre><span class="comment">// Page View Event</span>
+{
+  <span class="key">"event_type"</span>: <span class="string">"page_view"</span>,
+  <span class="key">"page"</span>: <span class="string">"/dashboard"</span>,
+  <span class="key">"metadata"</span>: {
+    <span class="key">"referrer"</span>: <span class="string">"/login"</span>
+  }
+}
+
+<span class="comment">// Action Event</span>
+{
+  <span class="key">"event_type"</span>: <span class="string">"action"</span>,
+  <span class="key">"action"</span>: <span class="string">"export_report"</span>,
+  <span class="key">"metadata"</span>: {
+    <span class="key">"report_type"</span>: <span class="string">"shipments"</span>,
+    <span class="key">"format"</span>: <span class="string">"csv"</span>
+  }
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">💡</span>
+                        <div class="info-box-content">
+                            <strong>Note:</strong> This endpoint is designed to be non-blocking. Even if an error occurs internally, it will return 201 to avoid disrupting the user experience.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Surveys - Full CRUD -->
                 <div id="customer-surveys" class="endpoint">
                     <div class="endpoint-header">
                         <span class="method-badge get">GET</span>
                         <span class="endpoint-path">/customer-surveys</span>
+                        <span class="category-badge" style="margin-left: auto;">Full CRUD</span>
                     </div>
-                    <p class="endpoint-description">Retrieve customer satisfaction survey responses for CSAT, NPS calculations.</p>
+                    <p class="endpoint-description">Retrieve customer satisfaction survey responses for CSAT, NPS calculations. Includes client name from joined customers table.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Query Parameters</div>
+                        <table class="params-table">
+                            <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">client_id</span></td><td>string (UUID)</td><td>Filter by client/customer</td></tr>
+                                <tr><td><span class="param-name">date_from</span></td><td>string (date)</td><td>Filter surveys on or after date</td></tr>
+                                <tr><td><span class="param-name">date_to</span></td><td>string (date)</td><td>Filter surveys on or before date</td></tr>
+                                <tr><td><span class="param-name">has_complaint</span></td><td>boolean</td><td>Filter by complaint status</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div class="code-block">
                         <div class="code-header">
@@ -3589,10 +3931,82 @@ Content-Type: application/json</pre>
       <span class="key">"fcr_resolved"</span>: <span class="boolean">true</span>,
       <span class="key">"response_time_hrs"</span>: <span class="number">2.5</span>,
       <span class="key">"has_complaint"</span>: <span class="boolean">false</span>,
-      <span class="key">"complaint_category"</span>: <span class="null">null</span>
+      <span class="key">"complaint_category"</span>: <span class="null">null</span>,
+      <span class="key">"feedback"</span>: <span class="string">"Great service!"</span>
     }
-  ]
+  ],
+  <span class="key">"pagination"</span>: { <span class="key">"page"</span>: <span class="number">1</span>, <span class="key">"limit"</span>: <span class="number">100</span>, <span class="key">"total"</span>: <span class="number">45</span>, <span class="key">"pages"</span>: <span class="number">1</span> }
 }</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/customer-surveys</span>
+                    </div>
+                    <p class="endpoint-description">Create a new customer survey record.</p>
+
+                    <div class="params-section">
+                        <div class="params-title">Request Body</div>
+                        <table class="params-table">
+                            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                            <tbody>
+                                <tr><td><span class="param-name">client_id</span></td><td>string (UUID)</td><td><span class="param-required required">Required</span></td><td>Client/customer being surveyed</td></tr>
+                                <tr><td><span class="param-name">date</span></td><td>string (date)</td><td><span class="param-required required">Required</span></td><td>Survey date (YYYY-MM-DD)</td></tr>
+                                <tr><td><span class="param-name">csat</span></td><td>number</td><td><span class="param-required required">Required</span></td><td>Customer Satisfaction score (1.0 - 5.0)</td></tr>
+                                <tr><td><span class="param-name">nps</span></td><td>integer</td><td><span class="param-required required">Required</span></td><td>Net Promoter Score (0 - 10)</td></tr>
+                                <tr><td><span class="param-name">fcr_resolved</span></td><td>boolean</td><td><span class="param-required required">Required</span></td><td>First Contact Resolution achieved</td></tr>
+                                <tr><td><span class="param-name">response_time_hrs</span></td><td>number</td><td><span class="param-required required">Required</span></td><td>Response time in hours (must be >= 0)</td></tr>
+                                <tr><td><span class="param-name">has_complaint</span></td><td>boolean</td><td><span class="param-required required">Required</span></td><td>Whether survey includes a complaint</td></tr>
+                                <tr><td><span class="param-name">complaint_category</span></td><td>string</td><td><span class="param-required optional">Conditional</span></td><td>Required if has_complaint=true. Values: Service Quality, Timeliness, Billing, Communication, Other</td></tr>
+                                <tr><td><span class="param-name">feedback</span></td><td>string</td><td><span class="param-required optional">Optional</span></td><td>Free-form feedback text</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="response-codes">
+                        <span class="response-code success">201 Created</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge put">PUT</span>
+                        <span class="endpoint-path">/customer-surveys/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Update an existing survey. Same fields as POST, all optional.</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">400 Bad Request</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/customer-surveys/{id}</span>
+                    </div>
+                    <p class="endpoint-description">Soft delete a survey.</p>
+
+                    <div class="response-codes">
+                        <span class="response-code success">200 OK</span>
+                        <span class="response-code warning">404 Not Found</span>
+                        <span class="response-code error">401 Unauthorized</span>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">📊</span>
+                        <div class="info-box-content">
+                            <strong>CSAT Score:</strong> 1.0 - 5.0 (Customer Satisfaction)<br>
+                            <strong>NPS Score:</strong> 0 - 10 (Net Promoter Score)<br>
+                            <strong>Complaint Categories:</strong> Service Quality, Timeliness, Billing, Communication, Other
                         </div>
                     </div>
                 </div>

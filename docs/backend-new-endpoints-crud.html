@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPS New CRUD Endpoints Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --white: #FFFFFF;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --teal-50: #F0FDFA;
+            --teal-100: #CCFBF1;
+            --teal-600: #0D9488;
+            --teal-700: #0F766E;
+            --teal-800: #115E59;
+            --red-50: #FEF2F2;
+            --red-100: #FEE2E2;
+            --red-600: #DC2626;
+            --red-700: #B91C1C;
+            --red-800: #991B1B;
+            --amber-50: #FFFBEB;
+            --amber-100: #FEF3C7;
+            --amber-600: #D97706;
+            --amber-700: #B45309;
+            --amber-800: #92400E;
+            --blue-50: #EFF6FF;
+            --blue-100: #DBEAFE;
+            --blue-600: #2563EB;
+            --blue-700: #1D4ED8;
+            --green-50: #F0FDF4;
+            --green-100: #DCFCE7;
+            --green-600: #16A34A;
+            --green-700: #15803D;
+            --purple-50: #FAF5FF;
+            --purple-600: #9333EA;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 40px 0;
+        }
+        .header-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .header-brand img { height: 32px; }
+        .header-brand .sep {
+            width: 1px;
+            height: 20px;
+            background: var(--gray-300);
+        }
+        .header-brand span {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--teal-700);
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--gray-900);
+            letter-spacing: -0.4px;
+            margin-bottom: 6px;
+        }
+        .header .subtitle {
+            font-size: 15px;
+            color: var(--gray-500);
+            max-width: 640px;
+        }
+        .header-meta {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .meta-chip {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-600);
+            background: var(--gray-100);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .scores-wrap {
+            max-width: 1120px;
+            margin: 24px auto 0;
+            padding: 0 32px;
+        }
+        .scores {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+        .score-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 20px 18px;
+        }
+        .score-card .label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--gray-500);
+            margin-bottom: 6px;
+        }
+        .score-card .value {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+        .score-card .sub {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+        .val-good { color: var(--green-700); }
+        .val-info { color: var(--blue-700); }
+
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 40px 32px 64px;
+        }
+
+        .section { margin-bottom: 48px; }
+        .section-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gray-200);
+        }
+        .section-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .dot-red { background: var(--red-600); }
+        .dot-amber { background: var(--amber-600); }
+        .dot-blue { background: var(--blue-600); }
+        .dot-green { background: var(--green-600); }
+        .dot-teal { background: var(--teal-600); }
+        .section-head h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        .section-badge {
+            margin-left: auto;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sbadge-new { background: var(--green-100); color: var(--green-700); }
+        .sbadge-crud { background: var(--blue-100); color: var(--blue-700); }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+        .card h3 { font-size: 14px; font-weight: 600; color: var(--gray-900); margin-bottom: 6px; }
+        .card p { font-size: 13px; color: var(--gray-600); line-height: 1.7; }
+        .card code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            padding: 1px 5px;
+            border-radius: 4px;
+            color: var(--teal-800);
+        }
+
+        .codeblock {
+            background: var(--gray-900);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin: 8px 0;
+            overflow-x: auto;
+        }
+        .codeblock pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.7;
+            color: #D1D5DB;
+        }
+        .codeblock .cm { color: #6B7280; }
+        .codeblock .str { color: #86EFAC; }
+        .codeblock .kw { color: #FCA5A5; }
+        .codeblock .key { color: #7DD3FC; }
+        .codeblock .num { color: #FCD34D; }
+        .codeblock .bool { color: #C4B5FD; }
+
+        table.dt {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        table.dt th {
+            text-align: left;
+            padding: 9px 14px;
+            background: var(--gray-50);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-500);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        table.dt td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+        }
+        table.dt tr:last-child td { border-bottom: none; }
+        table.dt code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--teal-800);
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+        .tag-get { background: var(--green-100); color: var(--green-700); }
+        .tag-post { background: var(--blue-100); color: var(--blue-700); }
+        .tag-put { background: var(--amber-100); color: var(--amber-800); }
+        .tag-delete { background: var(--red-100); color: var(--red-700); }
+        .tag-ok { background: var(--green-100); color: var(--green-700); }
+        .tag-err { background: var(--red-100); color: var(--red-700); }
+        .tag-warn { background: var(--amber-100); color: var(--amber-800); }
+        .tag-required { background: var(--red-100); color: var(--red-700); }
+        .tag-optional { background: var(--gray-100); color: var(--gray-600); }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .response-codes {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .updated-banner {
+            background: linear-gradient(90deg, #059669, #0D9488);
+            color: white;
+            padding: 20px 24px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .updated-banner h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .updated-banner p { font-size: 13px; opacity: 0.9; }
+
+        .footer {
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+            padding: 24px 32px;
+            text-align: center;
+        }
+        .footer p { font-size: 12px; color: var(--gray-400); }
+        .footer a { color: var(--teal-700); text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .scores { grid-template-columns: repeat(2, 1fr); }
+            .header-inner, .scores-wrap, .container { padding-left: 20px; padding-right: 20px; }
+            .header h1 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-inner">
+            <div class="header-brand">
+                <img src="https://www.mpsgrp.com/wp-content/uploads/2024/02/mps-group-logo.png" alt="MPS Group">
+                <span class="sep"></span>
+                <span>New Endpoints Documentation</span>
+            </div>
+            <h1>CRUD Endpoints &mdash; KPI &amp; Regulatory</h1>
+            <p class="subtitle">Comprehensive documentation for newly added CRUD endpoints: Safety Incidents, Inspection Records, Safety Training, Customer Surveys, and Platform User Activity tracking.</p>
+            <div class="header-meta">
+                <span class="meta-chip">March 19, 2026</span>
+                <span class="meta-chip">API Gateway &mdash; US East 1</span>
+                <span class="meta-chip">14 New Endpoints</span>
+                <span class="meta-chip">Full CRUD Support</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="scores-wrap">
+        <div class="updated-banner">
+            <h3>NEW ENDPOINTS DEPLOYED &mdash; March 19, 2026</h3>
+            <p>Full CRUD operations for Safety Incidents, Inspection Records, Safety Training Records, and Customer Surveys. Plus new POST /platform-user-activity/track endpoint for analytics tracking. All endpoints include JWT authentication, input validation, and soft delete support.</p>
+        </div>
+        <div class="scores">
+            <div class="score-card">
+                <div class="label">New Endpoints</div>
+                <div class="value val-good">14</div>
+                <div class="sub">Across 5 entities</div>
+            </div>
+            <div class="score-card">
+                <div class="label">CRUD Entities</div>
+                <div class="value val-info">4</div>
+                <div class="sub">Full create/read/update/delete</div>
+            </div>
+            <div class="score-card">
+                <div class="label">Tracking Endpoint</div>
+                <div class="value val-good">1</div>
+                <div class="sub">POST /platform-user-activity/track</div>
+            </div>
+            <div class="score-card">
+                <div class="label">Validation</div>
+                <div class="value val-good">100%</div>
+                <div class="sub">All required fields validated</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- SAFETY INCIDENTS -->
+        <div class="section">
+            <div class="section-head">
+                <span class="section-dot dot-red"></span>
+                <h2>Safety Incidents</h2>
+                <span class="section-badge sbadge-crud">Full CRUD</span>
+            </div>
+
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 16px;">
+                Track and manage workplace safety incidents. Supports incident types (vehicle, chemical, slip-fall, equipment, ergonomic), severity levels (minor, moderate, serious), and resolution tracking.
+            </p>
+
+            <!-- GET /safety-incidents -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-get">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-incidents</code>
+                </div>
+                <p>Retrieve all safety incidents with optional filtering.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Query Parameters</h4>
+                <table class="dt">
+                    <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>site_id</code></td><td>string (UUID)</td><td>Filter by site</td></tr>
+                        <tr><td><code>type</code></td><td>string</td><td>Filter by type: vehicle, chemical, slip-fall, equipment, ergonomic</td></tr>
+                        <tr><td><code>severity</code></td><td>string</td><td>Filter by severity: minor, moderate, serious</td></tr>
+                        <tr><td><code>resolved</code></td><td>boolean</td><td>Filter by resolution status (true/false)</td></tr>
+                        <tr><td><code>date_from</code></td><td>string (date)</td><td>Filter incidents on or after date (YYYY-MM-DD)</td></tr>
+                        <tr><td><code>date_to</code></td><td>string (date)</td><td>Filter incidents on or before date (YYYY-MM-DD)</td></tr>
+                        <tr><td><code>page</code></td><td>integer</td><td>Page number (default: 1)</td></tr>
+                        <tr><td><code>limit</code></td><td>integer</td><td>Results per page (default: 100, max: 500)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Response</span>
+{
+  <span class="key">"safety_incidents"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"date"</span>: <span class="str">"2026-03-15"</span>,
+      <span class="key">"type"</span>: <span class="str">"vehicle"</span>,
+      <span class="key">"severity"</span>: <span class="str">"minor"</span>,
+      <span class="key">"resolved"</span>: <span class="bool">false</span>,
+      <span class="key">"site_id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"description"</span>: <span class="str">"Minor fender bender in parking lot"</span>,
+      <span class="key">"root_cause"</span>: <span class="str">"Poor visibility"</span>,
+      <span class="key">"corrective_action"</span>: <span class="str">"Added mirrors"</span>,
+      <span class="key">"reported_by"</span>: <span class="str">"John Smith"</span>
+    }
+  ],
+  <span class="key">"pagination"</span>: { <span class="key">"page"</span>: <span class="num">1</span>, <span class="key">"limit"</span>: <span class="num">100</span>, <span class="key">"total"</span>: <span class="num">15</span>, <span class="key">"pages"</span>: <span class="num">1</span> }
+}</pre>
+                </div>
+                <div class="response-codes">
+                    <span class="tag tag-ok">200 OK</span>
+                    <span class="tag tag-err">401 Unauthorized</span>
+                </div>
+            </div>
+
+            <!-- GET /safety-incidents/{id} -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-get">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-incidents/{id}</code>
+                </div>
+                <p>Retrieve a single safety incident by ID.</p>
+                <div class="response-codes">
+                    <span class="tag tag-ok">200 OK</span>
+                    <span class="tag tag-warn">404 Not Found</span>
+                    <span class="tag tag-err">401 Unauthorized</span>
+                </div>
+            </div>
+
+            <!-- POST /safety-incidents -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-post">POST</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-incidents</code>
+                </div>
+                <p>Create a new safety incident record.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Request Body</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>date</code></td><td>string (date)</td><td><span class="tag tag-required">Required</span></td><td>Incident date (YYYY-MM-DD)</td></tr>
+                        <tr><td><code>type</code></td><td>string</td><td><span class="tag tag-required">Required</span></td><td>Type: vehicle, chemical, slip-fall, equipment, ergonomic</td></tr>
+                        <tr><td><code>severity</code></td><td>string</td><td><span class="tag tag-required">Required</span></td><td>Severity: minor, moderate, serious</td></tr>
+                        <tr><td><code>site_id</code></td><td>string (UUID)</td><td><span class="tag tag-required">Required</span></td><td>Site where incident occurred</td></tr>
+                        <tr><td><code>description</code></td><td>string</td><td><span class="tag tag-required">Required</span></td><td>Description of the incident</td></tr>
+                        <tr><td><code>resolved</code></td><td>boolean</td><td><span class="tag tag-optional">Optional</span></td><td>Resolution status (default: false)</td></tr>
+                        <tr><td><code>resolved_date</code></td><td>string (date)</td><td><span class="tag tag-optional">Optional</span></td><td>Date incident was resolved</td></tr>
+                        <tr><td><code>root_cause</code></td><td>string</td><td><span class="tag tag-optional">Optional</span></td><td>Root cause analysis</td></tr>
+                        <tr><td><code>corrective_action</code></td><td>string</td><td><span class="tag tag-optional">Optional</span></td><td>Corrective action taken</td></tr>
+                        <tr><td><code>reported_by</code></td><td>string</td><td><span class="tag tag-optional">Optional</span></td><td>Name of person who reported incident</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Request</span>
+{
+  <span class="key">"date"</span>: <span class="str">"2026-03-15"</span>,
+  <span class="key">"type"</span>: <span class="str">"vehicle"</span>,
+  <span class="key">"severity"</span>: <span class="str">"minor"</span>,
+  <span class="key">"site_id"</span>: <span class="str">"site-uuid-here"</span>,
+  <span class="key">"description"</span>: <span class="str">"Minor fender bender in parking lot"</span>,
+  <span class="key">"reported_by"</span>: <span class="str">"John Smith"</span>
+}
+
+<span class="cm">// Response</span>
+{ <span class="key">"id"</span>: <span class="str">"new-uuid"</span>, <span class="key">"message"</span>: <span class="str">"Safety incident created"</span> }</pre>
+                </div>
+                <div class="response-codes">
+                    <span class="tag tag-ok">201 Created</span>
+                    <span class="tag tag-warn">400 Bad Request</span>
+                    <span class="tag tag-err">401 Unauthorized</span>
+                </div>
+            </div>
+
+            <!-- PUT /safety-incidents/{id} -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-put">PUT</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-incidents/{id}</code>
+                </div>
+                <p>Update an existing safety incident. All fields are optional &mdash; only provided fields will be updated.</p>
+                <div class="response-codes">
+                    <span class="tag tag-ok">200 OK</span>
+                    <span class="tag tag-warn">400 Bad Request</span>
+                    <span class="tag tag-warn">404 Not Found</span>
+                    <span class="tag tag-err">401 Unauthorized</span>
+                </div>
+            </div>
+
+            <!-- DELETE /safety-incidents/{id} -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-delete">DELETE</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-incidents/{id}</code>
+                </div>
+                <p>Soft delete a safety incident (sets <code>deleted_at</code> timestamp).</p>
+                <div class="response-codes">
+                    <span class="tag tag-ok">200 OK</span>
+                    <span class="tag tag-warn">404 Not Found</span>
+                    <span class="tag tag-err">401 Unauthorized</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSPECTION RECORDS -->
+        <div class="section">
+            <div class="section-head">
+                <span class="section-dot dot-blue"></span>
+                <h2>Inspection Records</h2>
+                <span class="section-badge sbadge-crud">Full CRUD</span>
+            </div>
+
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 16px;">
+                Track site inspections and compliance audits. Supports inspection types (pre-trip, post-trip, annual, quarterly, DOT), pass/fail results, and findings tracking.
+            </p>
+
+            <!-- GET /inspection-records -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-get">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/inspection-records</code>
+                </div>
+                <p>Retrieve all inspection records with optional filtering.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Query Parameters</h4>
+                <table class="dt">
+                    <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>site_id</code></td><td>string (UUID)</td><td>Filter by site</td></tr>
+                        <tr><td><code>passed</code></td><td>boolean</td><td>Filter by pass/fail result (true/false)</td></tr>
+                        <tr><td><code>date_from</code></td><td>string (date)</td><td>Filter inspections on or after date</td></tr>
+                        <tr><td><code>date_to</code></td><td>string (date)</td><td>Filter inspections on or before date</td></tr>
+                        <tr><td><code>page</code></td><td>integer</td><td>Page number (default: 1)</td></tr>
+                        <tr><td><code>limit</code></td><td>integer</td><td>Results per page (default: 100, max: 500)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Response</span>
+{
+  <span class="key">"inspection_records"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"site_id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"inspection_date"</span>: <span class="str">"2026-03-10"</span>,
+      <span class="key">"inspection_type"</span>: <span class="str">"annual"</span>,
+      <span class="key">"inspector_name"</span>: <span class="str">"Jane Doe"</span>,
+      <span class="key">"inspector_id"</span>: <span class="str">"INS-001"</span>,
+      <span class="key">"passed"</span>: <span class="bool">true</span>,
+      <span class="key">"findings"</span>: <span class="num">0</span>,
+      <span class="key">"notes"</span>: <span class="str">"All systems compliant"</span>
+    }
+  ],
+  <span class="key">"pagination"</span>: { <span class="key">"page"</span>: <span class="num">1</span>, <span class="key">"limit"</span>: <span class="num">100</span>, <span class="key">"total"</span>: <span class="num">8</span>, <span class="key">"pages"</span>: <span class="num">1</span> }
+}</pre>
+                </div>
+            </div>
+
+            <!-- POST /inspection-records -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-post">POST</span>
+                    <code style="font-size: 14px; font-weight: 600;">/inspection-records</code>
+                </div>
+                <p>Create a new inspection record.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Request Body</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>site_id</code></td><td>string (UUID)</td><td><span class="tag tag-required">Required</span></td><td>Site being inspected</td></tr>
+                        <tr><td><code>inspection_date</code></td><td>string (date)</td><td><span class="tag tag-required">Required</span></td><td>Date of inspection (YYYY-MM-DD)</td></tr>
+                        <tr><td><code>inspector_name</code></td><td>string</td><td><span class="tag tag-required">Required</span></td><td>Name of inspector</td></tr>
+                        <tr><td><code>passed</code></td><td>boolean</td><td><span class="tag tag-required">Required</span></td><td>Pass or fail result</td></tr>
+                        <tr><td><code>findings</code></td><td>integer</td><td><span class="tag tag-required">Required</span></td><td>Number of findings (must be >= 0)</td></tr>
+                        <tr><td><code>inspection_type</code></td><td>string</td><td><span class="tag tag-optional">Optional</span></td><td>Type: pre-trip, post-trip, annual, quarterly, DOT</td></tr>
+                        <tr><td><code>inspector_id</code></td><td>string</td><td><span class="tag tag-optional">Optional</span></td><td>Inspector ID number</td></tr>
+                        <tr><td><code>notes</code></td><td>string</td><td><span class="tag tag-optional">Optional</span></td><td>Additional notes</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Request</span>
+{
+  <span class="key">"site_id"</span>: <span class="str">"site-uuid-here"</span>,
+  <span class="key">"inspection_date"</span>: <span class="str">"2026-03-10"</span>,
+  <span class="key">"inspection_type"</span>: <span class="str">"annual"</span>,
+  <span class="key">"inspector_name"</span>: <span class="str">"Jane Doe"</span>,
+  <span class="key">"passed"</span>: <span class="bool">true</span>,
+  <span class="key">"findings"</span>: <span class="num">0</span>
+}
+
+<span class="cm">// Response</span>
+{ <span class="key">"id"</span>: <span class="str">"new-uuid"</span>, <span class="key">"message"</span>: <span class="str">"Inspection record created"</span> }</pre>
+                </div>
+                <div class="response-codes">
+                    <span class="tag tag-ok">201 Created</span>
+                    <span class="tag tag-warn">400 Bad Request</span>
+                    <span class="tag tag-err">401 Unauthorized</span>
+                </div>
+            </div>
+
+            <!-- PUT & DELETE -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-put">PUT</span>
+                    <code style="font-size: 14px; font-weight: 600;">/inspection-records/{id}</code>
+                </div>
+                <p>Update an existing inspection record. Same fields as POST, all optional.</p>
+            </div>
+
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-delete">DELETE</span>
+                    <code style="font-size: 14px; font-weight: 600;">/inspection-records/{id}</code>
+                </div>
+                <p>Soft delete an inspection record.</p>
+            </div>
+        </div>
+
+        <!-- SAFETY TRAINING -->
+        <div class="section">
+            <div class="section-head">
+                <span class="section-dot dot-green"></span>
+                <h2>Safety Training Records</h2>
+                <span class="section-badge sbadge-new">New Entity</span>
+            </div>
+
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 16px;">
+                Track employee safety training and certifications. Supports course tracking, certification status, and expiration dates. <strong>This is a new entity added in this release.</strong>
+            </p>
+
+            <!-- GET /safety-training -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-get">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-training</code>
+                </div>
+                <p>Retrieve all safety training records with pagination, filtering, and search.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Query Parameters</h4>
+                <table class="dt">
+                    <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>search</code></td><td>string</td><td>Search across employee_name, department, course_name</td></tr>
+                        <tr><td><code>department</code></td><td>string</td><td>Filter by department</td></tr>
+                        <tr><td><code>certified</code></td><td>boolean</td><td>Filter by certification status</td></tr>
+                        <tr><td><code>sort_by</code></td><td>string</td><td>Sort field: id, employee_name, department, course_name, completion_date, expiration_date</td></tr>
+                        <tr><td><code>sort_dir</code></td><td>string</td><td>Sort direction: ASC, DESC (default: DESC)</td></tr>
+                        <tr><td><code>page</code></td><td>integer</td><td>Page number (default: 1)</td></tr>
+                        <tr><td><code>limit</code></td><td>integer</td><td>Results per page (default: 50, max: 500)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Response</span>
+{
+  <span class="key">"safety_training"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"employee_name"</span>: <span class="str">"Mike Johnson"</span>,
+      <span class="key">"department"</span>: <span class="str">"Operations"</span>,
+      <span class="key">"course_name"</span>: <span class="str">"Hazmat Handling Certification"</span>,
+      <span class="key">"completion_date"</span>: <span class="str">"2026-01-15"</span>,
+      <span class="key">"certified"</span>: <span class="bool">true</span>,
+      <span class="key">"expiration_date"</span>: <span class="str">"2027-01-15"</span>,
+      <span class="key">"created_at"</span>: <span class="str">"2026-01-15T10:30:00Z"</span>,
+      <span class="key">"updated_at"</span>: <span class="str">"2026-01-15T10:30:00Z"</span>
+    }
+  ],
+  <span class="key">"pagination"</span>: { <span class="key">"page"</span>: <span class="num">1</span>, <span class="key">"limit"</span>: <span class="num">50</span>, <span class="key">"total"</span>: <span class="num">25</span>, <span class="key">"pages"</span>: <span class="num">1</span> }
+}</pre>
+                </div>
+            </div>
+
+            <!-- POST /safety-training -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-post">POST</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-training</code>
+                </div>
+                <p>Create a new safety training record.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Request Body</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>employee_name</code></td><td>string</td><td><span class="tag tag-required">Required</span></td><td>Employee's full name (max 255 chars)</td></tr>
+                        <tr><td><code>department</code></td><td>string</td><td><span class="tag tag-required">Required</span></td><td>Department name (max 255 chars)</td></tr>
+                        <tr><td><code>course_name</code></td><td>string</td><td><span class="tag tag-required">Required</span></td><td>Training course name (max 255 chars)</td></tr>
+                        <tr><td><code>completion_date</code></td><td>string (date)</td><td><span class="tag tag-required">Required</span></td><td>Date course was completed (YYYY-MM-DD)</td></tr>
+                        <tr><td><code>certified</code></td><td>boolean</td><td><span class="tag tag-required">Required</span></td><td>Whether employee is certified</td></tr>
+                        <tr><td><code>expiration_date</code></td><td>string (date)</td><td><span class="tag tag-optional">Optional</span></td><td>Certification expiration date (YYYY-MM-DD)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Request</span>
+{
+  <span class="key">"employee_name"</span>: <span class="str">"Mike Johnson"</span>,
+  <span class="key">"department"</span>: <span class="str">"Operations"</span>,
+  <span class="key">"course_name"</span>: <span class="str">"Hazmat Handling Certification"</span>,
+  <span class="key">"completion_date"</span>: <span class="str">"2026-01-15"</span>,
+  <span class="key">"certified"</span>: <span class="bool">true</span>,
+  <span class="key">"expiration_date"</span>: <span class="str">"2027-01-15"</span>
+}
+
+<span class="cm">// Response</span>
+{ <span class="key">"id"</span>: <span class="str">"new-uuid"</span>, <span class="key">"message"</span>: <span class="str">"Training record created"</span> }</pre>
+                </div>
+                <div class="response-codes">
+                    <span class="tag tag-ok">201 Created</span>
+                    <span class="tag tag-warn">400 Bad Request</span>
+                    <span class="tag tag-err">401 Unauthorized</span>
+                </div>
+            </div>
+
+            <!-- PUT & DELETE -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-put">PUT</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-training/{id}</code>
+                </div>
+                <p>Update an existing training record. Same fields as POST, all optional.</p>
+            </div>
+
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-delete">DELETE</span>
+                    <code style="font-size: 14px; font-weight: 600;">/safety-training/{id}</code>
+                </div>
+                <p>Soft delete a training record.</p>
+            </div>
+        </div>
+
+        <!-- CUSTOMER SURVEYS -->
+        <div class="section">
+            <div class="section-head">
+                <span class="section-dot dot-amber"></span>
+                <h2>Customer Surveys</h2>
+                <span class="section-badge sbadge-crud">Full CRUD</span>
+            </div>
+
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 16px;">
+                Track customer satisfaction metrics including CSAT scores (1-5), NPS ratings (0-10), First Contact Resolution (FCR), response times, and complaint tracking.
+            </p>
+
+            <!-- GET /customer-surveys -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-get">GET</span>
+                    <code style="font-size: 14px; font-weight: 600;">/customer-surveys</code>
+                </div>
+                <p>Retrieve all customer surveys with optional filtering. Includes client name from joined customers table.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Query Parameters</h4>
+                <table class="dt">
+                    <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>client_id</code></td><td>string (UUID)</td><td>Filter by client/customer</td></tr>
+                        <tr><td><code>date_from</code></td><td>string (date)</td><td>Filter surveys on or after date</td></tr>
+                        <tr><td><code>date_to</code></td><td>string (date)</td><td>Filter surveys on or before date</td></tr>
+                        <tr><td><code>has_complaint</code></td><td>boolean</td><td>Filter by complaint status</td></tr>
+                        <tr><td><code>page</code></td><td>integer</td><td>Page number (default: 1)</td></tr>
+                        <tr><td><code>limit</code></td><td>integer</td><td>Results per page (default: 100, max: 500)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Response</span>
+{
+  <span class="key">"customer_surveys"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"client_id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"client_name"</span>: <span class="str">"Acme Corporation"</span>,
+      <span class="key">"date"</span>: <span class="str">"2026-03-18"</span>,
+      <span class="key">"csat"</span>: <span class="num">4.5</span>,
+      <span class="key">"nps"</span>: <span class="num">9</span>,
+      <span class="key">"fcr_resolved"</span>: <span class="bool">true</span>,
+      <span class="key">"response_time_hrs"</span>: <span class="num">2.5</span>,
+      <span class="key">"has_complaint"</span>: <span class="bool">false</span>,
+      <span class="key">"complaint_category"</span>: <span class="bool">null</span>,
+      <span class="key">"feedback"</span>: <span class="str">"Great service!"</span>
+    }
+  ],
+  <span class="key">"pagination"</span>: { <span class="key">"page"</span>: <span class="num">1</span>, <span class="key">"limit"</span>: <span class="num">100</span>, <span class="key">"total"</span>: <span class="num">45</span>, <span class="key">"pages"</span>: <span class="num">1</span> }
+}</pre>
+                </div>
+            </div>
+
+            <!-- POST /customer-surveys -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-post">POST</span>
+                    <code style="font-size: 14px; font-weight: 600;">/customer-surveys</code>
+                </div>
+                <p>Create a new customer survey record.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Request Body</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>client_id</code></td><td>string (UUID)</td><td><span class="tag tag-required">Required</span></td><td>Client/customer being surveyed</td></tr>
+                        <tr><td><code>date</code></td><td>string (date)</td><td><span class="tag tag-required">Required</span></td><td>Survey date (YYYY-MM-DD)</td></tr>
+                        <tr><td><code>csat</code></td><td>number</td><td><span class="tag tag-required">Required</span></td><td>Customer Satisfaction score (1.0 - 5.0)</td></tr>
+                        <tr><td><code>nps</code></td><td>integer</td><td><span class="tag tag-required">Required</span></td><td>Net Promoter Score (0 - 10)</td></tr>
+                        <tr><td><code>fcr_resolved</code></td><td>boolean</td><td><span class="tag tag-required">Required</span></td><td>First Contact Resolution achieved</td></tr>
+                        <tr><td><code>response_time_hrs</code></td><td>number</td><td><span class="tag tag-required">Required</span></td><td>Response time in hours (must be >= 0)</td></tr>
+                        <tr><td><code>has_complaint</code></td><td>boolean</td><td><span class="tag tag-required">Required</span></td><td>Whether survey includes a complaint</td></tr>
+                        <tr><td><code>complaint_category</code></td><td>string</td><td><span class="tag tag-warn">Conditional</span></td><td>Required if has_complaint=true. Values: Service Quality, Timeliness, Billing, Communication, Other</td></tr>
+                        <tr><td><code>feedback</code></td><td>string</td><td><span class="tag tag-optional">Optional</span></td><td>Free-form feedback text</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Request (with complaint)</span>
+{
+  <span class="key">"client_id"</span>: <span class="str">"client-uuid-here"</span>,
+  <span class="key">"date"</span>: <span class="str">"2026-03-18"</span>,
+  <span class="key">"csat"</span>: <span class="num">3.5</span>,
+  <span class="key">"nps"</span>: <span class="num">6</span>,
+  <span class="key">"fcr_resolved"</span>: <span class="bool">false</span>,
+  <span class="key">"response_time_hrs"</span>: <span class="num">8.0</span>,
+  <span class="key">"has_complaint"</span>: <span class="bool">true</span>,
+  <span class="key">"complaint_category"</span>: <span class="str">"Timeliness"</span>,
+  <span class="key">"feedback"</span>: <span class="str">"Pickup was late by 2 hours"</span>
+}
+
+<span class="cm">// Response</span>
+{ <span class="key">"id"</span>: <span class="str">"new-uuid"</span>, <span class="key">"message"</span>: <span class="str">"Survey created"</span> }</pre>
+                </div>
+                <div class="response-codes">
+                    <span class="tag tag-ok">201 Created</span>
+                    <span class="tag tag-warn">400 Bad Request</span>
+                    <span class="tag tag-err">401 Unauthorized</span>
+                </div>
+            </div>
+
+            <!-- PUT & DELETE -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-put">PUT</span>
+                    <code style="font-size: 14px; font-weight: 600;">/customer-surveys/{id}</code>
+                </div>
+                <p>Update an existing survey. Same fields as POST, all optional.</p>
+            </div>
+
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-delete">DELETE</span>
+                    <code style="font-size: 14px; font-weight: 600;">/customer-surveys/{id}</code>
+                </div>
+                <p>Soft delete a survey.</p>
+            </div>
+        </div>
+
+        <!-- PLATFORM USER ACTIVITY -->
+        <div class="section">
+            <div class="section-head">
+                <span class="section-dot dot-teal"></span>
+                <h2>Platform User Activity</h2>
+                <span class="section-badge sbadge-new">New Endpoint</span>
+            </div>
+
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 16px;">
+                Track user activity on the platform for analytics purposes. Supports page views and action events. User ID is automatically extracted from JWT token.
+            </p>
+
+            <!-- POST /platform-user-activity/track -->
+            <div class="card">
+                <div class="endpoint-header">
+                    <span class="tag tag-post">POST</span>
+                    <code style="font-size: 14px; font-weight: 600;">/platform-user-activity/track</code>
+                </div>
+                <p>Track a user activity event (page view or action). User ID is automatically extracted from the JWT token.</p>
+
+                <h4 style="font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin: 16px 0 8px;">Request Body</h4>
+                <table class="dt">
+                    <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>event_type</code></td><td>string</td><td><span class="tag tag-required">Required</span></td><td>Type of event: "page_view" or "action"</td></tr>
+                        <tr><td><code>page</code></td><td>string</td><td><span class="tag tag-warn">Conditional</span></td><td>Page URL/path (required for page_view events)</td></tr>
+                        <tr><td><code>action</code></td><td>string</td><td><span class="tag tag-warn">Conditional</span></td><td>Action name (required for action events)</td></tr>
+                        <tr><td><code>metadata</code></td><td>object</td><td><span class="tag tag-optional">Optional</span></td><td>Additional metadata as key-value pairs</td></tr>
+                        <tr><td><code>timestamp</code></td><td>string (ISO 8601)</td><td><span class="tag tag-optional">Optional</span></td><td>Event timestamp (defaults to current time)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="codeblock">
+<pre><span class="cm">// Page View Event</span>
+{
+  <span class="key">"event_type"</span>: <span class="str">"page_view"</span>,
+  <span class="key">"page"</span>: <span class="str">"/dashboard"</span>,
+  <span class="key">"metadata"</span>: {
+    <span class="key">"referrer"</span>: <span class="str">"/login"</span>,
+    <span class="key">"tab"</span>: <span class="str">"overview"</span>
+  }
+}
+
+<span class="cm">// Action Event</span>
+{
+  <span class="key">"event_type"</span>: <span class="str">"action"</span>,
+  <span class="key">"action"</span>: <span class="str">"export_report"</span>,
+  <span class="key">"metadata"</span>: {
+    <span class="key">"report_type"</span>: <span class="str">"shipments"</span>,
+    <span class="key">"format"</span>: <span class="str">"csv"</span>
+  },
+  <span class="key">"timestamp"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+}
+
+<span class="cm">// Response</span>
+{ <span class="key">"message"</span>: <span class="str">"Event tracked"</span> }</pre>
+                </div>
+                <div class="response-codes">
+                    <span class="tag tag-ok">201 Created</span>
+                    <span class="tag tag-warn">400 Bad Request</span>
+                </div>
+                <p style="font-size: 12px; color: var(--gray-500); margin-top: 12px;">
+                    <strong>Note:</strong> This endpoint is designed to be non-blocking. Even if an error occurs internally, it will return 201 to avoid disrupting the user experience.
+                </p>
+            </div>
+        </div>
+
+        <!-- SUMMARY TABLE -->
+        <div class="section">
+            <div class="section-head">
+                <span class="section-dot dot-teal"></span>
+                <h2>Endpoint Summary</h2>
+            </div>
+
+            <table class="dt">
+                <thead>
+                    <tr>
+                        <th>Entity</th>
+                        <th>GET List</th>
+                        <th>GET Single</th>
+                        <th>POST</th>
+                        <th>PUT</th>
+                        <th>DELETE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Safety Incidents</strong></td>
+                        <td><code>/safety-incidents</code></td>
+                        <td><code>/safety-incidents/{id}</code></td>
+                        <td><code>/safety-incidents</code></td>
+                        <td><code>/safety-incidents/{id}</code></td>
+                        <td><code>/safety-incidents/{id}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Inspection Records</strong></td>
+                        <td><code>/inspection-records</code></td>
+                        <td><code>/inspection-records/{id}</code></td>
+                        <td><code>/inspection-records</code></td>
+                        <td><code>/inspection-records/{id}</code></td>
+                        <td><code>/inspection-records/{id}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Safety Training</strong></td>
+                        <td><code>/safety-training</code></td>
+                        <td><code>/safety-training/{id}</code></td>
+                        <td><code>/safety-training</code></td>
+                        <td><code>/safety-training/{id}</code></td>
+                        <td><code>/safety-training/{id}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Customer Surveys</strong></td>
+                        <td><code>/customer-surveys</code></td>
+                        <td><code>/customer-surveys/{id}</code></td>
+                        <td><code>/customer-surveys</code></td>
+                        <td><code>/customer-surveys/{id}</code></td>
+                        <td><code>/customer-surveys/{id}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Platform Activity</strong></td>
+                        <td><code>/platform-user-activity</code></td>
+                        <td><code>/platform-user-activity/{id}</code></td>
+                        <td><code>/platform-user-activity/track</code></td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <footer class="footer">
+        <p>MPS New CRUD Endpoints Documentation &middot; March 19, 2026 &middot; <a href="https://www.mpsgrp.com">mpsgrp.com</a></p>
+    </footer>
+
+</body>
+</html>
