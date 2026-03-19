@@ -46,8 +46,7 @@ import {
   getMonthKey,
   daysBetween,
 } from "@/lib/report-utils";
-import { useSafetyIncidents, useInspectionRecords } from "@/lib/hooks/use-api-data";
-import { SAFETY_TRAINING_DATA } from "@/lib/mock-kpi-data";
+import { useSafetyIncidents, useInspectionRecords, useSafetyTrainingData } from "@/lib/hooks/use-api-data";
 import type { Shipment } from "@/lib/types";
 import {
   FileText,
@@ -104,6 +103,7 @@ export function RegulatoryContent() {
 
   const { safetyIncidents } = useSafetyIncidents();
   const { inspectionRecords } = useInspectionRecords();
+  const { safetyTrainingData } = useSafetyTrainingData();
 
   const tableRef = React.useRef<HTMLDivElement>(null);
   const pageSize = useAutoPageSize(tableRef);
@@ -221,8 +221,25 @@ export function RegulatoryContent() {
       .sort((a, b) => a.value - b.value);
   }, [inspectionRecords]);
 
-  /* Training completion */
-  const trainingData = SAFETY_TRAINING_DATA;
+  /* Training completion - transform API data to expected format */
+  const trainingData = React.useMemo(() => {
+    if (!safetyTrainingData || safetyTrainingData.length === 0) {
+      // Fallback to empty state
+      return { totalEmployees: 0, modulesCompleted: {} };
+    }
+    // Calculate total employees as max of total_employees across all training types
+    const totalEmployees = Math.max(...safetyTrainingData.map(t => t.total_employees || 0), 1);
+    // Build modules completed map
+    const modulesCompleted: Record<string, number> = {};
+    safetyTrainingData.forEach(t => {
+      const moduleName = t.training_type
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      modulesCompleted[moduleName] = t.completed || 0;
+    });
+    return { totalEmployees, modulesCompleted };
+  }, [safetyTrainingData]);
 
   /* Donut: Manifest Completion (haz only) */
   const manifestDonutData = React.useMemo(() => {

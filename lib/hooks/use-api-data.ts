@@ -1320,3 +1320,138 @@ export function useContainerLocationsBySite(siteId: string | null) {
 
   return { containerLocations, loading, error, refetch };
 }
+
+// ============================================
+// Analytics Aggregation Hooks
+// ============================================
+
+// Type definitions for analytics data
+export interface SafetyTrainingRecord {
+  training_type: string;
+  total_employees: number;
+  completed: number;
+  pending: number;
+}
+
+export interface RouteProgressRecord {
+  date: string;
+  total_routes: number;
+  on_time: number;
+  delayed: number;
+}
+
+export interface YardTurnaroundRecord {
+  facility_name: string;
+  avg_turnaround: number;
+  min_turnaround: number;
+  max_turnaround: number;
+}
+
+export interface ServiceAgreementRate {
+  service_type: string;
+  avg_rate: number;
+  min_rate: number;
+  max_rate: number;
+  agreement_count: number;
+}
+
+export interface PlatformMonthlyEvent {
+  month: string;
+  event_count: number;
+  unique_users: number;
+}
+
+export interface ClientIndustryCode {
+  industry: string;
+  count: number;
+}
+
+// --- Safety Training Analytics ---
+export function useSafetyTrainingData() {
+  const { data, loading, error, refetch } = useApiData<{ safety_training_data: SafetyTrainingRecord[] }>(
+    () => kpiAnalyticsApi.getSafetyTrainingData() as Promise<{ data: { safety_training_data: SafetyTrainingRecord[] } | null; error: string | null }>,
+    []
+  );
+
+  const safetyTrainingData = React.useMemo(
+    () => data?.safety_training_data || [],
+    [data?.safety_training_data]
+  );
+
+  return { safetyTrainingData, loading, error, refetch };
+}
+
+// --- Route Progress Analytics ---
+export function useRouteProgressData() {
+  const { data, loading, error, refetch } = useApiData<{ route_progress_data: RouteProgressRecord[] }>(
+    () => kpiAnalyticsApi.getRouteProgressData() as Promise<{ data: { route_progress_data: RouteProgressRecord[] } | null; error: string | null }>,
+    []
+  );
+
+  const routeProgressData = React.useMemo(
+    () => data?.route_progress_data || [],
+    [data?.route_progress_data]
+  );
+
+  return { routeProgressData, loading, error, refetch };
+}
+
+// --- Yard Turnaround Analytics ---
+export function useYardTurnaroundData() {
+  const { data, loading, error, refetch } = useApiData<{ yard_turnaround_data: YardTurnaroundRecord[] }>(
+    () => kpiAnalyticsApi.getYardTurnaroundData() as Promise<{ data: { yard_turnaround_data: YardTurnaroundRecord[] } | null; error: string | null }>,
+    []
+  );
+
+  const yardTurnaroundData = React.useMemo(
+    () => data?.yard_turnaround_data || [],
+    [data?.yard_turnaround_data]
+  );
+
+  return { yardTurnaroundData, loading, error, refetch };
+}
+
+// --- Service Agreement Rates Analytics ---
+export function useServiceAgreementRates() {
+  const { data, loading, error, refetch } = useApiData<{ service_agreement_rates: ServiceAgreementRate[] }>(
+    () => kpiAnalyticsApi.getServiceAgreementRates() as Promise<{ data: { service_agreement_rates: ServiceAgreementRate[] } | null; error: string | null }>,
+    []
+  );
+
+  const serviceAgreementRates = React.useMemo(
+    () => data?.service_agreement_rates || [],
+    [data?.service_agreement_rates]
+  );
+
+  return { serviceAgreementRates, loading, error, refetch };
+}
+
+// --- Platform Monthly Events Analytics ---
+export function usePlatformMonthlyEvents() {
+  const { data, loading, error, refetch } = useApiData<{ platform_monthly_events: PlatformMonthlyEvent[] }>(
+    () => kpiAnalyticsApi.getPlatformMonthlyEvents() as Promise<{ data: { platform_monthly_events: PlatformMonthlyEvent[] } | null; error: string | null }>,
+    []
+  );
+
+  const platformMonthlyEvents = React.useMemo(
+    () => data?.platform_monthly_events || [],
+    [data?.platform_monthly_events]
+  );
+
+  return { platformMonthlyEvents, loading, error, refetch };
+}
+
+// --- Client Industry Codes Analytics ---
+export function useClientIndustryCodes() {
+  const { data, loading, error, refetch } = useApiData<{ client_industry_codes: ClientIndustryCode[] }>(
+    () => kpiAnalyticsApi.getClientIndustryCodes() as Promise<{ data: { client_industry_codes: ClientIndustryCode[] } | null; error: string | null }>,
+    []
+  );
+
+  const clientIndustryCodes = React.useMemo(
+    () => data?.client_industry_codes || [],
+    [data?.client_industry_codes]
+  );
+
+  return { clientIndustryCodes, loading, error, refetch };
+}

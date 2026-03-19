@@ -57,8 +57,7 @@ import {
 } from "@/lib/report-utils";
 import { cn } from "@/lib/utils";
 import type { Shipment } from "@/lib/types";
-import { useFacilityCapacities, useCollectionEvents } from "@/lib/hooks/use-api-data";
-import { CLIENT_INDUSTRY_CODES } from "@/lib/mock-kpi-data";
+import { useFacilityCapacities, useCollectionEvents, useRouteProgressData, useYardTurnaroundData } from "@/lib/hooks/use-api-data";
 
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
@@ -414,11 +413,10 @@ export function OperationsContent() {
   const industryCodeData = React.useMemo(() => {
     return clients
       .map((c) => {
-        const code = CLIENT_INDUSTRY_CODES[c.id];
         return {
           clientName: c.name,
-          naics: code?.naics ?? "N/A",
-          description: code?.description ?? "Not classified",
+          naics: "N/A", // NAICS codes would require additional data mapping
+          description: c.industry || "Not classified",
         };
       })
       .sort((a, b) => a.clientName.localeCompare(b.clientName));

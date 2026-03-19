@@ -36,12 +36,7 @@ import {
   TOOLTIP_STYLE,
 } from "@/components/charts";
 import { getMonthKey, formatMonthLabel, downloadCsv } from "@/lib/report-utils";
-import { useContainerWeightRecords } from "@/lib/hooks/use-api-data";
-import {
-  ROUTE_PROGRESS_DATA,
-  YARD_TURNAROUND_DATA,
-  SERVICE_AGREEMENT_RATES,
-} from "@/lib/mock-kpi-data";
+import { useContainerWeightRecords, useRouteProgressData, useYardTurnaroundData, useServiceAgreementRates } from "@/lib/hooks/use-api-data";
 import { ProgressList } from "@/components/charts";
 import { ReportContentLayout } from "./report-content-layout";
 import { useReportFilters, REPORT_PRESETS } from "./use-report-filters";
@@ -81,6 +76,9 @@ export function EmissionsContent() {
   } = useReportFilters();
 
   const { containerWeightRecords: containerWeights } = useContainerWeightRecords();
+  const { routeProgressData: apiRouteProgress } = useRouteProgressData();
+  const { yardTurnaroundData: apiYardTurnaround } = useYardTurnaroundData();
+  const { serviceAgreementRates: apiServiceRates } = useServiceAgreementRates();
 
   const hasData = shipments.length > 0;
 
@@ -211,11 +209,18 @@ export function EmissionsContent() {
       .sort((a, b) => b.avgNet - a.avgNet);
   }, [containerWeights]);
 
-  /* Route Progress */
-  const routeProgress = ROUTE_PROGRESS_DATA;
+  /* Route Progress - transform API data */
+  const routeProgress = React.useMemo(() => {
+    return apiRouteProgress.map(r => ({
+      routeId: `route-${r.date}`,
+      siteName: "All Sites",
+      totalStops: r.total_routes || 1,
+      completedStops: r.on_time || 0,
+    }));
+  }, [apiRouteProgress]);
   const avgRouteCompletion = React.useMemo(() => {
     if (routeProgress.length === 0) return 0;
-    const total = routeProgress.reduce((s, r) => s + r.completedStops / r.totalStops, 0);
+    const total = routeProgress.reduce((s, r) => s + r.completedStops / Math.max(r.totalStops, 1), 0);
     return Math.round((total / routeProgress.length) * 100);
   }, [routeProgress]);
 
@@ -227,15 +232,28 @@ export function EmissionsContent() {
     return { total, active, pct: Math.round((active / total) * 100) };
   }, []);
 
-  /* Yard Turnaround */
-  const yardData = YARD_TURNAROUND_DATA;
+  /* Yard Turnaround - transform API data */
+  const yardData = React.useMemo(() => {
+    return apiYardTurnaround.map(y => ({
+      truckId: y.facility_name,
+      transporterName: y.facility_name,
+      turnaroundMinutes: y.avg_turnaround || 0,
+    }));
+  }, [apiYardTurnaround]);
   const avgYardTurnaround = React.useMemo(() => {
     if (yardData.length === 0) return 0;
     return Math.round(yardData.reduce((s, d) => s + d.turnaroundMinutes, 0) / yardData.length);
   }, [yardData]);
 
-  /* Service Agreement Rates */
-  const agreements = SERVICE_AGREEMENT_RATES;
+  /* Service Agreement Rates - transform API data */
+  const agreements = React.useMemo(() => {
+    return apiServiceRates.map(a => ({
+      clientName: a.service_type,
+      transporterName: `${a.agreement_count} agreements`,
+      contractedHaulRate: a.avg_rate || 0,
+      actualAvgRate: a.avg_rate || 0,
+    }));
+  }, [apiServiceRates]);
 
   /* ─── CSV export ─── */
 
